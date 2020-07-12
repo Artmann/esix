@@ -13,6 +13,26 @@ export default class BaseModel {
     return new QueryBuilder(this).where({}).get();
   }
 
+  static async create<T extends BaseModel>(this: ObjectType<T>, attributes: { [index: string]: any }): Promise<T> {
+    const queryBuilder = new QueryBuilder(this);
+
+    if (attributes.hasOwnProperty('id')) {
+      attributes._id = attributes.id;
+      delete attributes.id;
+    }
+
+    const id = await queryBuilder.create(attributes);
+    const model = await queryBuilder.findOne({
+      _id: id
+    });
+
+    if (!model) {
+      throw new Error('Failed to create model.');
+    }
+
+    return model;
+  }
+
   static async find<T extends BaseModel>(this: ObjectType<T>, id?: string | number): Promise<T | null> {
     return new QueryBuilder(this).findOne({
       _id: id
