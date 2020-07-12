@@ -36,7 +36,7 @@ describe('BaseModel', () => {
   beforeEach(() => {
     Object.assign(process.env, {
       'DB_ADAPTER': 'mock',
-      'DB_DATABASE': `test`
+      'DB_DATABASE': 'test'
     });
   });
 
