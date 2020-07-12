@@ -25,6 +25,16 @@ export default class QueryBuilder<T> {
     this.ctor = ctor;
   }
 
+  async create(attributes: { [index: string]: any }): Promise<T> {
+    const collection = await this.getCollection();
+    const { insertedId } = await collection.insertOne({
+      ...attributes,
+      createdAt: Date.now()
+    });
+
+    return insertedId;
+  }
+
   async findOne(query: Query): Promise<T | null> {
     const collection = await this.getCollection();
     const document = await collection.findOne(query);

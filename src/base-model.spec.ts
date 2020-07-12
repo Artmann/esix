@@ -9,7 +9,8 @@ function createCursor(documents: any[]) {
 
 const collection = {
   find: jest.fn(),
-  findOne: jest.fn()
+  findOne: jest.fn(),
+  insertOne: jest.fn()
 };
 const database = {
   collection: () => Promise.resolve(collection)
@@ -199,6 +200,94 @@ describe('BaseModel', () => {
       });
 
       expect(books).toEqual([]);
+    });
+  });
+
+  describe('create', () => {
+    it('creates a new Model.', async() => {
+      const dateSpy = jest.spyOn(Date, 'now');
+
+      dateSpy.mockReturnValue(2323555555555);
+      collection.insertOne.mockResolvedValue({
+        insertedId: '5f0aefba348289a81889a955'
+      });
+      collection.findOne.mockResolvedValue({
+        _id: '5f0aefba348289a81889a955',
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: 0
+      });
+
+      const book = await Book.create({
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: 0
+      });
+
+      expect(collection.insertOne).toHaveBeenCalledWith({
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: 0
+      });
+
+      expect(book).toEqual({
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        id: '5f0aefba348289a81889a955',
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: 0
+      });
+    });
+
+    it('creates a new Model with the given id.', async() => {
+      const dateSpy = jest.spyOn(Date, 'now');
+
+      dateSpy.mockReturnValue(2323555555555);
+      collection.insertOne.mockResolvedValue({
+        insertedId: '5f0aefba348289a81889a955'
+      });
+      collection.findOne.mockResolvedValue({
+        _id: '5f0aefba348289a81889a955',
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: 0
+      });
+
+      const book = await Book.create({
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        id: '5f0aefba348289a81889a955',
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: 0
+      });
+
+      expect(collection.insertOne).toHaveBeenCalledWith({
+        _id: '5f0aefba348289a81889a955',
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: 0
+      });
+
+      expect(book).toEqual({
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        id: '5f0aefba348289a81889a955',
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: 0
+      });
     });
   });
 });
