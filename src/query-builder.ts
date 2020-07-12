@@ -1,6 +1,6 @@
 import { paramCase } from 'change-case';
 import MongoMock from 'mongo-mock';
-import { Collection, Db, MongoClient, ObjectID } from 'mongodb';
+import { Collection, MongoClient, ObjectID } from 'mongodb';
 import pluralize from 'pluralize';
 
 export type Query = { [index: string]: any };
@@ -25,25 +25,27 @@ export default class QueryBuilder<T> {
     this.ctor = ctor;
   }
 
-  async create(attributes: { [index: string]: any }): Promise<T> {
-    const collection = await this.getCollection();
-    const { insertedId } = await collection.insertOne({
-      ...attributes,
-      createdAt: Date.now()
-    });
+  async create(attributes: { [index: string]: any }): Promise<string> {
+    return this.useCollection(async(collection) => {
+      const { insertedId } = await collection.insertOne({
+        ...attributes,
+        createdAt: Date.now()
+      });
 
-    return insertedId;
+      return insertedId;
+    });
   }
 
   async findOne(query: Query): Promise<T | null> {
-    const collection = await this.getCollection();
-    const document = await collection.findOne(query);
+    return this.useCollection(async(collection) => {
+      const document = await collection.findOne(query);
 
-    if (!document) {
-      return null;
-    }
+      if (!document) {
+        return null;
+      }
 
-    return this.createInstance(document);
+      return this.createInstance(document);
+    });
   }
 
   async first(): Promise<T | null> {
@@ -93,17 +95,9 @@ export default class QueryBuilder<T> {
     return instance;
   }
 
-  private async getCollection(): Promise<Collection> {
-    const collectionName = normalizeName(this.ctor.name);
-    const database = await this.getDatabase();
-
-    return database.collection(collectionName);
-  }
-
-  private async getDatabase(): Promise<Db> {
+  private async getClient(): Promise<MongoClient> {
     const adapterName = (process.env['DB_ADAPTER'] || 'default').toLowerCase();
-    const url = process.env['DB_URL'] || '';
-    const databaseName = process.env['DB_DATABASE'] || ''
+    const url = process.env['DB_URL'] || 'mongodb://127.0.0.1:27017/';
     const poolSize = parseInt(process.env['DB_POOL_SIZE'] || '10', 10);
 
     const MockClient = (MongoMock.MongoClient as unknown) as typeof MongoClient;
@@ -121,26 +115,42 @@ export default class QueryBuilder<T> {
       throw new Error(`${ adapterName } is not a valid adapter name. Must be one of ${ validAdapterNames }.`);
     }
 
-    const adapter = adapters[adapterName];
+    const adapter = process.env['CI'] ? adapters.mock : adapters[adapterName];
     const client = await adapter.connect(url, {
       poolSize,
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
 
-    const database = client.db(databaseName);
-
-    return database;
+    return client;
   }
 
-  private async execute(): Promise<T[]> {
-    const collection = await this.getCollection();
-    const documents = await collection.find(this.query).toArray();
-
-    const records = documents
+  private execute(): Promise<T[]> {
+    return this.useCollection(async(collection) => {
+      const documents = await collection.find(this.query).toArray();
+      const records = documents
       .filter(document => document)
       .map((document): T => this.createInstance(document));
 
-    return records;
+      return records;
+    });
+  }
+
+  private async useCollection<K>(block: (collection: Collection) => Promise<any>): Promise<K> {
+    const databaseName = process.env['DB_DATABASE'] || ''
+
+    const collectionName = normalizeName(this.ctor.name);
+
+    const client = await this.getClient();
+    const database = await client.db(databaseName);
+    const collection = await database.collection(collectionName);
+
+    const result = await block(collection);
+
+    if (client.close) {
+      await client.close();
+    }
+
+    return result;
   }
 }
