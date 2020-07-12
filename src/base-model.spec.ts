@@ -41,7 +41,7 @@ describe('BaseModel', () => {
 
   describe('find', () => {
 
-    it('returns null for non existing documents', async() => {
+    it('returns null for non existing documents.', async() => {
       const book = await Book.find('abc-123');
 
       expect(collection.findOne).toHaveBeenCalledWith({
@@ -51,7 +51,7 @@ describe('BaseModel', () => {
       expect(book).toBeNull();
     });
 
-    it('finds a document by id', async() => {
+    it('finds a document by id.', async() => {
       collection.findOne.mockResolvedValue({
         _id: new ObjectId('5f0aeaeacff57e3ec676b340'),
         authorId: 'author-1',
@@ -79,7 +79,7 @@ describe('BaseModel', () => {
   });
 
   describe('all',  () => {
-    it ('finds all documets', async() => {
+    it('finds all documets.', async() => {
       const cursor = createCursor([
         {
           _id: new ObjectId('5f0aeaeacff57e3ec676b340'),
@@ -123,6 +123,18 @@ describe('BaseModel', () => {
           updatedAt: 0
         }
       ]);
+    });
+
+    it('returns an empty array if there is no documents.', async() => {
+      const cursor = createCursor([]);
+
+      collection.find.mockReturnValue(cursor);
+
+      const books = await Book.all();
+
+      expect(collection.find).toHaveBeenCalledWith({});
+
+      expect(books).toEqual([]);
     });
   });
 
@@ -173,6 +185,20 @@ describe('BaseModel', () => {
           updatedAt: 0
         }
       ]);
+    });
+
+    it('returns an empty array if there is no matching documents.', async() => {
+      const cursor = createCursor([]);
+
+      collection.find.mockReturnValue(cursor);
+
+      const books = await Book.where('authorId', 'author-2').get();
+
+      expect(collection.find).toHaveBeenCalledWith({
+        authorId: 'author-2'
+      });
+
+      expect(books).toEqual([]);
     });
   });
 });
