@@ -18,4 +18,8 @@ export default class BaseModel {
       _id: id
     });
   }
+
+  static where<T extends BaseModel>(this: ObjectType<T>, key: string, value: any): QueryBuilder<T> {
+    return new QueryBuilder(this).where(key, value);
+  }
 }

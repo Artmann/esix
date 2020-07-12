@@ -120,4 +120,52 @@ describe('BaseModel', () => {
       }
     ]);
   });
+
+  it ('finds all documets that matches a query', async() => {
+    const cursor = createCursor([
+      {
+        _id: new ObjectId('5f0aeaeacff57e3ec676b340'),
+        authorId: 'author-1',
+        createdAt: 1594552340652,
+        isbn: '978-3-16-148410-0',
+        title: 'Esix for dummies',
+        updatedAt: 0
+      },
+      {
+        _id: new ObjectId('5f0aefba348289a81889a920'),
+        authorId: 'author-1',
+        createdAt: 1594552346653,
+        isbn: '978-3-16-148410-1',
+        title: 'Esix for dummies 2',
+        updatedAt: 0
+      }
+    ]);
+
+    collection.find.mockReturnValue(cursor);
+
+    const books = await Book.where('authorId', 'author-1').get();
+
+    expect(collection.find).toHaveBeenCalledWith({
+      authorId: 'author-1'
+    });
+
+    expect(books).toEqual([
+      {
+        authorId: 'author-1',
+        createdAt: 1594552340652,
+        id: '5f0aeaeacff57e3ec676b340',
+        isbn: '978-3-16-148410-0',
+        title: 'Esix for dummies',
+        updatedAt: 0
+      },
+      {
+        authorId: 'author-1',
+        createdAt: 1594552346653,
+        id: '5f0aefba348289a81889a920',
+        isbn: '978-3-16-148410-1',
+        title: 'Esix for dummies 2',
+        updatedAt: 0
+      }
+    ]);
+  });
 });
