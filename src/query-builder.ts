@@ -46,6 +46,20 @@ export default class QueryBuilder<T> {
     return this.createInstance(document);
   }
 
+  async first(): Promise<T | null> {
+    const models = await this.execute();
+
+    if (models.length === 0) {
+      return null;
+    }
+
+    return models[0];
+  }
+
+  async get(): Promise<T[]> {
+    return this.execute();
+  }
+
   where(query: Query): QueryBuilder<T>;
   where(key: string, value: any): QueryBuilder<T>;
   where(queryOrKey: Query | string, value?: any): QueryBuilder<T> {
@@ -57,17 +71,6 @@ export default class QueryBuilder<T> {
     };
 
     return this;
-  }
-
-  async get(): Promise<T[]> {
-    const collection = await this.getCollection();
-    const documents = await collection.find(this.query).toArray();
-
-    const records = documents
-      .filter(document => document)
-      .map((document): T => this.createInstance(document));
-
-    return records;
   }
 
   private createInstance<T>(document: Document): T {
@@ -128,5 +131,16 @@ export default class QueryBuilder<T> {
     const database = client.db(databaseName);
 
     return database;
+  }
+
+  private async execute(): Promise<T[]> {
+    const collection = await this.getCollection();
+    const documents = await collection.find(this.query).toArray();
+
+    const records = documents
+      .filter(document => document)
+      .map((document): T => this.createInstance(document));
+
+    return records;
   }
 }
