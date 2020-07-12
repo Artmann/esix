@@ -3,9 +3,10 @@ import MongoMock from 'mongo-mock';
 import { Collection, Db, MongoClient, ObjectID } from 'mongodb';
 import pluralize from 'pluralize';
 
+export type Query = { [index: string]: any };
+
 type Document = { [index: string]: any };
 type ObjectType<T> = { new(): T, };
-type Query = { [index: string]: any };
 
 function isString(x: any): x is string {
   return typeof x === 'string';
