@@ -1,0 +1,35 @@
+{
+  "name": "esix",
+  "version": "1.0.0",
+  "description": "A really slick ORM for MongoDB.",
+  "main": "src/index.ts",
+  "repository": "https://github.com/Artmann/esix",
+  "author": "Christoffer Artmann",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint ./src --ext .ts",
+    "test": "jest",
+    "test:watch": "jest --watchAll"
+  },
+  "dependencies": {
+    "@types/change-case": "^2.3.1",
+    "@types/pluralize": "^0.0.29",
+    "change-case": "^4.1.1",
+    "mongo-mock": "^4.0.0",
+    "mongodb": "^3.5.9",
+    "pluralize": "^8.0.0",
+    "reflect-metadata": "^0.1.13"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.4",
+    "@types/mongodb": "^3.5.25",
+    "@types/node": "^14.0.22",
+    "@typescript-eslint/eslint-plugin": "^3.6.0",
+    "@typescript-eslint/parser": "^3.6.0",
+    "eslint": "^7.4.0",
+    "jest": "^26.1.0",
+    "ts-jest": "^26.1.1",
+    "typescript": "^3.9.6"
+  }
+}
