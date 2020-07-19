@@ -32,3 +32,5 @@ async function postHandler(request: Request, response: Response): Promise<void> 
   response.json({ post });
 }
 ```
+
+You can read more about how to use Esix at the docuementation site [https://esix.netlify.app/](https://esix.netlify.app/).
