@@ -19,8 +19,11 @@ interface SiteData {
   pages: Page[];
 }
 
-let templateCache: HandlebarsTemplateDelegate;
+function isString(x: any): x is string {
+  return typeof x === "string";
+}
 
+let templateCache: HandlebarsTemplateDelegate;
 async function getTemplate(): Promise<HandlebarsTemplateDelegate> {
   if (templateCache) {
     return templateCache;
@@ -77,11 +80,14 @@ async function loadSiteData(): Promise<SiteData> {
   });
 
   const pages = await Promise.all<Page>(
-    config.links.map(async(filename: string): Promise<Page> => {
+    config.links.map(async(filenameOrObject: any): Promise<Page> => {
+      const filename: string = isString(filenameOrObject) ? filenameOrObject : filenameOrObject.filename;
+      const newFilename = filename.replace('.md', '.html');
+      const url = isString(filenameOrObject) ? `/${newFilename}` : filenameOrObject.path;
+
       const path = join(__dirname, 'pages', filename);
       const file = await fs.readFile(path, 'utf-8');
       const content = frontMatter(file);
-      const newFilename = filename.replace('.md', '.html');
 
       const attributes = content.attributes as any;
 
@@ -90,7 +96,7 @@ async function loadSiteData(): Promise<SiteData> {
         description: attributes.description || 'Esix is a slick ORM for MongoDB.',
         filename: newFilename,
         title: attributes.title,
-        url: `/${newFilename}`
+        url: url
       };
     })
   );

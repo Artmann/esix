@@ -1,6 +1,9 @@
 {
   "links": [
-    "index.md",
+    {
+      "filename": "index.md",
+      "path": "/"
+    },
     "configuration.md",
     "retrieving-models.md"
   ]
