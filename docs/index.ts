@@ -23,24 +23,22 @@ function isString(x: any): x is string {
   return typeof x === "string";
 }
 
-let templateCache: HandlebarsTemplateDelegate;
-async function getTemplate(): Promise<HandlebarsTemplateDelegate> {
-  if (templateCache) {
-    return templateCache;
+let templateCache: { [ index: string ]: HandlebarsTemplateDelegate } = {};
+async function getTemplate(name: string): Promise<HandlebarsTemplateDelegate> {
+  if (!templateCache[name]) {
+    const source = await fs.readFile(join(__dirname, name), 'utf-8');
+    const template = compile(source);
+
+    templateCache[name] = template;
   }
 
-  const source = await fs.readFile(join(__dirname, 'page-template.hbs'), 'utf-8');
-  const template = compile(source);
-
-  templateCache = template;
-
-  return templateCache;
+  return templateCache[name];
 }
 
 async function createPage(page: Page, siteData: SiteData, buildConfig: BuildConfig): Promise<void> {
   console.log(`Generating ${ page.title }.`);
 
-  const template = await getTemplate();
+  const template = await getTemplate('page.hbs');
 
   const styles = await fs.readFile(join(__dirname, 'styles.css'), 'utf-8');
 
@@ -106,6 +104,29 @@ async function loadSiteData(): Promise<SiteData> {
   };
 }
 
+async function generateSitemap(siteData: SiteData, buildConfig: BuildConfig): Promise<void> {
+  console.log(`Generating Sitemap.`);
+
+  const template = await getTemplate('sitemap.hbs');
+
+  const d = Date.now();
+  const ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(d)
+  const mo = new Intl.DateTimeFormat('en', { month: 'short' }).format(d)
+  const da = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(d)
+
+  const modifiedAt = `${da}-${mo}-${ye}`;
+
+  const html = template({
+    urls: siteData.pages.map(page => ({
+      modifiedAt,
+      url: `https://esix.netlify.app${page.url}`
+    }))
+  });
+  const outputPath = join(buildConfig.outputPath, 'sitemap.xml');
+
+  await fs.writeFile(outputPath, html);
+}
+
 (async () => {
   const siteData = await loadSiteData();
 
@@ -120,4 +141,6 @@ async function loadSiteData(): Promise<SiteData> {
   await Promise.all(
     siteData.pages.map(page => createPage(page, siteData, buildConfig))
   );
+
+  await generateSitemap(siteData, buildConfig);
 })();
