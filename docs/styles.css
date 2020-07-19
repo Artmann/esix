@@ -1,0 +1,95 @@
+body {
+  color: #4A5568;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  padding: 0;
+  margin: 0;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #4A5568;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 300;
+  margin: 0;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  font-size: 1.5rem;
+}
+
+h2 {
+  font-size: 1.35rem;
+}
+
+h3 {
+  font-size: 1.2rem;
+}
+
+.container {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+nav {
+  overflow: auto hidden;
+  padding: 2rem;
+  text-align: center;
+}
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  margin-bottom: 0.45rem;
+}
+
+nav ul li a {
+  color: #4A5568;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+.content {
+  border-bottom: solid 1px #EDF2F7;
+  line-height: 1.65;
+  max-width: 960px;
+  padding: 1.5rem 2rem;
+}
+
+code {
+  background: hsl(210, 38%, 98%, 1);
+  display: block;
+  font-family: 'Source Code Pro', source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.75rem;
+  margin-bottom: 1.75rem;
+  padding: 1rem;
+}
+
+@media only screen and (min-device-width: 768px) {
+  .container {
+    flex-direction: row;
+  }
+
+  nav {
+    border-right: solid 1px #EDF2F7;
+    min-height: 100vh;
+    padding: 2rem 4rem 2rem 2rem;
+    text-align: left;
+  }
+
+  .content {
+    border: none;
+    padding: 2rem 4rem;
+  }
+}

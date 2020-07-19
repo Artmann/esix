@@ -11,6 +11,10 @@ class BlogPost extends BaseModel {
   public authorId?: string;
 }
 
+class Flight extends BaseModel {
+  public name = '';
+}
+
 describe('Integration', () => {
   beforeEach(() => {
     Object.assign(process.env, {
@@ -70,3 +74,33 @@ describe('Integration', () => {
   });
 });
 
+describe('Documentation', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      'DB_ADAPTER': 'mock',
+      'DB_DATABASE': `test-${ createUuid() }`
+    });
+  });
+
+  it('lists all flights', async() => {
+    const spy = jest.spyOn(console, 'log');
+
+    await Flight.create({
+      name: 'Indian Air 9600'
+    });
+    await Flight.create({
+      name: 'Flight 714 to Sydney'
+    });
+
+    const flights = await Flight.all();
+
+    flights.forEach(flight => {
+      console.log(flight.name);
+    });
+
+    expect(spy.mock.calls).toEqual([
+      ['Indian Air 9600'],
+      ['Flight 714 to Sydney']
+    ]);
+  });
+});

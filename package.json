@@ -8,6 +8,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
+    "docs:build": "ts-node ./docs/index.ts",
+    "docs:serve": "serve docs/dist",
     "lint": "eslint ./src --ext .ts",
     "test": "jest --coverage --detectOpenHandles --forceExit --runInBand",
     "test:watch": "jest --watchAll"
@@ -25,15 +27,24 @@
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
+    "@types/handlebars": "^4.1.0",
+    "@types/highlight.js": "^9.12.4",
     "@types/jest": "^26.0.4",
+    "@types/marked": "^1.1.0",
     "@types/mongodb": "^3.5.25",
     "@types/node": "^14.0.22",
     "@types/uuid": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^3.6.0",
     "@typescript-eslint/parser": "^3.6.0",
     "eslint": "^7.4.0",
+    "front-matter": "^4.0.2",
+    "handlebars": "^4.7.6",
+    "highlight.js": "^10.1.1",
     "jest": "^26.1.0",
+    "marked": "^1.1.1",
+    "serve": "^11.3.2",
     "ts-jest": "^26.1.1",
+    "ts-node": "^8.10.2",
     "typescript": "^3.9.6",
     "uuid": "^8.2.0"
   }
