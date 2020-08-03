@@ -1,5 +1,5 @@
 import { v1 as createUuid } from 'uuid';
-import BaseModel from './base-model';
+import { BaseModel } from './';
 
 class Author extends BaseModel {
   public name = '';
