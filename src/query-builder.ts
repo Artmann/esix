@@ -1,12 +1,10 @@
 import { paramCase } from 'change-case';
 import MongoMock from 'mongo-mock';
-import { Collection, MongoClient, ObjectID } from 'mongodb';
+import { Collection, MongoClient, ObjectId } from 'mongodb';
 import pluralize from 'pluralize';
+import { Dictionary, Document, ObjectType } from './types';
 
 export type Query = { [index: string]: any };
-
-type Document = { [index: string]: any };
-type ObjectType<T> = { new(): T, };
 
 function isString(x: any): x is string {
   return typeof x === 'string';
@@ -14,6 +12,29 @@ function isString(x: any): x is string {
 
 function normalizeName(className: string): string {
   return pluralize(paramCase(className));
+}
+
+function normalizeAttributes(originalAttributes: Dictionary): Dictionary {
+  const attributes = { ...originalAttributes };
+
+  if (!attributes.id) {
+    attributes.id = new ObjectId().toHexString();
+  }
+
+  if (attributes.hasOwnProperty('id')) {
+    attributes._id = attributes.id;
+    delete attributes.id;
+  }
+
+  if (!attributes['createdAt']) {
+    attributes.createdAt = Date.now();
+  }
+
+  if (!attributes['updatedAt']) {
+    attributes.updatedAt = null;
+  }
+
+  return attributes;
 }
 
 export default class QueryBuilder<T> {
@@ -26,11 +47,10 @@ export default class QueryBuilder<T> {
   }
 
   async create(attributes: { [index: string]: any }): Promise<string> {
+    attributes = normalizeAttributes(attributes);
+
     return this.useCollection(async(collection) => {
-      const { insertedId } = await collection.insertOne({
-        ...attributes,
-        createdAt: Date.now()
-      });
+      const { insertedId } = await collection.insertOne(attributes);
 
       return insertedId;
     });
@@ -62,6 +82,23 @@ export default class QueryBuilder<T> {
     return this.execute();
   }
 
+  async save(attributes: Dictionary): Promise<string> {
+    attributes = normalizeAttributes(attributes);
+
+    const id = attributes._id;
+
+    return this.useCollection(async(collection) => {
+      const filter = { _id: id };
+      const options = {
+        upsert: true
+      };
+
+      await collection.updateOne(filter, attributes, options);
+
+      return id;
+    });
+  }
+
   where(query: Query): QueryBuilder<T>;
   where(key: string, value: any): QueryBuilder<T>;
   where(queryOrKey: Query | string, value?: any): QueryBuilder<T> {
@@ -86,9 +123,9 @@ export default class QueryBuilder<T> {
       instance[prop] = document[prop];
     }
 
-    const id = typeof document._id === 'string'
+    const id = isString(document._id)
       ? document._id
-      : (document._id as ObjectID).toHexString();
+      : (document._id as ObjectId).toHexString();
 
     instance.id = id;
 

@@ -1,25 +1,19 @@
 import 'reflect-metadata';
 
 import QueryBuilder from './query-builder';
-
-type ObjectType<T> = { new (): T,  };
+import { ObjectType, Dictionary } from './types';
 
 export default class BaseModel {
   public createdAt = 0;
   public id = '';
-  public updatedAt = 0;
+  public updatedAt: number | null = null;
 
   static async all<T extends BaseModel>(this: ObjectType<T>): Promise<T[]> {
     return new QueryBuilder(this).where({}).get();
   }
 
-  static async create<T extends BaseModel>(this: ObjectType<T>, attributes: { [index: string]: any }): Promise<T> {
+  static async create<T extends BaseModel>(this: ObjectType<T>, attributes: Dictionary): Promise<T> {
     const queryBuilder = new QueryBuilder(this);
-
-    if (attributes.hasOwnProperty('id')) {
-      attributes._id = attributes.id;
-      delete attributes.id;
-    }
 
     const id = await queryBuilder.create(attributes);
     const model = await queryBuilder.findOne({
@@ -41,5 +35,23 @@ export default class BaseModel {
 
   static where<T extends BaseModel>(this: ObjectType<T>, key: string, value: any): QueryBuilder<T> {
     return new QueryBuilder(this).where(key, value);
+  }
+
+  async save(): Promise<void> {
+    const queryBuilder = new QueryBuilder(this.constructor as ObjectType<BaseModel>);
+
+    if (this.id) {
+      this.updatedAt = Date.now();
+    } else {
+      this.createdAt = Date.now();
+    }
+
+    const attributes = { ...this };
+
+    const id = await queryBuilder.save(attributes);
+
+    if (!this.id) {
+      this.id = id;
+    }
   }
 }

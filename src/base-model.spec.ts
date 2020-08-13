@@ -1,5 +1,9 @@
-import BaseModel from './base-model';
 import { ObjectId } from 'mongodb';
+import { mocked } from 'ts-jest/utils';
+
+import BaseModel from './base-model';
+
+jest.mock('mongodb');
 
 function createCursor(documents: any[]) {
   return {
@@ -10,7 +14,8 @@ function createCursor(documents: any[]) {
 const collection = {
   find: jest.fn(),
   findOne: jest.fn(),
-  insertOne: jest.fn()
+  insertOne: jest.fn(),
+  updateOne: jest.fn()
 };
 const database = {
   collection: () => Promise.resolve(collection)
@@ -38,26 +43,40 @@ describe('BaseModel', () => {
       'DB_ADAPTER': 'mock',
       'DB_DATABASE': 'test'
     });
+
+    const ids = [
+      '5f3568f2a0cdd1c9ba411c43',
+      '5f3569089f762e8323e4eb84',
+      '5f35690bf7f2173b99d638a3',
+      '5f35690fd9415667293e27b1',
+      '5f356912588afedc2a260ead',
+    ];
+
+    let idCounter = 0;
+
+    mocked(ObjectId.prototype.toHexString).mockImplementation(() => {
+      return ids[idCounter++ % ids.length];
+    });
   });
 
   describe('all',  () => {
     it('finds all documets.', async() => {
       const cursor = createCursor([
         {
-          _id: new ObjectId('5f0aeaeacff57e3ec676b340'),
+          _id: '5f3568f2a0cdd1c9ba411c43',
           authorId: 'author-1',
           createdAt: 1594552340652,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
-          updatedAt: 0
+          updatedAt: null
         },
         {
-          _id: new ObjectId('5f0aefba348289a81889a920'),
+          _id: '5f3569089f762e8323e4eb84',
           authorId: 'author-1',
           createdAt: 1594552346653,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
-          updatedAt: 0
+          updatedAt: null
         }
       ]);
 
@@ -71,18 +90,18 @@ describe('BaseModel', () => {
         {
           authorId: 'author-1',
           createdAt: 1594552340652,
-          id: '5f0aeaeacff57e3ec676b340',
+          id: '5f3568f2a0cdd1c9ba411c43',
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
-          updatedAt: 0
+          updatedAt: null
         },
         {
           authorId: 'author-1',
           createdAt: 1594552346653,
-          id: '5f0aefba348289a81889a920',
+          id: '5f3569089f762e8323e4eb84',
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
-          updatedAt: 0
+          updatedAt: null
         }
       ]);
     });
@@ -105,6 +124,9 @@ describe('BaseModel', () => {
       const dateSpy = jest.spyOn(Date, 'now');
 
       dateSpy.mockReturnValue(2323555555555);
+
+      mocked(ObjectId.prototype.toHexString).mockReturnValueOnce('5f0aefba348289a81889a955');
+
       collection.insertOne.mockResolvedValue({
         insertedId: '5f0aefba348289a81889a955'
       });
@@ -114,7 +136,7 @@ describe('BaseModel', () => {
         createdAt: 2323555555555,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
-        updatedAt: 0
+        updatedAt: null
       });
 
       const book = await Book.create({
@@ -122,15 +144,16 @@ describe('BaseModel', () => {
         createdAt: 2323555555555,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
-        updatedAt: 0
+        updatedAt: null
       });
 
       expect(collection.insertOne).toHaveBeenCalledWith({
+        _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
         createdAt: 2323555555555,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
-        updatedAt: 0
+        updatedAt: null
       });
 
       expect(book).toEqual({
@@ -139,12 +162,14 @@ describe('BaseModel', () => {
         id: '5f0aefba348289a81889a955',
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
-        updatedAt: 0
+        updatedAt: null
       });
     });
 
     it('creates a new Model with the given id.', async() => {
       const dateSpy = jest.spyOn(Date, 'now');
+
+      mocked(ObjectId.prototype.toHexString).mockReturnValue('5f0aefba348289a81889a955');
 
       dateSpy.mockReturnValue(2323555555555);
       collection.insertOne.mockResolvedValue({
@@ -156,7 +181,7 @@ describe('BaseModel', () => {
         createdAt: 2323555555555,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
-        updatedAt: 0
+        updatedAt: null
       });
 
       const book = await Book.create({
@@ -165,7 +190,7 @@ describe('BaseModel', () => {
         id: '5f0aefba348289a81889a955',
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
-        updatedAt: 0
+        updatedAt: null
       });
 
       expect(collection.insertOne).toHaveBeenCalledWith({
@@ -174,7 +199,7 @@ describe('BaseModel', () => {
         createdAt: 2323555555555,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
-        updatedAt: 0
+        updatedAt: null
       });
 
       expect(book).toEqual({
@@ -183,7 +208,7 @@ describe('BaseModel', () => {
         id: '5f0aefba348289a81889a955',
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
-        updatedAt: 0
+        updatedAt: null
       });
     });
   });
@@ -204,27 +229,27 @@ describe('BaseModel', () => {
 
     it('finds a document by id.', async() => {
       collection.findOne.mockResolvedValue({
-        _id: new ObjectId('5f0aeaeacff57e3ec676b340'),
+        _id: '5f3568f2a0cdd1c9ba411c43',
         authorId: 'author-1',
         createdAt: 1594552340652,
         isbn: '978-3-16-148410-0',
         title: 'Esix for dummies',
-        updatedAt: 0
+        updatedAt: null
       });
 
-      const book = await Book.find('5f0aeaeacff57e3ec676b340');
+      const book = await Book.find('5f3568f2a0cdd1c9ba411c43');
 
       expect(collection.findOne).toHaveBeenCalledWith({
-        _id: '5f0aeaeacff57e3ec676b340'
+        _id: '5f3568f2a0cdd1c9ba411c43'
       });
 
       expect(book).toEqual({
         authorId: 'author-1',
         createdAt: 1594552340652,
-        id: '5f0aeaeacff57e3ec676b340',
+        id: '5f3568f2a0cdd1c9ba411c43',
         isbn: '978-3-16-148410-0',
         title: 'Esix for dummies',
-        updatedAt: 0
+        updatedAt: null
       });
     });
   });
@@ -233,20 +258,20 @@ describe('BaseModel', () => {
     it('returns the first model.', async() => {
       const cursor = createCursor([
         {
-          _id: new ObjectId('5f0aeaeacff57e3ec676b340'),
+          _id: '5f0aeaeacff57e3ec676b340',
           authorId: 'author-1',
           createdAt: 1594552340652,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
-          updatedAt: 0
+          updatedAt: null
         },
         {
-          _id: new ObjectId('5f0aefba348289a81889a920'),
+          _id: '5f0aeaeacff57e3ec676b340',
           authorId: 'author-1',
           createdAt: 1594552346653,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
-          updatedAt: 0
+          updatedAt: null
         }
       ]);
 
@@ -264,7 +289,7 @@ describe('BaseModel', () => {
         id: '5f0aeaeacff57e3ec676b340',
         isbn: '978-3-16-148410-0',
         title: 'Esix for dummies',
-        updatedAt: 0
+        updatedAt: null
       });
     });
 
@@ -283,24 +308,53 @@ describe('BaseModel', () => {
     });
   });
 
+  describe('save', () => {
+    it('saves a book', async() => {
+      jest.spyOn(Date, 'now').mockReturnValue(42);
+
+      mocked(ObjectId.prototype.toHexString).mockReturnValue('5f347707fdec6e388b5c1d33');
+
+      const book = new Book();
+
+      book.title = 'The Testaments';
+      book.isbn = '9780525590453';
+      book.authorId = 'author-1';
+
+      await book.save();
+
+      expect(collection.updateOne).toHaveBeenCalledWith({
+        _id: '5f347707fdec6e388b5c1d33'
+      }, {
+        _id: '5f347707fdec6e388b5c1d33',
+        authorId: 'author-1',
+        createdAt: 42,
+        isbn: '9780525590453',
+        title: 'The Testaments',
+        updatedAt: null
+      }, {
+        upsert: true
+      });
+    });
+  });
+
   describe('where', () => {
     it ('finds all documets that matches a query', async() => {
       const cursor = createCursor([
         {
-          _id: new ObjectId('5f0aeaeacff57e3ec676b340'),
+          _id: '5f0aeaeacff57e3ec676b340',
           authorId: 'author-1',
           createdAt: 1594552340652,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
-          updatedAt: 0
+          updatedAt: null
         },
         {
-          _id: new ObjectId('5f0aefba348289a81889a920'),
+          _id: '5f0aefba348289a81889a920',
           authorId: 'author-1',
           createdAt: 1594552346653,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
-          updatedAt: 0
+          updatedAt: null
         }
       ]);
 
@@ -319,7 +373,7 @@ describe('BaseModel', () => {
           id: '5f0aeaeacff57e3ec676b340',
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
-          updatedAt: 0
+          updatedAt: null
         },
         {
           authorId: 'author-1',
@@ -327,7 +381,7 @@ describe('BaseModel', () => {
           id: '5f0aefba348289a81889a920',
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
-          updatedAt: 0
+          updatedAt: null
         }
       ]);
     });

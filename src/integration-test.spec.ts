@@ -44,7 +44,7 @@ describe('Integration', () => {
       createdAt,
       id,
       title: '21 tips to improve your MongoDB setup.',
-      updatedAt: 0
+      updatedAt: null
     });
   });
 
@@ -69,9 +69,58 @@ describe('Integration', () => {
       createdAt,
       id,
       title: 'How to store things in MongoDB.',
-      updatedAt: 0
+      updatedAt: null
     });
   });
+
+  it('updates values and persist them', async() => {
+    const dateSpy = jest.spyOn(Date, 'now');
+
+    dateSpy.mockReturnValue(42);
+
+    const author = await Author.create({
+      name: 'John Smith'
+    });
+
+    dateSpy.mockReturnValue(123);
+
+    author.name = 'John Oliver';
+
+    await author.save();
+
+    const author2 = await Author.find(author.id);
+
+    expect(author).toEqual({
+      createdAt: 42,
+      id: author.id,
+      name: 'John Oliver',
+      updatedAt: 123
+    });
+
+    expect(author2).toEqual({
+      createdAt: 42,
+      id: author.id,
+      name: 'John Oliver',
+      updatedAt: 123
+    });
+  });
+
+  it('persists a new model', async() => {
+    jest.spyOn(Date, 'now').mockReturnValue(42);
+
+    const author = new Author();
+
+    author.name = 'Molly Markel';
+
+    await author.save();
+
+    expect(author).toEqual({
+      createdAt: 42,
+      id: expect.any(String),
+      name: 'Molly Markel',
+      updatedAt: null
+    });
+  })
 });
 
 describe('Documentation', () => {
@@ -84,6 +133,9 @@ describe('Documentation', () => {
 
   it('lists all flights', async() => {
     const spy = jest.spyOn(console, 'log');
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    spy.mockImplementation(() => {});
 
     await Flight.create({
       name: 'Indian Air 9600'
