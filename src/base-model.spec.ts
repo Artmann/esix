@@ -1,5 +1,9 @@
-import BaseModel from './base-model';
 import { ObjectId } from 'mongodb';
+import { mocked } from 'ts-jest/utils';
+
+import BaseModel from './base-model';
+
+jest.mock('mongodb');
 
 function createCursor(documents: any[]) {
   return {
@@ -10,7 +14,8 @@ function createCursor(documents: any[]) {
 const collection = {
   find: jest.fn(),
   findOne: jest.fn(),
-  insertOne: jest.fn()
+  insertOne: jest.fn(),
+  updateOne: jest.fn()
 };
 const database = {
   collection: () => Promise.resolve(collection)
@@ -280,6 +285,35 @@ describe('BaseModel', () => {
       });
 
       expect(book).toBeNull();
+    });
+  });
+
+  describe('save', () => {
+    it.only('saves a book', async() => {
+      jest.spyOn(Date, 'now').mockReturnValue(42);
+
+      mocked(ObjectId.prototype.toHexString).mockReturnValue('5f347707fdec6e388b5c1d33');
+
+      const book = new Book();
+
+      book.title = 'The Testaments';
+      book.isbn = '9780525590453';
+      book.authorId = 'author-1';
+
+      await book.save();
+
+      expect(collection.updateOne).toHaveBeenCalledWith({
+        _id: '5f347707fdec6e388b5c1d33'
+      }, {
+        _id: '5f347707fdec6e388b5c1d33',
+        authorId: 'author-1',
+        createdAt: 42,
+        isbn: '9780525590453',
+        title: 'The Testaments',
+        updatedAt: null
+      }, {
+        upsert: true
+      });
     });
   });
 
