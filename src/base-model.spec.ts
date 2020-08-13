@@ -59,6 +59,10 @@ describe('BaseModel', () => {
     });
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('all',  () => {
     it('finds all documets.', async() => {
       const cursor = createCursor([
@@ -398,6 +402,58 @@ describe('BaseModel', () => {
       });
 
       expect(books).toEqual([]);
+    });
+  });
+
+  describe('whereIn', () => {
+    it ('finds all documets that matches the ids', async() => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isbn: '978-3-16-148410-0',
+          title: 'Esix for dummies',
+          updatedAt: null
+        },
+        {
+          _id: '5f0aefba348289a81889a920',
+          authorId: 'author-1',
+          createdAt: 1594552346653,
+          isbn: '978-3-16-148410-1',
+          title: 'Esix for dummies 2',
+          updatedAt: null
+        }
+      ]);
+
+      collection.find.mockReturnValue(cursor);
+
+      const books = await Book.whereIn('id', ['5f0aeaeacff57e3ec676b340', '5f0aefba348289a81889a920']).get();
+
+      expect(collection.find).toHaveBeenCalledWith({
+        _id: {
+          $in: ['5f0aeaeacff57e3ec676b340', '5f0aefba348289a81889a920']
+        }
+      });
+
+      expect(books).toEqual([
+        {
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          id: '5f0aeaeacff57e3ec676b340',
+          isbn: '978-3-16-148410-0',
+          title: 'Esix for dummies',
+          updatedAt: null
+        },
+        {
+          authorId: 'author-1',
+          createdAt: 1594552346653,
+          id: '5f0aefba348289a81889a920',
+          isbn: '978-3-16-148410-1',
+          title: 'Esix for dummies 2',
+          updatedAt: null
+        }
+      ]);
     });
   });
 });

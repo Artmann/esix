@@ -112,6 +112,29 @@ export default class QueryBuilder<T> {
     return this;
   }
 
+  whereIn(fieldName: string, values: any[]): QueryBuilder<T> {
+    if (values.length === 0) {
+      return this;
+    }
+
+    if (fieldName === 'id') {
+      fieldName = '_id';
+    }
+
+    const query ={
+      [fieldName]: {
+        $in: values
+      }
+    };
+
+    this.query = {
+      ...this.query,
+      ...query
+    };
+
+    return this;
+  }
+
   private createInstance<T>(document: Document): T {
     const instance = new this.ctor() as any;
 

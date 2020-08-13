@@ -121,9 +121,33 @@ describe('Integration', () => {
       updatedAt: null
     });
   })
+
+  it('finds models by ids', async() => {
+    const author1 = await Author.create({ name: 'Ayra York' });
+    await Author.create({ name: 'Cain Young' });
+    const author3 = await Author.create({ name: 'Antonio Dennis' });
+
+    const authors = await Author.whereIn('id', [ author1.id, author3.id ]).get();
+
+    expect(authors).toEqual([
+      {
+        createdAt: 42,
+        id: author1.id,
+        name: author1.name,
+        updatedAt: null
+      },
+      {
+        createdAt: 42,
+        id: author3.id,
+        name: author3.name,
+        updatedAt: null
+      }
+    ]);
+  });
 });
 
 describe('Documentation', () => {
+
   beforeEach(() => {
     Object.assign(process.env, {
       'DB_ADAPTER': 'mock',

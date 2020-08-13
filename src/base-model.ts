@@ -37,6 +37,12 @@ export default class BaseModel {
     return new QueryBuilder(this).where(key, value);
   }
 
+  static whereIn<T extends BaseModel>(this: ObjectType<T>, fieldName: string, values: any[]): QueryBuilder<T> {
+    const queryBuilder = new QueryBuilder(this);
+
+    return queryBuilder.whereIn(fieldName, values);
+  }
+
   async save(): Promise<void> {
     const queryBuilder = new QueryBuilder(this.constructor as ObjectType<BaseModel>);
 
