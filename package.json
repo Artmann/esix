@@ -1,6 +1,6 @@
 {
   "name": "esix",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "A really slick ORM for MongoDB.",
   "main": "src/index.ts",
   "repository": "https://github.com/Artmann/esix",
