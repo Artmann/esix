@@ -2,7 +2,7 @@
   "name": "esix",
   "version": "1.7.0",
   "description": "A really slick ORM for MongoDB.",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "repository": "https://github.com/Artmann/esix",
   "author": "Christoffer Artmann",
   "license": "MIT",
@@ -11,6 +11,7 @@
     "docs:build": "ts-node ./docs/index.ts",
     "docs:serve": "serve docs/dist",
     "lint": "eslint ./src --ext .ts",
+    "prepublish": "yarn build",
     "test": "jest --coverage --detectOpenHandles --forceExit --runInBand",
     "test:watch": "jest --watchAll"
   },
@@ -18,10 +19,7 @@
     "node": ">= 12.18.0"
   },
   "files": [
-    "docs/pages/",
-    "src/",
-    "index.d.ts",
-    "tsconfig.json"
+    "dist"
   ],
   "dependencies": {
     "@types/change-case": "^2.3.1",

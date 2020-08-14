@@ -1,7 +1,7 @@
-/.vscode/
-/coverage/
-/dist/
-/docs/dist/
-/node_modules/
+.vscode/
+coverage/
+dist/
+docs/dist/
+node_modules/
 
 *.log
