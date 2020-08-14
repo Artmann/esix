@@ -2,6 +2,7 @@ import 'reflect-metadata';
 
 import QueryBuilder from './query-builder';
 import { ObjectType, Dictionary } from './types';
+import { camelCase } from 'change-case';
 
 export default class BaseModel {
   public createdAt = 0;
@@ -47,6 +48,15 @@ export default class BaseModel {
     const queryBuilder = new QueryBuilder(this);
 
     return queryBuilder.whereIn(fieldName, values);
+  }
+
+  hasMany<T extends BaseModel>(ctor: ObjectType<T>, foreignKey?: string, localKey?: string): QueryBuilder<T> {
+    const queryBuilder = new QueryBuilder(ctor);
+
+    foreignKey = foreignKey || camelCase(`${ this.constructor.name }Id`)
+    localKey = localKey || 'id';
+
+    return queryBuilder.where(foreignKey, (this as any)[localKey]);
   }
 
   async save(): Promise<void> {

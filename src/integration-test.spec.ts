@@ -3,6 +3,10 @@ import { BaseModel } from './';
 
 class Author extends BaseModel {
   public name = '';
+
+  blogPosts() {
+    return this.hasMany(BlogPost);
+  }
 }
 
 class BlogPost extends BaseModel {
@@ -140,6 +144,53 @@ describe('Integration', () => {
         createdAt: 42,
         id: author3.id,
         name: author3.name,
+        updatedAt: null
+      }
+    ]);
+  });
+});
+
+describe('Relationships', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      'DB_ADAPTER': 'mock',
+      'DB_DATABASE': `test-${ createUuid() }`
+    });
+  });
+
+  it('hasMany', async() => {
+    const author = await Author.create({ name: 'John Smith' });
+
+    await BlogPost.create({
+      authorId: author.id,
+      title: '21 tips to improve your MongoDB setup.'
+    });
+
+    await BlogPost.create({
+      authorId: 'randomId',
+      title: 'Order things in interesting ways.'
+    });
+
+    await BlogPost.create({
+      authorId: author.id,
+      title: 'How to store things in MongoDB.'
+    });
+
+    const posts = await author.blogPosts().get();
+
+    expect(posts).toEqual([
+      {
+        authorId: author.id,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        title: '21 tips to improve your MongoDB setup.',
+        updatedAt: null
+      },
+      {
+        authorId: author.id,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        title: 'How to store things in MongoDB.',
         updatedAt: null
       }
     ]);
