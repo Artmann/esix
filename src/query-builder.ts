@@ -6,6 +6,9 @@ import { Dictionary, Document, ObjectType } from './types';
 
 export type Query = { [index: string]: any };
 
+type Order = { [ index: string ]: 1 | -1 };
+type Fields = { [ index: string ]: 1 };
+
 function isString(x: any): x is string {
   return typeof x === 'string';
 }
@@ -41,6 +44,8 @@ export default class QueryBuilder<T> {
   private readonly ctor: ObjectType<T>;
 
   private query: Query = {};
+
+  private order?: Order;
 
   constructor(ctor: ObjectType<T>) {
     this.ctor = ctor;
@@ -80,6 +85,34 @@ export default class QueryBuilder<T> {
 
   async get(): Promise<T[]> {
     return this.execute();
+  }
+
+  orderBy(key: string, order: 'asc' | 'desc' = 'asc'): QueryBuilder<T> {
+    if (!this.order) {
+      this.order = {};
+    }
+
+    this.order[key] = order === 'asc' ? 1 : -1;
+
+    return this;
+  }
+
+  async pluck(...keys: string[]): Promise<any[]> {
+    const fields: Fields = keys.reduce((carry, key) => ({
+      ...carry,
+      [key]: 1
+    }), {});
+
+    const records = await this.execute(fields);
+
+    const transform = (item: Dictionary): any => {
+      return keys.reduce((carry: any, key: string): any => ({
+        ...carry,
+        [key]: item[key]
+      }), {});
+    };
+
+    return records.map(transform);
   }
 
   async save(attributes: Dictionary): Promise<string> {
@@ -185,12 +218,19 @@ export default class QueryBuilder<T> {
     return client;
   }
 
-  private execute(): Promise<T[]> {
+  private execute(fields?: Fields): Promise<T[]> {
     return this.useCollection(async(collection) => {
-      const documents = await collection.find(this.query).toArray();
+      let cursor = fields ? collection.find(this.query, fields) : collection.find(this.query);
+
+      if (this.order) {
+        cursor = cursor.sort(this.order)
+      }
+
+      const documents = await cursor.toArray();
+
       const records = documents
-      .filter(document => document)
-      .map((document): T => this.createInstance(document));
+        .filter(document => document)
+        .map((document): T => this.createInstance(document));
 
       return records;
     });

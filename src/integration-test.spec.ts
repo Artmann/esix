@@ -19,6 +19,13 @@ class Flight extends BaseModel {
   public name = '';
 }
 
+class Product extends BaseModel {
+  public name = '';
+  public price = 0;
+
+  public categoryId?: number;
+}
+
 describe('Integration', () => {
   beforeEach(() => {
     Object.assign(process.env, {
@@ -146,6 +153,64 @@ describe('Integration', () => {
         name: author3.name,
         updatedAt: null
       }
+    ]);
+  });
+});
+
+describe('Ordering', () => {
+  beforeEach(async() => {
+    Object.assign(process.env, {
+      'DB_ADAPTER': 'mock',
+      'DB_DATABASE': `test-${ createUuid() }`
+    });
+
+    await Product.create({ name: 'Widget 1', price: 79.99, categoryId: 1 });
+    await Product.create({ name: 'Widget 2', price: 44.99, categoryId: 1 });
+    await Product.create({ name: 'Widget 3', price: 129.99, categoryId: 1 });
+    await Product.create({ name: 'Widget 4', price: 19.99, categoryId: 1 });
+    await Product.create({ name: 'Chair 1', price: 79.99, categoryId: 2 });
+    await Product.create({ name: 'Chair 2', price: 49.99, categoryId: 2 });
+  });
+
+  it('returns products with ascending price.', async() => {
+    const products = await Product.orderBy('price').pluck('name', 'price');
+
+    expect(products).toEqual([
+      { name: 'Widget 4', price: 19.99 },
+      { name: 'Widget 2', price: 44.99 },
+      { name: 'Chair 2', price: 49.99 },
+      { name: 'Widget 1', price: 79.99 },
+      { name: 'Chair 1', price: 79.99 },
+      { name: 'Widget 3', price: 129.99  }
+    ]);
+  });
+
+  it('returns products with descending price.', async() => {
+    const products = await Product.orderBy('price', 'desc').pluck('name', 'price');
+
+    expect(products).toEqual([
+      { name: 'Widget 3', price: 129.99 },
+      { name: 'Widget 1', price: 79.99 },
+      { name: 'Chair 1', price: 79.99 },
+      { name: 'Chair 2', price: 49.99 },
+      { name: 'Widget 2', price: 44.99 },
+      { name: 'Widget 4', price: 19.99  }
+    ]);
+  });
+
+  it('returns products with ordered by multiple fields.', async() => {
+    const products = await Product
+      .orderBy('price', 'desc')
+      .orderBy('name', 'asc')
+      .pluck('name', 'price');
+
+    expect(products).toEqual([
+      { name: 'Widget 3', price: 129.99 },
+      { name: 'Chair 1', price: 79.99 },
+      { name: 'Widget 1', price: 79.99 },
+      { name: 'Chair 2', price: 49.99 },
+      { name: 'Widget 2', price: 44.99 },
+      { name: 'Widget 4', price: 19.99  }
     ]);
   });
 });
