@@ -17,6 +17,12 @@
   "engines": {
     "node": ">= 12.18.0"
   },
+  "files": [
+    "docs/pages/",
+    "src/",
+    "index.d.ts",
+    "tsconfig.json"
+  ],
   "dependencies": {
     "@types/change-case": "^2.3.1",
     "@types/pluralize": "^0.0.29",
