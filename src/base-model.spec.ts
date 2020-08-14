@@ -218,7 +218,6 @@ describe('BaseModel', () => {
   });
 
   describe('find', () => {
-
     it('returns null for non existing documents.', async() => {
       collection.findOne.mockReturnValue(null);
 
@@ -245,6 +244,46 @@ describe('BaseModel', () => {
 
       expect(collection.findOne).toHaveBeenCalledWith({
         _id: '5f3568f2a0cdd1c9ba411c43'
+      });
+
+      expect(book).toEqual({
+        authorId: 'author-1',
+        createdAt: 1594552340652,
+        id: '5f3568f2a0cdd1c9ba411c43',
+        isbn: '978-3-16-148410-0',
+        title: 'Esix for dummies',
+        updatedAt: null
+      });
+    });
+  });
+
+  describe('findBy', () => {
+    it('returns null for non existing documents.', async() => {
+      collection.findOne.mockReturnValue(null);
+
+      const book = await Book.findBy('isbn', '978-3-16-148410-0');
+
+      expect(collection.findOne).toHaveBeenCalledWith({
+        isbn: '978-3-16-148410-0'
+      });
+
+      expect(book).toBeNull();
+    });
+
+    it('finds a document by id.', async() => {
+      collection.findOne.mockResolvedValue({
+        _id: '5f3568f2a0cdd1c9ba411c43',
+        authorId: 'author-1',
+        createdAt: 1594552340652,
+        isbn: '978-3-16-148410-0',
+        title: 'Esix for dummies',
+        updatedAt: null
+      });
+
+      const book = await Book.findBy('isbn', '978-3-16-148410-0');
+
+      expect(collection.findOne).toHaveBeenCalledWith({
+        isbn: '978-3-16-148410-0'
       });
 
       expect(book).toEqual({

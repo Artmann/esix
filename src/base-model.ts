@@ -33,6 +33,12 @@ export default class BaseModel {
     });
   }
 
+  static async findBy<T extends BaseModel>(this: ObjectType<T>, key: string, value: any): Promise<T | null> {
+    return new QueryBuilder(this).findOne({
+      [key]: value
+    });
+  }
+
   static where<T extends BaseModel>(this: ObjectType<T>, key: string, value: any): QueryBuilder<T> {
     return new QueryBuilder(this).where(key, value);
   }
