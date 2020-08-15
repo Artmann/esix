@@ -84,7 +84,7 @@ describe('Integration', () => {
     });
   });
 
-  it('updates values and persist them', async() => {
+  it('updates existing model', async() => {
     const dateSpy = jest.spyOn(Date, 'now');
 
     dateSpy.mockReturnValue(42);
@@ -95,18 +95,27 @@ describe('Integration', () => {
 
     dateSpy.mockReturnValue(123);
 
-    author.name = 'John Oliver';
+    const existingAuthor = await Author.find(author.id);
 
-    await author.save();
+    expect(existingAuthor).not.toBeNull();
+
+    if (!existingAuthor) {
+      return;
+    }
+
+    existingAuthor.name = 'John Oliver';
+
+    await existingAuthor.save();
 
     const author2 = await Author.find(author.id);
 
-    expect(author).toEqual({
+    expect(existingAuthor).toEqual({
       createdAt: 42,
       id: author.id,
       name: 'John Oliver',
       updatedAt: 123
     });
+
 
     expect(author2).toEqual({
       createdAt: 42,

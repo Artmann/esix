@@ -126,7 +126,7 @@ export default class QueryBuilder<T> {
         upsert: true
       };
 
-      await collection.updateOne(filter, attributes, options);
+      await collection.updateOne(filter, { $set: attributes }, options);
 
       return id;
     });

@@ -368,12 +368,14 @@ describe('BaseModel', () => {
       expect(collection.updateOne).toHaveBeenCalledWith({
         _id: '5f347707fdec6e388b5c1d33'
       }, {
-        _id: '5f347707fdec6e388b5c1d33',
-        authorId: 'author-1',
-        createdAt: 42,
-        isbn: '9780525590453',
-        title: 'The Testaments',
-        updatedAt: null
+        $set: {
+          _id: '5f347707fdec6e388b5c1d33',
+          authorId: 'author-1',
+          createdAt: 42,
+          isbn: '9780525590453',
+          title: 'The Testaments',
+          updatedAt: null
+        }
       }, {
         upsert: true
       });
