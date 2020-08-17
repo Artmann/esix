@@ -6,9 +6,13 @@ import BaseModel from './base-model';
 jest.mock('mongodb');
 
 function createCursor(documents: any[]) {
-  return {
-    toArray: () => documents
-  };
+  const cursor: any = {};
+
+  cursor.limit = jest.fn(() => cursor);
+  cursor.sort = jest.fn(() => cursor);
+  cursor.toArray = () => documents;
+
+  return cursor;
 }
 
 const collection = {
@@ -348,6 +352,65 @@ describe('BaseModel', () => {
       });
 
       expect(book).toBeNull();
+    });
+  });
+
+  describe('limit', () => {
+    it('limits the amount of models returned', async() => {
+      const cursor = createCursor([
+        { _id: '1', title: 'Book 1' },
+        { _id: '2', title: 'Book 2' },
+        { _id: '3', title: 'Book 3' },
+        { _id: '4', title: 'Book 4' },
+        { _id: '5', title: 'Book 5' },
+      ]);
+
+      collection.find.mockReturnValue(cursor);
+
+      await Book.limit(3).get();
+
+      expect(collection.find).toHaveBeenCalled();
+      expect(cursor.limit).toHaveBeenCalledWith(3);
+    });
+  });
+
+  describe('orderBy', () => {
+    it('orders the models in ascending order', async() => {
+      const cursor = createCursor([
+        { _id: '1', title: 'Book 1' },
+        { _id: '2', title: 'Book 2' },
+        { _id: '3', title: 'Book 3' },
+        { _id: '4', title: 'Book 4' },
+        { _id: '5', title: 'Book 5' },
+      ]);
+
+      collection.find.mockReturnValue(cursor);
+
+      await Book.orderBy('title').get();
+
+      expect(collection.find).toHaveBeenCalled();
+      expect(cursor.sort).toHaveBeenCalledWith({
+        title: 1
+      });
+    });
+
+    it('orders the models in descending order', async() => {
+      const cursor = createCursor([
+        { _id: '1', title: 'Book 1' },
+        { _id: '2', title: 'Book 2' },
+        { _id: '3', title: 'Book 3' },
+        { _id: '4', title: 'Book 4' },
+        { _id: '5', title: 'Book 5' },
+      ]);
+
+      collection.find.mockReturnValue(cursor);
+
+      await Book.orderBy('title', 'desc').get();
+
+      expect(collection.find).toHaveBeenCalled();
+      expect(cursor.sort).toHaveBeenCalledWith({
+        title: -1
+      });
     });
   });
 

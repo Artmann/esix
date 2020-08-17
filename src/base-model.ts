@@ -40,6 +40,10 @@ export default class BaseModel {
     });
   }
 
+  static limit<T extends BaseModel>(this: ObjectType<T>, length: number): QueryBuilder<T> {
+    return new QueryBuilder<T>(this).limit(length);
+  }
+
   static orderBy<T extends BaseModel>(this: ObjectType<T>,key: string, order: 'asc' | 'desc' = 'asc'): QueryBuilder<T> {
     return new QueryBuilder<T>(this).orderBy(key, order);
   }

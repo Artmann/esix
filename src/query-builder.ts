@@ -45,7 +45,8 @@ export default class QueryBuilder<T> {
 
   private query: Query = {};
 
-  private order?: Order;
+  private queryLimit?: number;
+  private queryOrder?: Order;
 
   constructor(ctor: ObjectType<T>) {
     this.ctor = ctor;
@@ -87,12 +88,18 @@ export default class QueryBuilder<T> {
     return this.execute();
   }
 
+  limit(length: number): QueryBuilder<T> {
+    this.queryLimit = length;
+
+    return this;
+  }
+
   orderBy(key: string, order: 'asc' | 'desc' = 'asc'): QueryBuilder<T> {
-    if (!this.order) {
-      this.order = {};
+    if (!this.queryOrder) {
+      this.queryOrder = {};
     }
 
-    this.order[key] = order === 'asc' ? 1 : -1;
+    this.queryOrder[key] = order === 'asc' ? 1 : -1;
 
     return this;
   }
@@ -222,8 +229,12 @@ export default class QueryBuilder<T> {
     return this.useCollection(async(collection) => {
       let cursor = fields ? collection.find(this.query, fields) : collection.find(this.query);
 
-      if (this.order) {
-        cursor = cursor.sort(this.order)
+      if (this.queryOrder) {
+        cursor = cursor.sort(this.queryOrder);
+      }
+
+      if (this.queryLimit) {
+        cursor = cursor.limit(this.queryLimit);
       }
 
       const documents = await cursor.toArray();
