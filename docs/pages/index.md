@@ -1,5 +1,5 @@
 ---
-title: Overview
+title: Getting Started
 ---
 
 # Esix is a slick ORM for MongoDB.
