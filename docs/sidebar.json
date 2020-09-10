@@ -4,7 +4,10 @@
       "filename": "index.md",
       "path": "/"
     },
-    "configuration.md",
-    "retrieving-models.md"
+    "defining-models.md",
+    "retrieving-models.md",
+    "inserting-and-updating-models.md",
+    "deleting-models.md",
+    "configuration.md"
   ]
 }
