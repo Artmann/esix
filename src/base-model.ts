@@ -58,6 +58,14 @@ export default class BaseModel {
     return queryBuilder.whereIn(fieldName, values);
   }
 
+  async delete(): Promise<number> {
+    const queryBuilder = new QueryBuilder(this.constructor as ObjectType<BaseModel>);
+
+    return queryBuilder.where({
+      _id: this.id
+    }).limit(1).delete();
+  }
+
   hasMany<T extends BaseModel>(ctor: ObjectType<T>, foreignKey?: string, localKey?: string): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(ctor);
 

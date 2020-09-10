@@ -62,6 +62,33 @@ export default class QueryBuilder<T> {
     });
   }
 
+  async delete(): Promise<number> {
+    const ids = await this.pluck('id') || [];
+
+    return this.useCollection(async(collection) => {
+      if (ids.length === 0) {
+        return 0;
+      }
+
+      if (ids.length === 1) {
+        const [ id ] = ids;
+        const { deletedCount } = await collection.deleteOne({
+          _id: id
+        });
+
+        return deletedCount;
+      }
+
+      const { deletedCount } = await collection.deleteMany({
+        _id: {
+          $in: ids
+        }
+      });
+
+      return deletedCount;
+    });
+  }
+
   async findOne(query: Query): Promise<T | null> {
     return this.useCollection(async(collection) => {
       const document = await collection.findOne(query);
@@ -104,13 +131,29 @@ export default class QueryBuilder<T> {
     return this;
   }
 
+  /**
+   * The pluck method retrieves all of the values for a given key.
+   *
+   * You may also specify how you wish the resulting collection to be keyed.
+   *
+   */
   async pluck(...keys: string[]): Promise<any[]> {
+    if (keys.length === 0) {
+      return [];
+    }
+
     const fields: Fields = keys.reduce((carry, key) => ({
       ...carry,
       [key]: 1
     }), {});
 
     const records = await this.execute(fields);
+
+    if (keys.length === 1) {
+      const [ key ] = keys;
+
+      return records.map((record: any) => record[key]);
+    }
 
     const transform = (item: Dictionary): any => {
       return keys.reduce((carry: any, key: string): any => ({
