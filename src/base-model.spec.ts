@@ -16,6 +16,8 @@ function createCursor(documents: any[]) {
 }
 
 const collection = {
+  deleteOne: jest.fn(),
+  deleteMany: jest.fn(),
   find: jest.fn(),
   findOne: jest.fn(),
   insertOne: jest.fn(),
@@ -217,6 +219,36 @@ describe('BaseModel', () => {
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
+      });
+    });
+  });
+
+  describe('delete', () => {
+    it('deletes a book', async() => {
+      const cursor = createCursor([
+        {
+          _id: '5f3568f2a0cdd1c9ba411c43',
+          title: 'The Testaments',
+          isbn: '9780525590453',
+          authorId: 'author-1'
+        }
+      ]);
+
+      collection.find.mockReturnValue(cursor);
+      collection.deleteOne.mockReturnValue({
+        deletedCount: 1
+      });
+
+      const book = await Book.create({
+        title: 'The Testaments',
+        isbn: '9780525590453',
+        authorId: 'author-1'
+      });
+
+      await book.delete();
+
+      expect(collection.deleteOne).toHaveBeenCalledWith({
+        _id: '5f3568f2a0cdd1c9ba411c43'
       });
     });
   });

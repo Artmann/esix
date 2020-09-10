@@ -1,5 +1,9 @@
 import { v1 as createUuid } from 'uuid';
+import mongodb from 'mongo-mock';
+
 import { BaseModel } from './';
+
+mongodb.max_delay = 1;
 
 class Author extends BaseModel {
   public name = '';
@@ -268,6 +272,82 @@ describe('Relationships', () => {
         updatedAt: null
       }
     ]);
+  });
+});
+
+describe('Deletion', () => {
+  beforeEach(async() => {
+    Object.assign(process.env, {
+      'DB_ADAPTER': 'mock',
+      'DB_DATABASE': `test-${ createUuid() }`
+    });
+  });
+
+  it('Deletes multiple records', async() => {
+    await Product.create({ name: 'Widget 1', price: 10, categoryId: 1 });
+    await Product.create({ name: 'Widget 2', price: 10, categoryId: 1 });
+    await Product.create({ name: 'Widget 3', price: 10, categoryId: 1 });
+    await Product.create({ name: 'Chair 1', price: 10, categoryId: 2 });
+    await Product.create({ name: 'Chair 2', price: 10, categoryId: 2 });
+    await Product.create({ name: 'Chair 3', price: 10, categoryId: 2 });
+
+    const numberOfRemovedProducts = await Product.where('categoryId', 2).delete();
+    const products = await Product.all();
+
+    expect(numberOfRemovedProducts).toEqual(3);
+    expect(products.length).toEqual(3);
+
+    expect(products).toEqual([
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 1',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 2',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 3',
+        price: 10,
+        updatedAt: null
+      }
+    ]);
+  });
+
+  it('Deletes a single record', async() => {
+    const product = await Product.create({ name: 'Widget 1', price: 10, categoryId: 1 });
+
+    expect(await Product.find(product.id)).not.toEqual(null);
+
+    await product.delete();
+
+    expect(await Product.find(product.id)).toEqual(null);
+  });
+
+  it('Does nothing with no matches', async() => {
+    await Product.create({ name: 'Widget 1', price: 10, categoryId: 1 });
+    await Product.create({ name: 'Widget 2', price: 10, categoryId: 1 });
+    await Product.create({ name: 'Widget 3', price: 10, categoryId: 1 });
+    await Product.create({ name: 'Chair 1', price: 10, categoryId: 2 });
+    await Product.create({ name: 'Chair 2', price: 10, categoryId: 2 });
+    await Product.create({ name: 'Chair 3', price: 10, categoryId: 2 });
+
+    const numberOfRemovedProducts = await Product.where('categoryId', 53).delete();
+    const products = await Product.all();
+
+    expect(numberOfRemovedProducts).toEqual(0);
+    expect(products.length).toEqual(6);
   });
 });
 
