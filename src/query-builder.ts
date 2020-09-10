@@ -52,6 +52,11 @@ export default class QueryBuilder<T> {
     this.ctor = ctor;
   }
 
+  /**
+   * Creates a new document with the given attributes.
+   *
+   * @internal
+   */
   async create(attributes: { [index: string]: any }): Promise<string> {
     attributes = normalizeAttributes(attributes);
 
@@ -62,6 +67,11 @@ export default class QueryBuilder<T> {
     });
   }
 
+  /**
+   * Deletes the Models matching the current query options.
+   *
+   * @returns Returns the number of models deleted.
+   */
   async delete(): Promise<number> {
     const ids = await this.pluck('id') || [];
 
@@ -89,6 +99,11 @@ export default class QueryBuilder<T> {
     });
   }
 
+  /**
+   * Returns the first model matching the query options.
+   *
+   * @internal
+   */
   async findOne(query: Query): Promise<T | null> {
     return this.useCollection(async(collection) => {
       const document = await collection.findOne(query);
@@ -101,6 +116,9 @@ export default class QueryBuilder<T> {
     });
   }
 
+  /**
+   * Returns the first model matching the query options.
+   */
   async first(): Promise<T | null> {
     const models = await this.execute();
 
@@ -111,16 +129,30 @@ export default class QueryBuilder<T> {
     return models[0];
   }
 
+  /**
+   * Returns an array of models matching the query options.
+   */
   async get(): Promise<T[]> {
     return this.execute();
   }
 
+  /**
+   * Limits the number of models returned.
+   *
+   * @param length
+   */
   limit(length: number): QueryBuilder<T> {
     this.queryLimit = length;
 
     return this;
   }
 
+  /**
+   * Sorts the models by the given key.
+   *
+   * @param key The key you want to sort by.
+   * @param order Defaults to ascending order.
+   */
   orderBy(key: string, order: 'asc' | 'desc' = 'asc'): QueryBuilder<T> {
     if (!this.queryOrder) {
       this.queryOrder = {};
@@ -136,6 +168,14 @@ export default class QueryBuilder<T> {
    *
    * You may also specify how you wish the resulting collection to be keyed.
    *
+   * Example
+   * ```
+   * await Posts.where('categoryId', 2).pluck('id');
+   * // => [ '1', '2', '3' ]
+   *
+   * await Products.where('size', 'large').pluck('price', 'name');
+   * // => [ { name: 'Shirt 1', price: 14.99 } ]
+   * ```
    */
   async pluck(...keys: string[]): Promise<any[]> {
     if (keys.length === 0) {
@@ -165,6 +205,12 @@ export default class QueryBuilder<T> {
     return records.map(transform);
   }
 
+  /**
+   * Persist the provided attributes.
+   *
+   * @param attributes
+   * @internal
+   */
   async save(attributes: Dictionary): Promise<string> {
     attributes = normalizeAttributes(attributes);
 
@@ -182,6 +228,12 @@ export default class QueryBuilder<T> {
     });
   }
 
+  /**
+   * Adds a constraint to the current query.
+   *
+   * @param key
+   * @oaram value
+   */
   where(query: Query): QueryBuilder<T>;
   where(key: string, value: any): QueryBuilder<T>;
   where(queryOrKey: Query | string, value?: any): QueryBuilder<T> {
@@ -195,6 +247,12 @@ export default class QueryBuilder<T> {
     return this;
   }
 
+  /**
+   * Returns all the models with `fieldName` in the array of `values`.
+   *
+   * @param fieldName
+   * @param values
+   */
   whereIn(fieldName: string, values: any[]): QueryBuilder<T> {
     if (values.length === 0) {
       return this;

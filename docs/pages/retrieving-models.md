@@ -38,3 +38,5 @@ const blogPosts = await BlogPost
 
 blogPosts.forEach(post => console.log(post.title));
 ```
+
+You can find out more about the different methods available by consulting the API documentation for [BaseModel](/api/classes/basemodel.html) and [QueryBuilder](/api/classes/querybuilder.html).
