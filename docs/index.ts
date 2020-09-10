@@ -1,3 +1,4 @@
+import cpy from 'cpy';
 import frontMatter from 'front-matter';
 import FS, { promises as fs } from 'fs';
 import { compile } from 'handlebars';
@@ -55,6 +56,11 @@ async function createPage(page: Page, siteData: SiteData, buildConfig: BuildConf
   const outputPath = join(buildConfig.outputPath, page.filename);
 
   await fs.writeFile(outputPath, html);
+}
+
+async function copyPublicFiles(outputPath: string): Promise<void> {
+  await cpy([ join(__dirname, 'public', '*') ], outputPath);
+  await cpy([ join(__dirname, 'public', 'images') ], join(outputPath, 'images'));
 }
 
 async function loadSiteData(): Promise<SiteData> {
@@ -141,6 +147,8 @@ async function generateSitemap(siteData: SiteData, buildConfig: BuildConfig): Pr
   await Promise.all(
     siteData.pages.map(page => createPage(page, siteData, buildConfig))
   );
+
+  await copyPublicFiles(buildConfig.outputPath);
 
   await generateSitemap(siteData, buildConfig);
 })();
