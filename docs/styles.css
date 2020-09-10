@@ -40,6 +40,12 @@ nav {
   text-align: center;
 }
 
+nav .logo {
+  height: auto;
+  margin-bottom: 2rem;
+  width: 8rem;
+}
+
 nav ul {
   list-style: none;
   margin: 0;
