@@ -64,7 +64,7 @@ async function loadSiteData(): Promise<SiteData> {
   marked.setOptions({
     renderer: new marked.Renderer(),
     highlight: function(code, language) {
-      const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+      const validLanguage = hljs.getLanguage(language) ? language : 'ts';
 
       return hljs.highlight(validLanguage, code).value;
     },
