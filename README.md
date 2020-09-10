@@ -1,3 +1,5 @@
+![Logo](./docs/public/images/esix-logo.png)
+
 # A really slick ORM for MongoDB.
 
 Inspired by ActiveRecord and Eloquent, Esix is a great way to work with your database in TypeScript. 🥧
