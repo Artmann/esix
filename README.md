@@ -1,9 +1,13 @@
 # A really slick ORM for MongoDB.
 
+Inspired by ActiveRecord and Eloquent, Esix is a great way to work with your database in TypeScript. 🥧
+
+Esix uses a Convention over Configuration approach where you define your models as normal TypeScript classes and minimal boilerplate.
+
 ## Getting Started
 
 ```sh
-yarn add esix
+yarn add esix mongodb
 ```
 
 Define a model.
