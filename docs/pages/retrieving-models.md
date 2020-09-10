@@ -4,9 +4,19 @@ title: Retrieving Models
 
 # Retrieving Models
 
-Once you have defined a model, you are ready to start retrieving data from your database.
+Once you have your models defined, you can use them to query the database for them.
 
-Esix is using the **ActiveRecord** pattern which makes it super easy to query data. For Example:
+The `BaseModel` class comes with a bunch of static methods that you can use to retrieve models.
+
+If you are looking for a single model you can use the `find` method to get an instance of a model matching the given id.
+
+```ts
+const book = await Book.find(22);
+
+console.log(book.title);
+```
+
+You can also get all the models in the collection.
 
 ```ts
 const flights = await Flight.all();
@@ -14,4 +24,17 @@ const flights = await Flight.all();
 flights.forEach(flight => {
   console.log(flight.name);
 });
+```
+
+When you are working with multiple models, you can use methods like `where` which returns an instance of a `QueryBuilder`. The Query Builder can be used to filter, sort, and limit your searches.
+
+```ts
+const blogPosts = await BlogPost
+  .where('status', 'published')
+  .where('categoryId', 4)
+  .orderBy('publishedAt', 'desc')
+  .limit(12)
+  .get();
+
+blogPosts.forEach(post => console.log(post.title));
 ```
