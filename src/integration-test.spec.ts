@@ -2,6 +2,7 @@ import { v1 as createUuid } from 'uuid';
 import mongodb from 'mongo-mock';
 
 import { BaseModel } from './';
+import { MongoClient } from 'mongodb';
 
 mongodb.max_delay = 1;
 
@@ -38,7 +39,7 @@ describe('Integration', () => {
     });
   });
 
-  it('find a model by id', async() => {
+  it('finds a model by id', async() => {
     const author = await Author.create({
       name: 'John Smith'
     });
@@ -59,6 +60,28 @@ describe('Integration', () => {
       createdAt,
       id,
       title: '21 tips to improve your MongoDB setup.',
+      updatedAt: null
+    });
+  });
+
+  it('finds a model with an id created in Mongo', async() => {
+    const MockClient = (mongodb.MongoClient as unknown) as typeof MongoClient;
+    const connection = await MockClient.connect(process.env['DB_URL'] || 'mongodb://127.0.0.1:27017/');
+    const db = await connection.db(process.env['DB_DATABASE']);
+    const collection = await db.collection('blog-posts');
+
+    const { insertedId } = await collection.insertOne({
+      title: 'Why ObjectIds makes your code fail.'
+    });
+
+    const id = insertedId.toHexString();
+
+    const post = await BlogPost.find(id);
+
+    expect(post).toEqual({
+      createdAt: 0,
+      id,
+      title: 'Why ObjectIds makes your code fail.',
       updatedAt: null
     });
   });

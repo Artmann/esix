@@ -57,10 +57,8 @@ export default class BaseModel {
    *
    * @param id
    */
-  static async find<T extends BaseModel>(this: ObjectType<T>, id?: string | number): Promise<T | null> {
-    return new QueryBuilder(this).findOne({
-      _id: id
-    });
+  static async find<T extends BaseModel>(this: ObjectType<T>, id: string): Promise<T | null> {
+    return new QueryBuilder(this).find(id);
   }
 
   /**
