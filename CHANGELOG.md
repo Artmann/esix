@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-fix: Look for documents using an ObjectId.
+## [3.0.0] - 2020-11-25
+
+### Changed
+
+#### BREAKING: Look for documents using an ObjectId.
 
 IDs in MongoDB can be stored as either strings or Object IDs. This meant that if you created a document
 and let Mongo assign an id to it, Esix wouldn't be able to find it as it was only looking for the
