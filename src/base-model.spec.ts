@@ -260,7 +260,10 @@ describe('BaseModel', () => {
       const book = await Book.find('abc-123');
 
       expect(collection.findOne).toHaveBeenCalledWith({
-        _id: 'abc-123'
+        $or: [
+          { _id: ObjectId.createFromHexString('abc-123') },
+          { _id: 'abc-123' }
+        ]
       });
 
       expect(book).toBeNull();
@@ -279,7 +282,10 @@ describe('BaseModel', () => {
       const book = await Book.find('5f3568f2a0cdd1c9ba411c43');
 
       expect(collection.findOne).toHaveBeenCalledWith({
-        _id: '5f3568f2a0cdd1c9ba411c43'
+        $or: [
+          { _id: ObjectId.createFromHexString('5f3568f2a0cdd1c9ba411c43') },
+          { _id: '5f3568f2a0cdd1c9ba411c43' }
+        ]
       });
 
       expect(book).toEqual({

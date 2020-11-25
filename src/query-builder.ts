@@ -100,6 +100,26 @@ export default class QueryBuilder<T> {
   }
 
   /**
+   * Returns the model with the given id or null if there is no matching model.
+   */
+  async find(id: string): Promise<T | null> {
+    return this.useCollection(async collection => {
+      const document = await collection.findOne({
+        $or: [
+          { _id: ObjectId.createFromHexString(id) },
+          { _id: id }
+        ]
+      });
+
+      if (!document) {
+        return null;
+      }
+
+      return this.createInstance(document);
+    });
+  }
+
+  /**
    * Returns the first model matching the query options.
    *
    * @internal
