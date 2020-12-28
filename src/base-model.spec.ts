@@ -259,17 +259,14 @@ describe('BaseModel', () => {
 
       const book = await Book.find('abc-123');
 
-      expect(collection.findOne).toHaveBeenCalledWith({
-        $or: [
-          { _id: ObjectId.createFromHexString('abc-123') },
-          { _id: 'abc-123' }
-        ]
-      });
+      expect(collection.findOne).toHaveBeenCalledWith({ _id: 'abc-123' });
 
       expect(book).toBeNull();
     });
 
     it('finds a document by id.', async() => {
+      mocked(ObjectId.createFromHexString).mockImplementation(hexString => new ObjectId(hexString));
+
       collection.findOne.mockResolvedValue({
         _id: '5f3568f2a0cdd1c9ba411c43',
         authorId: 'author-1',
@@ -283,7 +280,7 @@ describe('BaseModel', () => {
 
       expect(collection.findOne).toHaveBeenCalledWith({
         $or: [
-          { _id: ObjectId.createFromHexString('5f3568f2a0cdd1c9ba411c43') },
+          { _id: expect.any(ObjectId) },
           { _id: '5f3568f2a0cdd1c9ba411c43' }
         ]
       });

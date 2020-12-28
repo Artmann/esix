@@ -104,12 +104,20 @@ export default class QueryBuilder<T> {
    */
   async find(id: string): Promise<T | null> {
     return this.useCollection(async collection => {
-      const document = await collection.findOne({
+      let objectId: ObjectId | undefined;
+
+      try {
+        objectId = ObjectId.createFromHexString(id);
+      } catch (error) {}
+
+      const query = objectId ? {
         $or: [
-          { _id: ObjectId.createFromHexString(id) },
+          { _id: objectId },
           { _id: id }
         ]
-      });
+      } : { _id: id };
+
+      const document = await collection.findOne(query);
 
       if (!document) {
         return null;

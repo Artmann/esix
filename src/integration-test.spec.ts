@@ -86,6 +86,27 @@ describe('Integration', () => {
     });
   });
 
+  it('finds a model with a user created id', async() => {
+    const MockClient = (mongodb.MongoClient as unknown) as typeof MongoClient;
+    const connection = await MockClient.connect(process.env['DB_URL'] || 'mongodb://127.0.0.1:27017/');
+    const db = await connection.db(process.env['DB_DATABASE']);
+    const collection = await db.collection('blog-posts');
+
+    await collection.insertOne({
+      _id: 'my-id',
+      title: 'Why Custom IDs makes your code fail.'
+    });
+
+    const post = await BlogPost.find('my-id');
+
+    expect(post).toEqual({
+      createdAt: 0,
+      id: 'my-id',
+      title: 'Why Custom IDs makes your code fail.',
+      updatedAt: null
+    });
+  });
+
   it('finds the first blog post', async() => {
     const author = await Author.create({
       name: 'John Smith'
@@ -190,6 +211,22 @@ describe('Integration', () => {
         updatedAt: null
       }
     ]);
+  });
+
+  it('creates a model with a custom id', async() => {
+    await Author.create({
+      id: 'author-1',
+      name: 'Antonio Dennis'
+    });
+
+    const author = await Author.find('author-1');
+
+    expect(author).toEqual({
+      createdAt: 42,
+      id: 'author-1',
+      name: 'Antonio Dennis',
+      updatedAt: null
+    });
   });
 });
 
