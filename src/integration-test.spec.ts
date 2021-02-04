@@ -3,6 +3,7 @@ import mongodb from 'mongo-mock';
 
 import { BaseModel } from './';
 import { MongoClient } from 'mongodb';
+import { connectionHandler } from './connection-handler';
 
 mongodb.max_delay = 1;
 
@@ -37,6 +38,10 @@ describe('Integration', () => {
       'DB_ADAPTER': 'mock',
       'DB_DATABASE': `test-${ createUuid() }`
     });
+  });
+
+  afterAll(() => {
+    connectionHandler.closeConnections();
   });
 
   it('finds a model by id', async() => {
