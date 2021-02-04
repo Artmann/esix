@@ -1,7 +1,8 @@
 import { paramCase } from 'change-case';
-import MongoMock from 'mongo-mock';
-import { Collection, MongoClient, ObjectId } from 'mongodb';
+import { Collection, ObjectId } from 'mongodb';
 import pluralize from 'pluralize';
+
+import { connectionHandler } from './connection-handler';
 import { Dictionary, Document, ObjectType } from './types';
 
 export type Query = { [index: string]: any };
@@ -324,35 +325,7 @@ export default class QueryBuilder<T> {
     return instance;
   }
 
-  private async getClient(): Promise<MongoClient> {
-    const adapterName = (process.env['DB_ADAPTER'] || 'default').toLowerCase();
-    const url = process.env['DB_URL'] || 'mongodb://127.0.0.1:27017/';
-    const poolSize = parseInt(process.env['DB_POOL_SIZE'] || '10', 10);
 
-    const MockClient = (MongoMock.MongoClient as unknown) as typeof MongoClient;
-
-    const adapters: { [index: string]: typeof MongoClient } = {
-      default: MongoClient,
-      mock: MockClient
-    };
-
-    if (!adapters.hasOwnProperty(adapterName)) {
-      const validAdapterNames = Object.keys(adapters)
-        .map(name => `'${name}'`)
-        .join(', ');
-
-      throw new Error(`${ adapterName } is not a valid adapter name. Must be one of ${ validAdapterNames }.`);
-    }
-
-    const adapter = process.env['CI'] ? adapters.mock : adapters[adapterName];
-    const client = await adapter.connect(url, {
-      poolSize,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-
-    return client;
-  }
 
   private execute(fields?: Fields): Promise<T[]> {
     return this.useCollection(async(collection) => {
@@ -377,19 +350,13 @@ export default class QueryBuilder<T> {
   }
 
   private async useCollection<K>(block: (collection: Collection) => Promise<any>): Promise<K> {
-    const databaseName = process.env['DB_DATABASE'] || ''
-
     const collectionName = normalizeName(this.ctor.name);
 
-    const client = await this.getClient();
-    const database = await client.db(databaseName);
-    const collection = await database.collection(collectionName);
+    const connection = await connectionHandler.getConnection();
+
+    const collection = await connection.collection(collectionName);
 
     const result = await block(collection);
-
-    if (client.close) {
-      await client.close();
-    }
 
     return result;
   }
