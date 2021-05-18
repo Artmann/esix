@@ -1,5 +1,6 @@
 import { paramCase } from 'change-case';
 import { Collection, ObjectId } from 'mongodb';
+import percentile from 'percentile';
 import pluralize from 'pluralize';
 
 import { connectionHandler } from './connection-handler';
@@ -51,6 +52,34 @@ export default class QueryBuilder<T> {
 
   constructor(ctor: ObjectType<T>) {
     this.ctor = ctor;
+  }
+
+  /**
+   * Returns the average of all the values for the given key.
+   *
+   * @param key
+   */
+   async average(key: string): Promise<number> {
+    const values = await this.pluck(key);
+
+    const sum = values.reduce((sum, value) => sum + value, 0);
+
+    return sum / values.length;
+  }
+
+  /**
+   * Returns the number of documents matching the given query.
+   *
+   * Example
+   *
+   * ```
+   * const numberOfPayingCustomers = await Customer.where('hasPaidTheLastInvoice', true).count();
+   * ```
+   */
+  async count(): Promise<number>  {
+    const records = await this.execute();
+
+    return records.length;
   }
 
   /**
@@ -177,6 +206,28 @@ export default class QueryBuilder<T> {
   }
 
   /**
+   * Returns the largest value for the given key.
+   *
+   * @param key
+   */
+   async max(key: string): Promise<number> {
+    const values = await this.pluck(key);
+
+    return Math.max(...values)
+  }
+
+  /**
+   * Returns the smallest value for the given key.
+   *
+   * @param key
+   */
+   async min(key: string): Promise<number> {
+    const values = await this.pluck(key);
+
+    return Math.min(...values);
+  }
+
+  /**
    * Sorts the models by the given key.
    *
    * @param key The key you want to sort by.
@@ -190,6 +241,18 @@ export default class QueryBuilder<T> {
     this.queryOrder[key] = order === 'asc' ? 1 : -1;
 
     return this;
+  }
+
+  /**
+   * Returns the nth percentile of all the values for the given key.
+   *
+   * @param key
+   * @param n
+   */
+   async percentile(key: string, n: number): Promise<number> {
+    const values = await this.pluck(key);
+
+    return percentile(n, values);
   }
 
   /**
@@ -255,6 +318,17 @@ export default class QueryBuilder<T> {
 
       return id;
     });
+  }
+
+  /**
+   * Returns the sum of all the values for the given key.
+   *
+   * @param key
+   */
+  async sum(key: string): Promise<number> {
+    const values = await this.pluck(key);
+
+    return values.reduce((sum, value) => sum + value, 0);
   }
 
   /**
@@ -324,8 +398,6 @@ export default class QueryBuilder<T> {
 
     return instance;
   }
-
-
 
   private execute(fields?: Fields): Promise<T[]> {
     return this.useCollection(async(collection) => {
