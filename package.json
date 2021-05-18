@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "change-case": "^4.1.1",
+    "percentile": "^1.4.0",
     "pluralize": "^8.0.0",
     "reflect-metadata": "^0.1.13"
   },

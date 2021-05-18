@@ -6,7 +6,7 @@ title: Getting Started
 
 Inspired by ActiveRecord and Eloquent, Esix is a great way to work with your database in TypeScript. 🥧
 
-Esix uses a [Convention over Configuration](https://en.wikipedia.org/wiki/Convention_over_configuration) approach where you define your models as normal TypeScript classes and minimal boilerplate.
+Esix uses a [Convention over Configuration](https://en.wikipedia.org/wiki/Convention_over_configuration) approach where you define your models as normal TypeScript classes and with minimal boilerplate.
 
 ## Install Esix
 

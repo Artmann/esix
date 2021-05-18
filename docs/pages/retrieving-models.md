@@ -4,9 +4,7 @@ title: Retrieving Models
 
 # Retrieving Models
 
-Once you have your models defined, you can use them to query the database for them.
-
-The `BaseModel` class comes with a bunch of static methods that you can use to retrieve models.
+Once you have your models defined, you can use them to query the database for them. You can think of each Eloquent model as a powerful  [query builder](/api/classes/querybuilder.html) allowing you to fluently query the documents associated with the model.
 
 If you are looking for a single model you can use the `find` method to get an instance of a model matching the given id.
 
@@ -40,3 +38,21 @@ blogPosts.forEach(post => console.log(post.title));
 ```
 
 You can find out more about the different methods available by consulting the API documentation for [BaseModel](/api/classes/basemodel.html) and [QueryBuilder](/api/classes/querybuilder.html).
+
+## Aggregate Functions
+
+Once you are happy with your query, you can use the aggregate functions available in Esix to perform calculations on the data set. The supported aggregates are `average`, `count`, `max`, `min`, `percentile`, and `sum`.
+
+```ts
+await Product.where('category', 'lamps').average('price');
+
+await Product.where('category', 'lamps').count();
+
+await Product.where('category', 'lamps').max('price');
+
+await Product.where('category', 'lamps').min('price');
+
+await Product.where('category', 'lamps').percentile('price', 50);
+
+await Product.where('category', 'lamps').sum('price');
+```
