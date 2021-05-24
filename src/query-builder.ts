@@ -62,6 +62,10 @@ export default class QueryBuilder<T> {
    async average(key: string): Promise<number> {
     const values = await this.pluck(key);
 
+    if (values.length === 0) {
+      return 0;
+    }
+
     const sum = values.reduce((sum, value) => sum + value, 0);
 
     return sum / values.length;
@@ -251,6 +255,10 @@ export default class QueryBuilder<T> {
    */
    async percentile(key: string, n: number): Promise<number> {
     const values = await this.pluck(key);
+
+    if (values.length === 0) {
+      return 0;
+    }
 
     return percentile(n, values);
   }
