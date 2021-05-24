@@ -152,9 +152,21 @@ describe('Aggregate Functions', () => {
 
       expect(average).toEqual(186.55555555555554);
     });
+
+    test('it works without values', async() => {
+      const average = await ResponseTime.where('statusCode', 200).average('value');
+
+      expect(average).toEqual(0);
+    });
   });
 
   describe('Percentile', () => {
+    test('it works without values', async() => {
+      const median = await ResponseTime.where('statusCode', 200).percentile('value', 50);
+
+      expect(median).toEqual(0);
+    });
+
     test('it returns the median value for a given key', async() => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 78 }),
