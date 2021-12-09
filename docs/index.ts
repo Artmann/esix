@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import cpy from 'cpy';
 import frontMatter from 'front-matter';
 import FS, { promises as fs } from 'fs';
@@ -37,7 +38,7 @@ async function getTemplate(name: string): Promise<HandlebarsTemplateDelegate> {
 }
 
 async function createPage(page: Page, siteData: SiteData, buildConfig: BuildConfig): Promise<void> {
-  console.log(`Generating ${ page.title }.`);
+  console.log(`  - ${ page.title }`);
 
   const template = await getTemplate('page.hbs');
 
@@ -143,6 +144,8 @@ async function generateSitemap(siteData: SiteData, buildConfig: BuildConfig): Pr
   if (!FS.existsSync(buildConfig.outputPath)) {
     await fs.mkdir(buildConfig.outputPath);
   }
+
+  console.log(chalk.bold('Creating Pages:'));
 
   await Promise.all(
     siteData.pages.map(page => createPage(page, siteData, buildConfig))
