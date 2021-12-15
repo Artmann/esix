@@ -1,9 +1,9 @@
-import { v1 as createUuid } from 'uuid';
 import mongodb from 'mongo-mock';
+import { MongoClient } from 'mongodb';
 
 import { BaseModel } from './';
-import { MongoClient } from 'mongodb';
 import { connectionHandler } from './connection-handler';
+import { randomDatabaseName } from './tests';
 
 mongodb.max_delay = 1;
 
@@ -36,7 +36,7 @@ describe('Integration', () => {
   beforeEach(() => {
     Object.assign(process.env, {
       'DB_ADAPTER': 'mock',
-      'DB_DATABASE': `test-${ createUuid() }`
+      'DB_DATABASE': randomDatabaseName()
     });
   });
 
@@ -239,7 +239,7 @@ describe('Ordering', () => {
   beforeEach(async() => {
     Object.assign(process.env, {
       'DB_ADAPTER': 'mock',
-      'DB_DATABASE': `test-${ createUuid() }`
+      'DB_DATABASE': randomDatabaseName()
     });
 
     await Product.create({ name: 'Widget 1', price: 79.99, categoryId: 1 });
@@ -297,7 +297,7 @@ describe('Relationships', () => {
   beforeEach(() => {
     Object.assign(process.env, {
       'DB_ADAPTER': 'mock',
-      'DB_DATABASE': `test-${ createUuid() }`
+      'DB_DATABASE': randomDatabaseName()
     });
   });
 
@@ -344,7 +344,7 @@ describe('Deletion', () => {
   beforeEach(async() => {
     Object.assign(process.env, {
       'DB_ADAPTER': 'mock',
-      'DB_DATABASE': `test-${ createUuid() }`
+      'DB_DATABASE': randomDatabaseName()
     });
   });
 
@@ -421,7 +421,7 @@ describe('Documentation', () => {
   beforeEach(() => {
     Object.assign(process.env, {
       'DB_ADAPTER': 'mock',
-      'DB_DATABASE': `test-${ createUuid() }`
+      'DB_DATABASE': randomDatabaseName()
     });
   });
 
