@@ -1,6 +1,6 @@
 body {
   color: #4A5568;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
   padding: 0;
   margin: 0;
@@ -74,7 +74,7 @@ nav ul li a:hover {
 }
 
 .content p, .content pre, .content img, .content iframe, .content h2, .content h3, .content h4 {
-  margin-top: 2rem;
+  margin-top: 1rem;
   max-width: 100%;
 }
 
@@ -137,4 +137,57 @@ p code {
     font-size: 0.875rem;
     padding: 1.25rem;
   }
+}
+
+.example-table {
+  border-collapse: collapse;
+  border: solid 1px rgb(241, 245, 249);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  font-size: .875rem;
+  line-height: 1.25rem;
+  table-layout: auto;
+  width: 100%;
+}
+
+.example-table thead {
+  color: rgb(148, 163, 184);
+  font-weight: 500;
+}
+
+.example-table thead th {
+  background: rgb(248, 250, 252);
+  border-bottom: solid 1px rgb(226, 232, 240);
+  padding: 0.75rem 0;
+  text-align: left;
+}
+
+.example-table tbody td {
+  border-bottom: solid 1px rgb(241, 245, 249);
+  color: rgb(100, 116, 139);
+  padding: 0.75rem 0;
+}
+
+.example-table td:first-child, .example-table th:first-child {
+  padding-left: 1.25rem;
+}
+
+.example-table td:last-child, .example-table th:last-child {
+  padding-right: 1.25rem;
+}
+
+.example-table th.type {
+  text-align: center;
+  width: 5rem;
+}
+
+.example-table th.type span {
+  background: #e6edf4;
+  border-radius: 8px;
+  color: #7588a3;
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0.3rem 0.75rem;
+  text-transform: uppercase;
 }

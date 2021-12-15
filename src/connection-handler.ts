@@ -1,3 +1,4 @@
+// @ts-ignore
 import MongoMock from 'mongo-mock';
 import { Db, MongoClient } from 'mongodb';
 

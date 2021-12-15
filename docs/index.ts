@@ -7,6 +7,8 @@ import hljs from 'highlight.js';
 import marked from 'marked';
 import { join } from 'path';
 
+import { Example, loadExamples, renderExample } from '../src/examples';
+
 interface BuildConfig {
   outputPath: string;
 }
@@ -26,16 +28,6 @@ function isString(x: any): x is string {
 }
 
 let templateCache: { [ index: string ]: HandlebarsTemplateDelegate } = {};
-async function getTemplate(name: string): Promise<HandlebarsTemplateDelegate> {
-  if (!templateCache[name]) {
-    const source = await fs.readFile(join(__dirname, name), 'utf-8');
-    const template = compile(source);
-
-    templateCache[name] = template;
-  }
-
-  return templateCache[name];
-}
 
 async function createPage(page: Page, siteData: SiteData, buildConfig: BuildConfig): Promise<void> {
   console.log(`  - ${ page.title }`);
@@ -64,7 +56,7 @@ async function copyPublicFiles(outputPath: string): Promise<void> {
   await cpy([ join(__dirname, 'public', 'images') ], join(outputPath, 'images'));
 }
 
-async function loadSiteData(): Promise<SiteData> {
+async function loadSiteData(componentRegistry: ComponentRegistry): Promise<SiteData> {
   const data = await fs.readFile(join(__dirname, 'sidebar.json'), 'utf-8');
   const config = JSON.parse(data);
 
@@ -73,7 +65,9 @@ async function loadSiteData(): Promise<SiteData> {
     highlight: function(code, language) {
       const validLanguage = hljs.getLanguage(language) ? language : 'ts';
 
-      return hljs.highlight(validLanguage, code).value;
+      return hljs.highlight(code, {
+        language: validLanguage
+      }).value;
     },
     pedantic: false,
     gfm: true,
@@ -96,8 +90,19 @@ async function loadSiteData(): Promise<SiteData> {
 
       const attributes = content.attributes as any;
 
+      const body = marked(content.body).replace(/\$ ([a-zA-Z0-9]+) ([a-zA-Z0-9]+)/g, (match, p1, p2, p3) => {
+        if (!p1 && !p2) {
+          return match;
+        }
+
+        const key = `${p1}.${p2}`;
+        const html = componentRegistry[key];
+
+        return html ?? match;
+      });
+
       return {
-        body: marked(content.body),
+        body,
         description: attributes.description || 'Esix is a slick ORM for MongoDB.',
         filename: newFilename,
         title: attributes.title,
@@ -134,8 +139,34 @@ async function generateSitemap(siteData: SiteData, buildConfig: BuildConfig): Pr
   await fs.writeFile(outputPath, html);
 }
 
+async function getTemplate(name: string): Promise<HandlebarsTemplateDelegate> {
+  if (!templateCache[name]) {
+    const source = await fs.readFile(
+      join(__dirname, name),
+      'utf-8'
+    );
+    const template = compile(source);
+
+    templateCache[name] = template;
+  }
+
+  return templateCache[name];
+}
+
+type ComponentRegistry = Record<string, string>;
+
 (async () => {
-  const siteData = await loadSiteData();
+
+  const examples = await loadExamples(
+    join(__dirname, 'examples')
+  );
+
+  const componentRegistry = examples.reduce((carry, example) => ({
+    ...carry,
+    [`example.${example.name}`]: renderExample(example)
+  }), {});
+
+  const siteData = await loadSiteData(componentRegistry);
 
   const buildConfig = {
     outputPath: join(__dirname, 'dist')
