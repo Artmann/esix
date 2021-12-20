@@ -24,6 +24,10 @@ flights.forEach(flight => {
 });
 ```
 
+For example, the following query retrieves products where the brand is `Google`.
+
+$ example where
+
 When you are working with multiple models, you can use methods like `where` which returns an instance of a `QueryBuilder`. The Query Builder can be used to filter, sort, and limit your searches.
 
 ```ts
@@ -42,6 +46,19 @@ You can find out more about the different methods available by consulting the AP
 ## Aggregate Functions
 
 Once you are happy with your query, you can use the aggregate functions available in Esix to perform calculations on the data set. The supported aggregates are `average`, `count`, `max`, `min`, `percentile`, and `sum`.
+
+## Average
+
+The `average` method returns the average value of a given key.
+
+$ example find
+
+### Max
+
+The `max` method returns the maximum value of a given key.
+
+$ example max
+
 
 ```ts
 await Product.where('category', 'lamps').average('price');
