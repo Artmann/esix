@@ -4,6 +4,7 @@ import percentile from 'percentile';
 import pluralize from 'pluralize';
 
 import { connectionHandler } from './connection-handler';
+import { sanitize } from './sanitize';
 import { Dictionary, Document, ObjectType } from './types';
 
 export type Query = { [index: string]: any };
@@ -147,9 +148,9 @@ export default class QueryBuilder<T> {
       const query = objectId ? {
         $or: [
           { _id: objectId },
-          { _id: id }
+          { _id: sanitize(id) }
         ]
-      } : { _id: id };
+      } : { _id: sanitize(id) };
 
       const document = await collection.findOne(query);
 
@@ -168,7 +169,7 @@ export default class QueryBuilder<T> {
    */
   async findOne(query: Query): Promise<T | null> {
     return this.useCollection(async(collection) => {
-      const document = await collection.findOne(query);
+      const document = await collection.findOne(sanitize(query));
 
       if (!document) {
         return null;
@@ -312,7 +313,11 @@ export default class QueryBuilder<T> {
    * @internal
    */
   async save(attributes: Dictionary): Promise<string> {
-    attributes = normalizeAttributes(attributes);
+    attributes = normalizeAttributes(
+      sanitize(
+        attributes
+      )
+    );
 
     const id = attributes._id;
 
@@ -352,7 +357,7 @@ export default class QueryBuilder<T> {
 
     this.query = {
       ...this.query,
-      ...query
+      ...sanitize(query)
     };
 
     return this;
@@ -375,7 +380,7 @@ export default class QueryBuilder<T> {
 
     const query ={
       [fieldName]: {
-        $in: values
+        $in: sanitize(values)
       }
     };
 
@@ -409,7 +414,9 @@ export default class QueryBuilder<T> {
 
   private execute(fields?: Fields): Promise<T[]> {
     return this.useCollection(async(collection) => {
-      let cursor = fields ? collection.find(this.query, fields) : collection.find(this.query);
+      let cursor = fields
+        ? collection.find(this.query, fields)
+        : collection.find(this.query);
 
       if (this.queryOrder) {
         cursor = cursor.sort(this.queryOrder);
