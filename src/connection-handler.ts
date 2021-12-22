@@ -31,7 +31,8 @@ class ConnectionHandler {
   private async createClient(): Promise<MongoClient> {
     const adapterName = env('DB_ADAPTER', 'default').toLowerCase();
     const url = env('DB_URL', 'mongodb://127.0.0.1:27017/');
-    const poolSize = parseInt(env('DB_POOL_SIZE', '10'), 10);
+
+    const [ minPoolSize, maxPoolSize ] = this.getPoolSize();
 
     const MockClient = (MongoMock.MongoClient as unknown) as typeof MongoClient;
 
@@ -51,9 +52,8 @@ class ConnectionHandler {
     const adapter = adapters[adapterName];
 
     const client = await adapter.connect(url, {
-      poolSize,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
+      minPoolSize,
+      maxPoolSize
     });
 
     return client;
@@ -67,6 +67,24 @@ class ConnectionHandler {
     const databaseName = env('DB_DATABASE', '');
 
     return this.client.db(databaseName);
+  }
+
+  private getPoolSize(): [ number, number ] {
+    if (env('DB_POOL_SIZE')) {
+      console.warn('The `DB_POOL_SIZE` is deprecated. Use `DB_POOL_MIN_SIZE` and `DB_POOL_MAX_SIZE` instead.')
+    }
+
+    const minPoolSize = parseInt(
+      env('DB_POOL_MIN_SIZE') || env('DB_POOL_SIZE') || '10',
+      10
+    );
+
+    const maxPoolSize = parseInt(
+      env('DB_POOL_MAX_SIZE') || env('DB_POOL_SIZE') || '10',
+      10
+    );
+
+    return [ minPoolSize, maxPoolSize ];
   }
 }
 
