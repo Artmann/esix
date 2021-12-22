@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+- feat: Sanitize queries to prevent NoSQL injections.
+
+If a query property is an object, we remove properties where the key starts with
+the `$` character to avoid injections.
+
+This is a breaking change!
+
 ### Added
 
 - feat: Add helpful aggregate functions to the Query Builder.
