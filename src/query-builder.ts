@@ -82,9 +82,11 @@ export default class QueryBuilder<T> {
    * ```
    */
   async count(): Promise<number>  {
-    const records = await this.execute();
+    const count = await this.useCollection<number>((collection): Promise<number> => {
+      return collection.count(this.query);
+    });
 
-    return records.length;
+    return count
   }
 
   /**
