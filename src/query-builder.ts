@@ -56,6 +56,20 @@ export default class QueryBuilder<T> {
   }
 
   /**
+   * Direct access to Mongo's aggregation functions.
+   *
+   * @param stages
+   * @returns The result of the aggregations
+   */
+  async aggregate(stages: Record<string, unknown>[]) {
+    return this.useCollection(async(collection) => {
+      const cursor = await collection.aggregate(stages);
+
+      return cursor.toArray();
+    });
+  }
+
+  /**
    * Returns the average of all the values for the given key.
    *
    * @param key
