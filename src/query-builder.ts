@@ -185,6 +185,8 @@ export default class QueryBuilder<T> {
    * Returns the first model matching the query options.
    */
   async first(): Promise<T | null> {
+    this.queryLimit = 1;
+
     const models = await this.execute();
 
     if (models.length === 0) {
