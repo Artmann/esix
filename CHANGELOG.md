@@ -6,12 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
-- feat: Sanitize queries to prevent NoSQL injections.
+## [3.2.0] - 2022-04-06
 
-If a query property is an object, we remove properties where the key starts with
-the `$` character to avoid injections.
+- feat: Add the aggregate function which can be used to run more complex aggregations.
+- perf: Limit the query to one document when using .first.
+- perf: Count documents in Mongo to avoid retrieving all documents.
 
-This is a breaking change!
+## [3.1.0] - 2022-04-05
+
+### Changed
+
+- feat: Sanitize queries to prevent NoSQL injections. If a query property is an object, we remove properties where the key starts with the `$` character to avoid injections.
 
 ### Added
 
