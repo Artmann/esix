@@ -218,6 +218,16 @@ describe('Integration', () => {
     ]);
   });
 
+  it('returns nothing when an empty array is passed to whereIn', async() => {
+    await Author.create({ name: 'Ayra York' });
+    await Author.create({ name: 'Cain Young' });
+    await Author.create({ name: 'Antonio Dennis' });
+
+    const authors = await Author.whereIn('id', []).get();
+
+    expect(authors).toEqual([]);
+  });
+
   it('creates a model with a custom id', async() => {
     await Author.create({
       id: 'author-1',

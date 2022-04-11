@@ -388,10 +388,6 @@ export default class QueryBuilder<T> {
    * @param values
    */
   whereIn(fieldName: string, values: any[]): QueryBuilder<T> {
-    if (values.length === 0) {
-      return this;
-    }
-
     if (fieldName === 'id') {
       fieldName = '_id';
     }
