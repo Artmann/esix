@@ -6,6 +6,7 @@
   "repository": "https://github.com/Artmann/esix",
   "author": "Christoffer Artmann",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "apidocs:build": "typedoc --ignoreCompilerErrors --options typedoc.json --out docs/dist/api src/",
