@@ -43,7 +43,7 @@ function normalizeAttributes(originalAttributes: Dictionary): Dictionary {
   return attributes;
 }
 
-export default class QueryBuilder<T> {
+export default class QueryBuilder<T extends Dictionary> {
   private readonly ctor: ObjectType<T>;
 
   private query: Query = {};
