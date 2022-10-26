@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { mocked } from 'ts-jest/utils';
 
-import BaseModel from './base-model';
+import BaseModel from './base-model.js';
 
 jest.mock('mongodb');
 

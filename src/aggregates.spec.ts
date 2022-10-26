@@ -1,8 +1,8 @@
 import { v1 as createUuid } from 'uuid';
 import mongodb from 'mongo-mock';
 
-import { BaseModel } from './';
-import { connectionHandler } from './connection-handler';
+import { BaseModel } from './index.js';
+import { connectionHandler } from './connection-handler.js';
 
 mongodb.max_delay = 1;
 

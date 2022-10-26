@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
-import QueryBuilder from './query-builder';
-import { ObjectType, Dictionary } from './types';
+import QueryBuilder from './query-builder.js';
+import { ObjectType, Dictionary } from './types.js';
 import { camelCase } from 'change-case';
 
 export default class BaseModel {

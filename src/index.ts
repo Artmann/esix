@@ -1,5 +1,5 @@
-import BaseModel from './base-model';
-import QueryBuilder from './query-builder';
+import BaseModel from './base-model.js';
+import QueryBuilder from './query-builder.js';
 
 export {
   BaseModel,

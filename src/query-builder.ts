@@ -3,9 +3,9 @@ import { Collection, ObjectId } from 'mongodb';
 import percentile from 'percentile';
 import pluralize from 'pluralize';
 
-import { connectionHandler } from './connection-handler';
-import { sanitize } from './sanitize';
-import { Dictionary, Document, ObjectType } from './types';
+import { connectionHandler } from './connection-handler.js';
+import { sanitize } from './sanitize.js';
+import { Dictionary, Document, ObjectType } from './types.js';
 
 export type Query = { [index: string]: any };
 

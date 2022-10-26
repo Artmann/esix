@@ -8,7 +8,7 @@ const databaseMock = {
 
 jest.mock('mongodb');
 
-import { connectionHandler } from './connection-handler';
+import { connectionHandler } from './connection-handler.js';
 
 import { MongoClient } from 'mongodb';
 

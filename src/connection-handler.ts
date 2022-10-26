@@ -1,7 +1,7 @@
 import MongoMock from 'mongo-mock';
 import { Db, MongoClient } from 'mongodb';
 
-import { env } from './env';
+import { env } from './env.js';
 
 class ConnectionHandler {
   private client?: MongoClient;
