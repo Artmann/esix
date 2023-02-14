@@ -3,6 +3,7 @@ import mongodb from 'mongo-mock';
 
 import { BaseModel } from './index.js';
 import { connectionHandler } from './connection-handler.js';
+import { randomDatabaseName } from './tests/index.js';
 
 mongodb.max_delay = 1;
 
@@ -16,7 +17,7 @@ describe('Aggregate Functions', () => {
   beforeEach(() => {
     Object.assign(process.env, {
       'DB_ADAPTER': 'mock',
-      'DB_DATABASE': `test-${ createUuid() }`
+      'DB_DATABASE': randomDatabaseName()
     });
   });
 

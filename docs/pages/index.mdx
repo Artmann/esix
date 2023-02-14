@@ -1,0 +1,79 @@
+---
+title: Getting Started
+---
+
+import { Code } from '../doc-gen/site/code.tsx'
+import { Header } from '../doc-gen/site/header.js'
+
+Esix is the most productive way to interact with your Mongo Database in TypeScript. 🚀
+
+Inspired by ActiveRecord and Eloquent, you define models as normal Typescript classes and these classes are used to query your database.
+
+<Header title='Install Esix' />
+
+Add the package using your favorite package manager.
+
+**Yarn**
+
+<Code lang='shell'>
+yarn add esix mongodb
+</Code>
+
+**NPM**
+
+```sh
+npm install esix mongodb
+
+```
+
+<Header title='Exploring Data' />
+
+First off, you'll need to create a class for your model. This class will extend the `BaseModel` class provided by Esix.
+
+```ts
+import { BaseModel } from 'esix'
+
+export default class Book extends BaseModel {
+  public isbn = ''
+  public title = ''
+}
+
+```
+
+The base model comes with id and timestamp fields so you don't have to worry about those things.
+
+Let's continue and create some data!
+
+```ts
+import Book from './book.js'
+
+async function createBooks(): Promise<void> {
+  await Book.create({
+    isbn: '978-0525536291',
+    title: 'The Vanishing Half'
+  })
+
+  await Book.create({
+    isbn: '978-0525521143',
+    title: 'The Glass Hotel'
+  })
+}
+
+```
+
+Now that we have a couple of books in our database, we can query them using the same model class.
+
+```ts
+import { Request, Response } from 'express'
+
+import Book from './book'
+
+async function showBook(request: Request, response: Response): Promise<void> {
+  const book = await Book.find(request.params.id)
+
+  response.json({
+    book
+  })
+}
+
+```

@@ -1,0 +1,128 @@
+---
+title: Reading Data
+---
+
+import { ExampleComponent } from '../doc-gen/site/example.tsx'
+import { Header } from '../doc-gen/site/header.js'
+
+Once you have your models defined, you can use them to query the database for them. You can think of each
+Eloquent model as a powerful [query builder](/api/classes/querybuilder.html) allowing you to fluently
+query the documents associated with the model.
+
+If you know what you are looking for, data can be queried straight from the model using the built-in
+finder methods.
+
+<Header title='All' as='h3' />
+
+To get all the documents from the collection, you can use the `all` method.
+
+<ExampleComponent name='all' />
+
+<Header title='Find' as='h3' />
+
+If you just need to retrieve a single document, you can use the `find` method. It will return a single
+model instance matching the given id.
+
+<ExampleComponent name='find' />
+
+<Header title='Find By' as='h3' />
+
+The `find` method returns the first model matching the `_id` property of the document. If you are looking
+for a model matching a different property, you can use the `findBy` method.
+
+<ExampleComponent name='find-by' />
+
+<Header title='Building Queries' as='h2' />
+
+As we mentioned, at the hearth of Esix is a query builder. This means that you can build complex queries
+using different filter methods. You can use the `where` method to define your query and execute it with
+the `get` method.
+
+<Header title='Where' as='h3' />
+
+The `where` method allows you to filter the results of your query by a given property. You can chain
+multiple `where` methods to build more complex queries.
+
+<ExampleComponent name='where' />
+
+<Header title='Where In' as='h3' />
+
+If you have an array of possible values, you can use the `whereIn` method to filter the results of your
+query.
+
+<ExampleComponent name='where-in' />
+
+<Header title='First' as='h3' />
+
+If you are only interested in the first result of your query, you can use the `first` method.
+
+<ExampleComponent name='first' />
+
+<Header title='Get' as='h3' />
+
+The `get` method will execute the query and return an array of model instances.
+
+<ExampleComponent name='where' />
+
+<Header title='Pluck' as='h3' />
+
+When you are only interested in certain properties of the model, the `pluck` method is your friend. You
+can pass it the name of the property you want to retrieve and it will return an array of values.
+
+<ExampleComponent name='pluck' />
+
+You can also pass multiple properties to the `pluck` method and it will return an array of objects.
+
+<ExampleComponent name='pluck-multiple' />
+
+<Header title='Limit' as='h3' />
+
+If you only want to retrieve a certain number of results, you can use the `limit` method.
+
+<ExampleComponent name='limit' />
+
+<Header title='Order By' as='h3' />
+
+If you want to sort the results of your query, you can use the `orderBy` method. You can pass it the
+name of the property you want to sort by and the direction of the sort.
+
+<ExampleComponent name='order-by' />
+
+<Header title='Aggregate Functions' as='h2' />
+
+Esix also provides a set of aggregate functions that you can use together with the query builder. Instead
+of returning a model instance, these methods will return the result of the aggregate function.
+
+<Header title='Average' as='h3' />
+
+The `average` method will return the average value of a given property.
+
+<ExampleComponent name='average' />
+
+<Header title='Count' as='h3' />
+
+The `count` method will return the number of documents matching the query.
+
+<ExampleComponent name='count' />
+
+<Header title='Sum' as='h3' />
+
+The `sum` method will return the sum of a given property.
+
+<Header title='Max' as='h3' />
+
+The `max` method will return the maximum value of a given property.
+
+<ExampleComponent name='max' />
+
+<Header title='Min' as='h3' />
+
+The `min` method will return the minimum value of a given property.
+
+<ExampleComponent name='min' />
+
+<Header title='Percentile' as='h3' />
+
+The `percentile` method will return the value at the given percentile of a given property.
+
+<ExampleComponent name='percentile' />

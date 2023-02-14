@@ -1,0 +1,34 @@
+{
+  "comments": [
+    {
+      "id": "comment-1",
+      "postId": "post-1",
+      "text": "Great Post!"
+    },
+    {
+      "id": "comment-2",
+      "postId": "post-1",
+      "text": "Amazing Content 🔥"
+    },
+    {
+      "id": "comment-3",
+      "postId": "post-2",
+      "text": "I hate this!"
+    },
+    {
+      "id": "comment-4",
+      "postId": "post-1",
+      "text": "I can't find my model. Where did it go?"
+    },
+    {
+      "id": "comment-5",
+      "postId": "post-3",
+      "text": "Is MongoDB webscale?"
+    },
+    {
+      "id": "comment-6",
+      "postId": "post-4",
+      "text": "Needs more jQuery!"
+    }
+  ]
+}

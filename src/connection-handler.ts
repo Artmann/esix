@@ -1,3 +1,4 @@
+// @ts-ignore
 import MongoMock from 'mongo-mock';
 import { Db, MongoClient } from 'mongodb';
 
@@ -51,9 +52,7 @@ class ConnectionHandler {
     const adapter = adapters[adapterName];
 
     const client = await adapter.connect(url, {
-      poolSize,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
+      maxPoolSize: poolSize
     });
 
     return client;
