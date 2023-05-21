@@ -26,6 +26,7 @@ export const GlobalStyle = createGlobalStyle`
 
   h1 {
     font-size: 1.875rem;
+    margin-bottom: 0.75rem;
   }
 
   h2 {
@@ -42,9 +43,10 @@ export const GlobalStyle = createGlobalStyle`
     font-family: 'Source Code Pro', source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
   }
 
-  .content p, .content pre, .content img, .content iframe, .content h2, .content h3, .content h4 {
+  .content p, .content pre, .content img, .content iframe {
     height: auto;
-    margin-top: 1rem;
+    margin: 0;
+    margin-bottom: 1.25rem;
     max-width: 100%;
   }
 

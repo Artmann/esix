@@ -2,34 +2,30 @@
 title: Creating & Updating Data
 ---
 
-When it comes to adding new models to the database, there are two different ways to go about it. You can either use the `create` method and pass it the attributes you want the model to have, or you can create a new instance of the model and call it's `save` method.
+import { ExampleComponent } from '../doc-gen/site/example.tsx'
+import { Header } from '../doc-gen/site/header.js'
 
-```ts
-// Using the create method.
-const firstPost = await BlogPost.create({ title: 'My First Blog Post!' });
+When it comes to adding new models to the database, there are two different ways to go about it. You can either use
+the `create` method and pass it the attributes you want the model to have.
 
-// Using the save method.
-const secondPost = new BlogPost();
+<ExampleComponent name='create' />
 
-secondPost.title = 'My Second Blog Post!';
+Esix models are just normal TypeScript classes, so you can create a new instance of the model and call the `save` method on it.
 
-await secondPost.save();
-```
+<ExampleComponent name='create-pojo' />
 
-If the model doesn't have an Id, a new [ObjectId](https://docs.mongodb.com/manual/reference/method/ObjectId/) will be created and assigned to it.
+<Header as='h3' title='Ids' />
 
-When inserting a new model, the `createdAt` property will be filled with the current timestamp if it's not present.
+When you create a new instance of a model, we'll automatically generate an [ObjectId](https://docs.mongodb.com/manual/reference/method/ObjectId/)
+for you and assign it to the `id` property. If you already have an ID you want to use, you can pass it to the `create` method.
 
-If you want to update an existing model, you can also use the `save` method to persist your changes.
+MongoDB normally uses the `_id` property for documents, Esix does as well but we've aliased it to `id` for convenience.
 
-```ts
-const product = await Product.find('5f5a474b32fa462a5724ff7d');
+<Header as='h3' title='Timestamps' />
 
-product.price = 14.99;
-
-await product.save();
-```
+When creating a new model, the `createdAt` property will be filled with the current timestamp if it's not present.
 
 When you call `save` on an already existing model, the `updatedAt` field will be filled with the current timestamp.
 
-Both the timestamp properties contain the current time in milliseconds since January 1st, 1970, using JavaScript's [Date.now](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now) method.
+Both the timestamp properties contain the current time in milliseconds since January 1st, 1970, using JavaScript's
+[Date.now](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now) method.

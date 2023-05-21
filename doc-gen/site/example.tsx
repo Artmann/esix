@@ -26,7 +26,8 @@ export function ExampleComponent({ name }: ExampleProps): ReactElement | null {
   if (isNumber(example.output) || isString(example.output)) {
     return (
       <Code>
-{ text }
+{ text + '\n' }
+
 { `// => ${ example.output }` }
       </Code>
     )
@@ -34,6 +35,16 @@ export function ExampleComponent({ name }: ExampleProps): ReactElement | null {
 
   // The Array check has to come before the Object one as an Array is also an Object.
   if (Array.isArray(example.output)) {
+    if (!isObject(example.output[0])) {
+      return (
+        <Code>
+{ text + '\n' }
+
+{ `// => [ ${ example.output.map(v => `'${ v }'`).join(', ') } ]` }
+        </Code>
+      )
+    }
+
     return (
       <>
         <Code>
