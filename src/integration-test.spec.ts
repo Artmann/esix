@@ -455,8 +455,7 @@ describe('Documentation', () => {
   it('lists all flights', async () => {
     const spy = vi.spyOn(console, 'log')
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    spy.mockImplementation(() => {})
+    spy.mockImplementation(() => { })
 
     await Flight.create({
       name: 'Indian Air 9600'

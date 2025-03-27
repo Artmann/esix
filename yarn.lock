@@ -1217,7 +1217,7 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@typescript-eslint/eslint-plugin@^8.28.0":
+"@typescript-eslint/eslint-plugin@8.28.0", "@typescript-eslint/eslint-plugin@^8.28.0":
   version "8.28.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.28.0.tgz#ad1465aa6fe7e937801c291648dec951c4dc38e6"
   integrity sha512-lvFK3TCGAHsItNdWZ/1FkvpzCxTHUVuFrdnOGLMa0GGCFIbCgQWVk3CzCGdA7kM3qGVc+dfW9tr0Z/sHnGDFyg==
@@ -1232,7 +1232,7 @@
     natural-compare "^1.4.0"
     ts-api-utils "^2.0.1"
 
-"@typescript-eslint/parser@^8.28.0":
+"@typescript-eslint/parser@8.28.0", "@typescript-eslint/parser@^8.28.0":
   version "8.28.0"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-8.28.0.tgz#85321707e8711c0e66a949ea228224af35f45c98"
   integrity sha512-LPcw1yHD3ToaDEoljFEfQ9j2xShY367h7FZ1sq5NJT9I3yj4LHer1Xd1yRSOdYy9BpsrxU7R+eoDokChYM53lQ==
@@ -4477,6 +4477,15 @@ typedoc@^0.28.1:
     markdown-it "^14.1.0"
     minimatch "^9.0.5"
     yaml "^2.7.0 "
+
+typescript-eslint@^8.28.0:
+  version "8.28.0"
+  resolved "https://registry.yarnpkg.com/typescript-eslint/-/typescript-eslint-8.28.0.tgz#70b0ac51dc15eeb9fcfad66c0b0ec78f3ad341e3"
+  integrity sha512-jfZtxJoHm59bvoCMYCe2BM0/baMswRhMmYhy+w6VfcyHrjxZ0OJe0tGasydCpIpA+A/WIJhTyZfb3EtwNC/kHQ==
+  dependencies:
+    "@typescript-eslint/eslint-plugin" "8.28.0"
+    "@typescript-eslint/parser" "8.28.0"
+    "@typescript-eslint/utils" "8.28.0"
 
 typescript@^5.8.2:
   version "5.8.2"
