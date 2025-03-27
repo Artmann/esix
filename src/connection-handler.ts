@@ -37,15 +37,11 @@ class ConnectionHandler {
 
     const maxPoolSize = parseInt(maxPoolSizeEnv, 10)
 
-    // TODO: Replace this with a factory function so that we don't initialize clients that's not used.
-    const MockClient = MongoMock.MongoClient as unknown as typeof MongoClient
-
-    const adapters: { [index: string]: typeof MongoClient } = {
+    const adapters: Record<string, typeof MongoClient> = {
       default: MongoClient,
-      mock: MockClient
+      mock: (MongoMock.MongoClient as unknown) as typeof MongoClient
     }
 
-    // TODO: Can we do a type for this?
     if (!adapters.hasOwnProperty(adapterName)) {
       const validAdapterNames = Object.keys(adapters)
         .map((name) => `'${name}'`)
