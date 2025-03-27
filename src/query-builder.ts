@@ -5,7 +5,7 @@ import pluralize from "pluralize";
 
 import { connectionHandler } from "./connection-handler";
 import { sanitize } from "./sanitize";
-import { Dictionary, Document, ObjectType } from "./types";
+import type { Dictionary, Document, ObjectType } from "./types";
 
 export type Query = { [index: string]: any };
 
