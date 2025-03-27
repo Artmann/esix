@@ -7,8 +7,8 @@ class ConnectionHandler {
   private client?: MongoClient
 
   /**
-   * Use this if you want to manually close the open connections. Usefull if you want
-   * to gracefully terminate connections in response to a signal.
+   * Use this if you want to manually close the open connections. This can be useful if
+   * you want to gracefully terminate connections in response to a signal.
    */
   async closeConnections(): Promise<void> {
     if (!this.client) {
