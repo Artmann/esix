@@ -34,7 +34,7 @@ export default class BaseModel {
    */
   static async create<T extends BaseModel>(
     this: ObjectType<T>,
-    attributes: Dictionary
+    attributes: Partial<T>
   ): Promise<T> {
     const queryBuilder = new QueryBuilder(this)
 
