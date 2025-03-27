@@ -2,7 +2,6 @@
   "name": "esix",
   "version": "3.2.1",
   "description": "A really slick ORM for MongoDB.",
-  "main": "dist/index.js",
   "repository": "https://github.com/Artmann/esix",
   "author": "Christoffer Artmann",
   "license": "MIT",
@@ -17,8 +16,9 @@
     "test:watch": "jest --watchAll"
   },
   "engines": {
-    "node": ">= 12.18.0"
+    "node": ">= 20"
   },
+  "main": "dist/index.js",
   "files": [
     "dist"
   ],
@@ -61,5 +61,6 @@
     "typedoc": "^0.19.1",
     "typescript": "^3.9.6",
     "uuid": "^8.2.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
