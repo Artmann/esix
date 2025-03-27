@@ -1,5 +1,5 @@
 export function env(key: string, defaultValue = ''): string {
-  const value = process.env[key];
+  const value = process.env[key]
 
-  return value || defaultValue;
+  return value || defaultValue
 }
