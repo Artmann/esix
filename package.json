@@ -2,11 +2,19 @@
   "name": "esix",
   "version": "3.2.1",
   "description": "A really slick ORM for MongoDB.",
-  "repository": "https://github.com/Artmann/esix",
   "author": "Christoffer Artmann",
   "license": "MIT",
+  "repository": "https://github.com/Artmann/esix",
+  "homepage": "https://esix.netlify.app/",
+  "keywords": [
+    "mongodb",
+    "orm",
+    "typescript",
+    "esix",
+    "blazing-fast"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "apidocs:build": "typedoc --ignoreCompilerErrors --options typedoc.json --out docs/dist/api src/",
     "docs:build": "ts-node ./docs/index.ts",
     "docs:serve": "serve docs/dist",
@@ -15,13 +23,18 @@
     "test": "jest --coverage --detectOpenHandles --forceExit --runInBand",
     "test:watch": "jest --watchAll"
   },
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "engines": {
     "node": ">= 20"
   },
-  "main": "dist/index.js",
-  "files": [
-    "dist"
-  ],
   "peerDependencies": {
     "mongo-mock": "^4.0.0",
     "mongodb": "^6.0.0"
@@ -53,6 +66,7 @@
     "sinon": "^20.0.0",
     "ts-jest": "^29.3.0",
     "ts-node": "^10.9.2",
+    "tsup": "^8.4.0",
     "typedoc": "^0.28.1",
     "typescript": "^5.8.2",
     "uuid": "^11.1.0"
