@@ -120,6 +120,23 @@ export default class BaseModel {
   }
 
   /**
+   * Returns an array of values for the given key.
+   * 
+   * Example
+   * ```
+   * const titles = await BlogPost.pluck('title');
+   * ```
+   * 
+   * @param key
+   */
+  static pluck<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): Promise<T[K][]> {
+    return new QueryBuilder(this).pluck(key)
+  }
+
+  /**
    * Returns a QueryBuilder where `key` matches `value`.
    *
    * Example
