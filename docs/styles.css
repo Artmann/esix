@@ -1,5 +1,5 @@
 body {
-  color: #4A5568;
+  color: #4a5568;
   font-family: 'Open Sans', sans-serif;
   font-size: 16px;
   padding: 0;
@@ -9,8 +9,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  color: #4A5568;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #4a5568;
   font-family: 'Montserrat', sans-serif;
   font-weight: 300;
   margin: 0;
@@ -57,7 +62,7 @@ nav ul li {
 }
 
 nav ul li a {
-  color: #4A5568;
+  color: #4a5568;
   font-size: 0.8rem;
   text-decoration: none;
 }
@@ -67,19 +72,25 @@ nav ul li a:hover {
 }
 
 .content {
-  border-bottom: solid 1px #EDF2F7;
+  border-bottom: solid 1px #edf2f7;
   line-height: 2;
   max-width: 720px;
   padding: 1.5rem 2rem;
 }
 
-.content p, .content pre, .content img, .content iframe, .content h2, .content h3, .content h4 {
+.content p,
+.content pre,
+.content img,
+.content iframe,
+.content h2,
+.content h3,
+.content h4 {
   margin-top: 2rem;
   max-width: 100%;
 }
 
 .content a {
-  color: #6B46C1;
+  color: #6b46c1;
   padding-bottom: 12rem;
   text-decoration: none;
 }
@@ -89,15 +100,17 @@ nav ul li a:hover {
 }
 
 .content a:visited {
-  color: #553C9A;
+  color: #553c9a;
   text-decoration: none;
 }
 
 .content pre {
-  background: #282C34;
+  background: #282c34;
   border: solid 1px #5d6679;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  color: #DCD6B0;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  color: #dcd6b0;
   font-size: 0.75rem;
   margin: 2rem 0;
   overflow-x: auto;
@@ -106,14 +119,16 @@ nav ul li a:hover {
 }
 
 code {
-  font-family: 'Source Code Pro', source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family:
+    'Source Code Pro', source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
 
 p code {
   background: hsl(210 18% 95% / 1);
-  color: #C53030;
+  color: #c53030;
   font-size: 0.8rem;
-  padding: .25rem .4rem;
+  padding: 0.25rem 0.4rem;
 }
 
 @media only screen and (min-device-width: 768px) {
@@ -122,7 +137,7 @@ p code {
   }
 
   nav {
-    border-right: solid 1px #EDF2F7;
+    border-right: solid 1px #edf2f7;
     min-height: 100vh;
     padding: 2rem 4rem 2rem 2rem;
     text-align: left;

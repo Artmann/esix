@@ -1,13 +1,13 @@
-import "reflect-metadata";
+import 'reflect-metadata'
 
-import QueryBuilder from "./query-builder";
-import type { ObjectType, Dictionary } from "./types";
-import { camelCase } from "change-case";
+import QueryBuilder from './query-builder'
+import type { ObjectType, Dictionary } from './types'
+import { camelCase } from 'change-case'
 
 export default class BaseModel {
-  public createdAt = 0;
-  public id = "";
-  public updatedAt: number | null = null;
+  public createdAt = 0
+  public id = ''
+  public updatedAt: number | null = null
 
   /**
    * Returns all models.
@@ -18,7 +18,7 @@ export default class BaseModel {
    * ```
    */
   static async all<T extends BaseModel>(this: ObjectType<T>): Promise<T[]> {
-    return new QueryBuilder(this).where({}).get();
+    return new QueryBuilder(this).where({}).get()
   }
 
   /**
@@ -34,20 +34,20 @@ export default class BaseModel {
    */
   static async create<T extends BaseModel>(
     this: ObjectType<T>,
-    attributes: Dictionary,
+    attributes: Dictionary
   ): Promise<T> {
-    const queryBuilder = new QueryBuilder(this);
+    const queryBuilder = new QueryBuilder(this)
 
-    const id = await queryBuilder.create(attributes);
+    const id = await queryBuilder.create(attributes)
     const model = await queryBuilder.findOne({
-      _id: id,
-    });
+      _id: id
+    })
 
     if (!model) {
-      throw new Error("Failed to create model.");
+      throw new Error('Failed to create model.')
     }
 
-    return model;
+    return model
   }
 
   /**
@@ -62,9 +62,9 @@ export default class BaseModel {
    */
   static async find<T extends BaseModel>(
     this: ObjectType<T>,
-    id: string,
+    id: string
   ): Promise<T | null> {
-    return new QueryBuilder(this).find(id);
+    return new QueryBuilder(this).find(id)
   }
 
   /**
@@ -81,11 +81,11 @@ export default class BaseModel {
   static async findBy<T extends BaseModel>(
     this: ObjectType<T>,
     key: string,
-    value: any,
+    value: any
   ): Promise<T | null> {
     return new QueryBuilder(this).findOne({
-      [key]: value,
-    });
+      [key]: value
+    })
   }
 
   /**
@@ -95,9 +95,9 @@ export default class BaseModel {
    */
   static limit<T extends BaseModel>(
     this: ObjectType<T>,
-    length: number,
+    length: number
   ): QueryBuilder<T> {
-    return new QueryBuilder<T>(this).limit(length);
+    return new QueryBuilder<T>(this).limit(length)
   }
 
   /**
@@ -114,9 +114,9 @@ export default class BaseModel {
   static orderBy<T extends BaseModel>(
     this: ObjectType<T>,
     key: string,
-    order: "asc" | "desc" = "asc",
+    order: 'asc' | 'desc' = 'asc'
   ): QueryBuilder<T> {
-    return new QueryBuilder<T>(this).orderBy(key, order);
+    return new QueryBuilder<T>(this).orderBy(key, order)
   }
 
   /**
@@ -133,9 +133,9 @@ export default class BaseModel {
   static where<T extends BaseModel>(
     this: ObjectType<T>,
     key: string,
-    value: any,
+    value: any
   ): QueryBuilder<T> {
-    return new QueryBuilder(this).where(key, value);
+    return new QueryBuilder(this).where(key, value)
   }
 
   /**
@@ -152,11 +152,11 @@ export default class BaseModel {
   static whereIn<T extends BaseModel>(
     this: ObjectType<T>,
     fieldName: string,
-    values: any[],
+    values: any[]
   ): QueryBuilder<T> {
-    const queryBuilder = new QueryBuilder(this);
+    const queryBuilder = new QueryBuilder(this)
 
-    return queryBuilder.whereIn(fieldName, values);
+    return queryBuilder.whereIn(fieldName, values)
   }
 
   /**
@@ -169,28 +169,28 @@ export default class BaseModel {
    */
   async delete(): Promise<number> {
     const queryBuilder = new QueryBuilder(
-      this.constructor as ObjectType<BaseModel>,
-    );
+      this.constructor as ObjectType<BaseModel>
+    )
 
     return queryBuilder
       .where({
-        _id: this.id,
+        _id: this.id
       })
       .limit(1)
-      .delete();
+      .delete()
   }
 
   hasMany<T extends BaseModel>(
     ctor: ObjectType<T>,
     foreignKey?: string,
-    localKey?: string,
+    localKey?: string
   ): QueryBuilder<T> {
-    const queryBuilder = new QueryBuilder(ctor);
+    const queryBuilder = new QueryBuilder(ctor)
 
-    foreignKey = foreignKey || camelCase(`${this.constructor.name}Id`);
-    localKey = localKey || "id";
+    foreignKey = foreignKey || camelCase(`${this.constructor.name}Id`)
+    localKey = localKey || 'id'
 
-    return queryBuilder.where(foreignKey, (this as any)[localKey]);
+    return queryBuilder.where(foreignKey, (this as any)[localKey])
   }
 
   /**
@@ -207,21 +207,21 @@ export default class BaseModel {
    */
   async save(): Promise<void> {
     const queryBuilder = new QueryBuilder(
-      this.constructor as ObjectType<BaseModel>,
-    );
+      this.constructor as ObjectType<BaseModel>
+    )
 
     if (this.id) {
-      this.updatedAt = Date.now();
+      this.updatedAt = Date.now()
     } else {
-      this.createdAt = Date.now();
+      this.createdAt = Date.now()
     }
 
-    const attributes = { ...this };
+    const attributes = { ...this }
 
-    const id = await queryBuilder.save(attributes);
+    const id = await queryBuilder.save(attributes)
 
     if (!this.id) {
-      this.id = id;
+      this.id = id
     }
   }
 }

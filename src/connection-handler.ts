@@ -1,10 +1,10 @@
-import MongoMock from "mongo-mock";
-import { Db, MongoClient } from "mongodb";
+import MongoMock from 'mongo-mock'
+import { Db, MongoClient } from 'mongodb'
 
-import { env } from "./env";
+import { env } from './env'
 
 class ConnectionHandler {
-  private client?: MongoClient;
+  private client?: MongoClient
 
   /**
    * Use this if you want to manually close the open connections. Usefull if you want
@@ -12,12 +12,12 @@ class ConnectionHandler {
    */
   async closeConnections(): Promise<void> {
     if (!this.client) {
-      return;
+      return
     }
 
-    await this.client.close();
+    await this.client.close()
 
-    this.client = undefined;
+    this.client = undefined
   }
 
   /**
@@ -25,57 +25,57 @@ class ConnectionHandler {
    * behind the scenes so there is no need to get multiple connections.
    */
   async getConnection(): Promise<Db> {
-    return this.getDatabase();
+    return this.getDatabase()
   }
 
   private async createClient(): Promise<MongoClient> {
-    const adapterName = env("DB_ADAPTER", "default").toLowerCase();
-    const url = env("DB_URL", "mongodb://127.0.0.1:27017/");
+    const adapterName = env('DB_ADAPTER', 'default').toLowerCase()
+    const url = env('DB_URL', 'mongodb://127.0.0.1:27017/')
 
-    const deprecatedPoolSizeEnv = env("DB_POOL_SIZE", "10");
-    const maxPoolSizeEnv = env("DB_MAX_POOL_SIZE", deprecatedPoolSizeEnv);
+    const deprecatedPoolSizeEnv = env('DB_POOL_SIZE', '10')
+    const maxPoolSizeEnv = env('DB_MAX_POOL_SIZE', deprecatedPoolSizeEnv)
 
-    const maxPoolSize = parseInt(maxPoolSizeEnv, 10);
+    const maxPoolSize = parseInt(maxPoolSizeEnv, 10)
 
     // TODO: Replace this with a factory function so that we don't initialize clients that's not used.
-    const MockClient = MongoMock.MongoClient as unknown as typeof MongoClient;
+    const MockClient = MongoMock.MongoClient as unknown as typeof MongoClient
 
     const adapters: { [index: string]: typeof MongoClient } = {
       default: MongoClient,
-      mock: MockClient,
-    };
+      mock: MockClient
+    }
 
     // TODO: Can we do a type for this?
     if (!adapters.hasOwnProperty(adapterName)) {
       const validAdapterNames = Object.keys(adapters)
         .map((name) => `'${name}'`)
-        .join(", ");
+        .join(', ')
 
       throw new Error(
-        `${adapterName} is not a valid adapter name. Must be one of ${validAdapterNames}.`,
-      );
+        `${adapterName} is not a valid adapter name. Must be one of ${validAdapterNames}.`
+      )
     }
 
-    const adapter = adapters[adapterName];
+    const adapter = adapters[adapterName]
 
     const client = await adapter.connect(url, {
-      maxPoolSize: maxPoolSize,
-    });
+      maxPoolSize: maxPoolSize
+    })
 
-    return client;
+    return client
   }
 
   private async getDatabase(): Promise<Db> {
     if (!this.client) {
-      this.client = await this.createClient();
+      this.client = await this.createClient()
     }
 
-    const databaseName = env("DB_DATABASE", "");
+    const databaseName = env('DB_DATABASE', '')
 
-    return this.client.db(databaseName);
+    return this.client.db(databaseName)
   }
 }
 
-const connectionHandler = new ConnectionHandler();
+const connectionHandler = new ConnectionHandler()
 
-export { connectionHandler };
+export { connectionHandler }
