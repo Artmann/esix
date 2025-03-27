@@ -39,6 +39,7 @@ vi.mock('mongo-mock', () => ({
 }))
 
 class Book extends BaseModel {
+  public isAvailable = true
   public isbn = ''
   public title = ''
 
@@ -72,12 +73,13 @@ describe('BaseModel', () => {
   })
 
   describe('all', () => {
-    it('finds all documets.', async () => {
+    it('finds all documents.', async () => {
       const cursor = createCursor([
         {
           _id: '5f3568f2a0cdd1c9ba411c43',
           authorId: 'author-1',
           createdAt: 1594552340652,
+          isAvailable: true,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
           updatedAt: null
@@ -86,6 +88,7 @@ describe('BaseModel', () => {
           _id: '5f3569089f762e8323e4eb84',
           authorId: 'author-1',
           createdAt: 1594552346653,
+          isAvailable: true,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
           updatedAt: null
@@ -103,6 +106,7 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552340652,
           id: '5f3568f2a0cdd1c9ba411c43',
+          isAvailable: true,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
           updatedAt: null
@@ -111,6 +115,7 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552346653,
           id: '5f3569089f762e8323e4eb84',
+          isAvailable: true,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
           updatedAt: null
@@ -148,6 +153,7 @@ describe('BaseModel', () => {
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
         createdAt: 2323555555555,
+        isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
@@ -165,6 +171,7 @@ describe('BaseModel', () => {
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
         createdAt: 2323555555555,
+        isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
@@ -174,6 +181,7 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: 2323555555555,
         id: '5f0aefba348289a81889a955',
+        isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
@@ -195,6 +203,7 @@ describe('BaseModel', () => {
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
         createdAt: 2323555555555,
+        isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
@@ -213,6 +222,7 @@ describe('BaseModel', () => {
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
         createdAt: 2323555555555,
+        isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
@@ -222,6 +232,43 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: 2323555555555,
         id: '5f0aefba348289a81889a955',
+        isAvailable: true,
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: null
+      })
+    })
+
+    it('includes the default values for the model.', async () => {
+      vi.mocked(ObjectId.prototype.toHexString).mockReturnValue(
+        '5f0aefba348289a81889a955'
+      )
+      collection.insertOne.mockResolvedValue({
+        insertedId: '5f0aefba348289a81889a955'
+      })
+      collection.findOne.mockResolvedValue({
+        _id: '5f0aefba348289a81889a955',
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: null
+      })
+
+      await Book.create({
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        id: '5f0aefba348289a81889a955',
+        isbn: '978-3-16-148410-3',
+        title: 'Esix for dummies 3',
+        updatedAt: null
+      })
+
+      expect(collection.insertOne).toHaveBeenCalledWith({
+        _id: '5f0aefba348289a81889a955',
+        authorId: 'author-1',
+        createdAt: 2323555555555,
+        isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
@@ -296,6 +343,7 @@ describe('BaseModel', () => {
       expect(book).toEqual({
         authorId: 'author-1',
         createdAt: 1594552340652,
+        isAvailable: true,
         id: '5f3568f2a0cdd1c9ba411c43',
         isbn: '978-3-16-148410-0',
         title: 'Esix for dummies',
@@ -322,6 +370,7 @@ describe('BaseModel', () => {
         _id: '5f3568f2a0cdd1c9ba411c43',
         authorId: 'author-1',
         createdAt: 1594552340652,
+        isAvailable: true,
         isbn: '978-3-16-148410-0',
         title: 'Esix for dummies',
         updatedAt: null
@@ -336,6 +385,7 @@ describe('BaseModel', () => {
       expect(book).toEqual({
         authorId: 'author-1',
         createdAt: 1594552340652,
+        isAvailable: true,
         id: '5f3568f2a0cdd1c9ba411c43',
         isbn: '978-3-16-148410-0',
         title: 'Esix for dummies',
@@ -351,6 +401,7 @@ describe('BaseModel', () => {
           _id: '5f0aeaeacff57e3ec676b340',
           authorId: 'author-1',
           createdAt: 1594552340652,
+          isAvailable: true,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
           updatedAt: null
@@ -359,6 +410,7 @@ describe('BaseModel', () => {
           _id: '5f0aeaeacff57e3ec676b340',
           authorId: 'author-1',
           createdAt: 1594552346653,
+          isAvailable: true,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
           updatedAt: null
@@ -376,6 +428,7 @@ describe('BaseModel', () => {
       expect(book).toEqual({
         authorId: 'author-1',
         createdAt: 1594552340652,
+        isAvailable: true,
         id: '5f0aeaeacff57e3ec676b340',
         isbn: '978-3-16-148410-0',
         title: 'Esix for dummies',
@@ -500,6 +553,7 @@ describe('BaseModel', () => {
             _id: '5f347707fdec6e388b5c1d33',
             authorId: 'author-1',
             createdAt: 42,
+            isAvailable: true,
             isbn: '9780525590453',
             title: 'The Testaments',
             updatedAt: null
@@ -519,6 +573,7 @@ describe('BaseModel', () => {
           _id: '5f0aeaeacff57e3ec676b340',
           authorId: 'author-1',
           createdAt: 1594552340652,
+          isAvailable: true,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
           updatedAt: null
@@ -527,6 +582,7 @@ describe('BaseModel', () => {
           _id: '5f0aefba348289a81889a920',
           authorId: 'author-1',
           createdAt: 1594552346653,
+          isAvailable: true,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
           updatedAt: null
@@ -546,6 +602,7 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552340652,
           id: '5f0aeaeacff57e3ec676b340',
+          isAvailable: true,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
           updatedAt: null
@@ -554,6 +611,7 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552346653,
           id: '5f0aefba348289a81889a920',
+          isAvailable: true,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
           updatedAt: null
@@ -583,6 +641,7 @@ describe('BaseModel', () => {
           _id: '5f0aeaeacff57e3ec676b340',
           authorId: 'author-1',
           createdAt: 1594552340652,
+          isAvailable: true,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
           updatedAt: null
@@ -591,6 +650,7 @@ describe('BaseModel', () => {
           _id: '5f0aefba348289a81889a920',
           authorId: 'author-1',
           createdAt: 1594552346653,
+          isAvailable: true,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
           updatedAt: null
@@ -615,6 +675,7 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552340652,
           id: '5f0aeaeacff57e3ec676b340',
+          isAvailable: true,
           isbn: '978-3-16-148410-0',
           title: 'Esix for dummies',
           updatedAt: null
@@ -623,6 +684,7 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552346653,
           id: '5f0aefba348289a81889a920',
+          isAvailable: true,
           isbn: '978-3-16-148410-1',
           title: 'Esix for dummies 2',
           updatedAt: null

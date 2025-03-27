@@ -38,7 +38,19 @@ export default class BaseModel {
   ): Promise<T> {
     const queryBuilder = new QueryBuilder(this)
 
-    const id = await queryBuilder.create(attributes)
+    const instance = new this()
+    const defaultValues = Object.getOwnPropertyNames(instance).reduce((acc: Record<string, any>, key) => {
+      acc[key] = instance[key as keyof T]
+
+      return acc
+    }, {})
+
+    const attributesWithDefaults = {
+      ...defaultValues,
+      ...attributes
+    }
+
+    const id = await queryBuilder.create(attributesWithDefaults)
     const model = await queryBuilder.findOne({
       _id: id
     })
