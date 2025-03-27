@@ -1,23 +1,23 @@
-import { paramCase } from 'change-case';
-import { Collection, ObjectId } from 'mongodb';
-import percentile from 'percentile';
-import pluralize from 'pluralize';
+import * as changeCase from "change-case";
+import { Collection, ObjectId } from "mongodb";
+import percentile from "percentile";
+import pluralize from "pluralize";
 
-import { connectionHandler } from './connection-handler';
-import { sanitize } from './sanitize';
-import { Dictionary, Document, ObjectType } from './types';
+import { connectionHandler } from "./connection-handler";
+import { sanitize } from "./sanitize";
+import { Dictionary, Document, ObjectType } from "./types";
 
 export type Query = { [index: string]: any };
 
-type Order = { [ index: string ]: 1 | -1 };
-type Fields = { [ index: string ]: 1 };
+type Order = { [index: string]: 1 | -1 };
+type Fields = { [index: string]: 1 };
 
 function isString(x: any): x is string {
-  return typeof x === 'string';
+  return typeof x === "string";
 }
 
 function normalizeName(className: string): string {
-  return pluralize(paramCase(className));
+  return pluralize(changeCase.kebabCase(className));
 }
 
 function normalizeAttributes(originalAttributes: Dictionary): Dictionary {
@@ -27,16 +27,16 @@ function normalizeAttributes(originalAttributes: Dictionary): Dictionary {
     attributes.id = new ObjectId().toHexString();
   }
 
-  if (attributes.hasOwnProperty('id')) {
+  if (attributes.hasOwnProperty("id")) {
     attributes._id = attributes.id;
     delete attributes.id;
   }
 
-  if (!attributes['createdAt']) {
+  if (!attributes["createdAt"]) {
     attributes.createdAt = Date.now();
   }
 
-  if (!attributes['updatedAt']) {
+  if (!attributes["updatedAt"]) {
     attributes.updatedAt = null;
   }
 
@@ -62,7 +62,7 @@ export default class QueryBuilder<T> {
    * @returns The result of the aggregations
    */
   async aggregate(stages: Record<string, unknown>[]) {
-    return this.useCollection(async(collection) => {
+    return this.useCollection(async (collection) => {
       const cursor = await collection.aggregate(stages);
 
       return cursor.toArray();
@@ -74,7 +74,7 @@ export default class QueryBuilder<T> {
    *
    * @param key
    */
-   async average(key: string): Promise<number> {
+  async average(key: string): Promise<number> {
     const values = await this.pluck(key);
 
     if (values.length === 0) {
@@ -95,12 +95,14 @@ export default class QueryBuilder<T> {
    * const numberOfPayingCustomers = await Customer.where('hasPaidTheLastInvoice', true).count();
    * ```
    */
-  async count(): Promise<number>  {
-    const count = await this.useCollection<number>((collection): Promise<number> => {
-      return collection.count(this.query);
-    });
+  async count(): Promise<number> {
+    const count = await this.useCollection<number>(
+      (collection): Promise<number> => {
+        return collection.count(this.query);
+      },
+    );
 
-    return count
+    return count;
   }
 
   /**
@@ -111,7 +113,7 @@ export default class QueryBuilder<T> {
   async create(attributes: { [index: string]: any }): Promise<string> {
     attributes = normalizeAttributes(attributes);
 
-    return this.useCollection(async(collection) => {
+    return this.useCollection(async (collection) => {
       const { insertedId } = await collection.insertOne(attributes);
 
       return insertedId;
@@ -124,17 +126,17 @@ export default class QueryBuilder<T> {
    * @returns Returns the number of models deleted.
    */
   async delete(): Promise<number> {
-    const ids = await this.pluck('id') || [];
+    const ids = (await this.pluck("id")) || [];
 
-    return this.useCollection(async(collection) => {
+    return this.useCollection(async (collection) => {
       if (ids.length === 0) {
         return 0;
       }
 
       if (ids.length === 1) {
-        const [ id ] = ids;
+        const [id] = ids;
         const { deletedCount } = await collection.deleteOne({
-          _id: id
+          _id: id,
         });
 
         return deletedCount;
@@ -142,8 +144,8 @@ export default class QueryBuilder<T> {
 
       const { deletedCount } = await collection.deleteMany({
         _id: {
-          $in: ids
-        }
+          $in: ids,
+        },
       });
 
       return deletedCount;
@@ -154,21 +156,20 @@ export default class QueryBuilder<T> {
    * Returns the model with the given id or null if there is no matching model.
    */
   async find(id: string): Promise<T | null> {
-    return this.useCollection(async collection => {
+    return this.useCollection(async (collection) => {
       let objectId: ObjectId | undefined;
 
       try {
         objectId = ObjectId.createFromHexString(id);
       } catch (error) {}
 
-      const query = objectId ? {
-        $or: [
-          { _id: objectId },
-          { _id: sanitize(id) }
-        ]
-      } : { _id: sanitize(id) };
+      const query = objectId
+        ? {
+            $or: [{ _id: objectId }, { _id: sanitize(id) }],
+          }
+        : { _id: sanitize(id) };
 
-      const document = await collection.findOne(query);
+      const document = await collection.findOne(query as any);
 
       if (!document) {
         return null;
@@ -184,7 +185,7 @@ export default class QueryBuilder<T> {
    * @internal
    */
   async findOne(query: Query): Promise<T | null> {
-    return this.useCollection(async(collection) => {
+    return this.useCollection(async (collection) => {
       const document = await collection.findOne(sanitize(query));
 
       if (!document) {
@@ -233,10 +234,10 @@ export default class QueryBuilder<T> {
    *
    * @param key
    */
-   async max(key: string): Promise<number> {
+  async max(key: string): Promise<number> {
     const values = await this.pluck(key);
 
-    return Math.max(...values)
+    return Math.max(...values);
   }
 
   /**
@@ -244,7 +245,7 @@ export default class QueryBuilder<T> {
    *
    * @param key
    */
-   async min(key: string): Promise<number> {
+  async min(key: string): Promise<number> {
     const values = await this.pluck(key);
 
     return Math.min(...values);
@@ -256,12 +257,12 @@ export default class QueryBuilder<T> {
    * @param key The key you want to sort by.
    * @param order Defaults to ascending order.
    */
-  orderBy(key: string, order: 'asc' | 'desc' = 'asc'): QueryBuilder<T> {
+  orderBy(key: string, order: "asc" | "desc" = "asc"): QueryBuilder<T> {
     if (!this.queryOrder) {
       this.queryOrder = {};
     }
 
-    this.queryOrder[key] = order === 'asc' ? 1 : -1;
+    this.queryOrder[key] = order === "asc" ? 1 : -1;
 
     return this;
   }
@@ -272,7 +273,7 @@ export default class QueryBuilder<T> {
    * @param key
    * @param n
    */
-   async percentile(key: string, n: number): Promise<number> {
+  async percentile(key: string, n: number): Promise<number> {
     const values = await this.pluck(key);
 
     if (values.length === 0) {
@@ -301,24 +302,30 @@ export default class QueryBuilder<T> {
       return [];
     }
 
-    const fields: Fields = keys.reduce((carry, key) => ({
-      ...carry,
-      [key]: 1
-    }), {});
+    const fields: Fields = keys.reduce(
+      (carry, key) => ({
+        ...carry,
+        [key]: 1,
+      }),
+      {},
+    );
 
     const records = await this.execute(fields);
 
     if (keys.length === 1) {
-      const [ key ] = keys;
+      const [key] = keys;
 
       return records.map((record: any) => record[key]);
     }
 
-    const transform = (item: Dictionary): any => {
-      return keys.reduce((carry: any, key: string): any => ({
-        ...carry,
-        [key]: item[key]
-      }), {});
+    const transform = (item: any): any => {
+      return keys.reduce(
+        (carry: any, key: string): any => ({
+          ...carry,
+          [key]: item[key],
+        }),
+        {},
+      );
     };
 
     return records.map(transform);
@@ -331,18 +338,14 @@ export default class QueryBuilder<T> {
    * @internal
    */
   async save(attributes: Dictionary): Promise<string> {
-    attributes = normalizeAttributes(
-      sanitize(
-        attributes
-      )
-    );
+    attributes = normalizeAttributes(sanitize(attributes));
 
     const id = attributes._id;
 
-    return this.useCollection(async(collection) => {
+    return this.useCollection(async (collection) => {
       const filter = { _id: id };
       const options = {
-        upsert: true
+        upsert: true,
       };
 
       await collection.updateOne(filter, { $set: attributes }, options);
@@ -375,7 +378,7 @@ export default class QueryBuilder<T> {
 
     this.query = {
       ...this.query,
-      ...sanitize(query)
+      ...sanitize(query),
     };
 
     return this;
@@ -388,19 +391,19 @@ export default class QueryBuilder<T> {
    * @param values
    */
   whereIn(fieldName: string, values: any[]): QueryBuilder<T> {
-    if (fieldName === 'id') {
-      fieldName = '_id';
+    if (fieldName === "id") {
+      fieldName = "_id";
     }
 
-    const query ={
+    const query = {
       [fieldName]: {
-        $in: sanitize(values)
-      }
+        $in: sanitize(values),
+      },
     };
 
     this.query = {
       ...this.query,
-      ...query
+      ...query,
     };
 
     return this;
@@ -410,7 +413,7 @@ export default class QueryBuilder<T> {
     const instance = new this.ctor() as any;
 
     for (const prop in document) {
-      if (prop === '_id') {
+      if (prop === "_id") {
         continue;
       }
 
@@ -427,7 +430,7 @@ export default class QueryBuilder<T> {
   }
 
   private execute(fields?: Fields): Promise<T[]> {
-    return this.useCollection(async(collection) => {
+    return this.useCollection(async (collection) => {
       let cursor = fields
         ? collection.find(this.query, fields)
         : collection.find(this.query);
@@ -443,14 +446,16 @@ export default class QueryBuilder<T> {
       const documents = await cursor.toArray();
 
       const records = documents
-        .filter(document => document)
+        .filter((document) => document)
         .map((document): T => this.createInstance(document));
 
       return records;
     });
   }
 
-  private async useCollection<K>(block: (collection: Collection) => Promise<any>): Promise<K> {
+  private async useCollection<K>(
+    block: (collection: Collection) => Promise<any>,
+  ): Promise<K> {
     const collectionName = normalizeName(this.ctor.name);
 
     const connection = await connectionHandler.getConnection();
