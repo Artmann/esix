@@ -1,5 +1,6 @@
-import { v1 as createUuid } from 'uuid'
 import mongodb from 'mongo-mock'
+import { v1 as createUuid } from 'uuid'
+import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 
 import { BaseModel } from './'
 import { connectionHandler } from './connection-handler'
@@ -25,7 +26,7 @@ describe('Aggregate Functions', () => {
   })
 
   describe('Sum', () => {
-    test('it sums up the values for a given key', async () => {
+    it('sums up the values for a given key.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 34 }),
         ResponseTime.create({ statusCode: 200, value: 45 }),
@@ -41,7 +42,7 @@ describe('Aggregate Functions', () => {
   })
 
   describe('Count', () => {
-    it('returns the number of matching records', async () => {
+    it('returns the number of matching records.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 34 }),
         ResponseTime.create({ statusCode: 200, value: 45 }),
@@ -55,7 +56,7 @@ describe('Aggregate Functions', () => {
       expect(count).toEqual(3)
     })
 
-    it('returns zero when there are no matching records', async () => {
+    it('returns zero when there are no matching records.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 34 }),
         ResponseTime.create({ statusCode: 200, value: 45 }),
@@ -71,7 +72,7 @@ describe('Aggregate Functions', () => {
   })
 
   describe('Max', () => {
-    test('it returns the biggest value for a given key', async () => {
+    it('returns the biggest value for a given key.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 34 }),
         ResponseTime.create({ statusCode: 200, value: 45 }),
@@ -85,7 +86,7 @@ describe('Aggregate Functions', () => {
       expect(max).toEqual(129)
     })
 
-    test('it works which large collections', async () => {
+    it('works which large collections.', async () => {
       const promises = []
 
       for (let i = 0; i < 500; i++) {
@@ -103,7 +104,7 @@ describe('Aggregate Functions', () => {
   })
 
   describe('Min', () => {
-    test('it returns the smallest value for a given key', async () => {
+    it('returns the smallest value for a given key.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 34 }),
         ResponseTime.create({ statusCode: 200, value: 45 }),
@@ -117,7 +118,7 @@ describe('Aggregate Functions', () => {
       expect(min).toEqual(22.1)
     })
 
-    test('it works which large collections', async () => {
+    it('works which large collections.', async () => {
       const promises = []
 
       for (let i = 0; i < 500; i++) {
@@ -135,7 +136,7 @@ describe('Aggregate Functions', () => {
   })
 
   describe('Average', () => {
-    test('it returns the average value for a given key', async () => {
+    it('returns the average value for a given key.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 78 }),
         ResponseTime.create({ statusCode: 200, value: 265 }),
@@ -155,7 +156,7 @@ describe('Aggregate Functions', () => {
       expect(average).toEqual(186.55555555555554)
     })
 
-    test('it works without values', async () => {
+    it('works without values.', async () => {
       const average = await ResponseTime.where('statusCode', 200).average(
         'value'
       )
@@ -165,7 +166,7 @@ describe('Aggregate Functions', () => {
   })
 
   describe('Percentile', () => {
-    test('it works without values', async () => {
+    it('works without values.', async () => {
       const median = await ResponseTime.where('statusCode', 200).percentile(
         'value',
         50
@@ -174,7 +175,7 @@ describe('Aggregate Functions', () => {
       expect(median).toEqual(0)
     })
 
-    test('it returns the median value for a given key', async () => {
+    it('returns the median value for a given key.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 78 }),
         ResponseTime.create({ statusCode: 200, value: 265 }),
@@ -195,7 +196,7 @@ describe('Aggregate Functions', () => {
       expect(median).toEqual(196)
     })
 
-    test('it returns the 75th percentile for a given key', async () => {
+    it('returns the 75th percentile for a given key.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 78 }),
         ResponseTime.create({ statusCode: 200, value: 265 }),
@@ -216,7 +217,7 @@ describe('Aggregate Functions', () => {
       expect(percentile).toEqual(232)
     })
 
-    test('it returns the 99th percentile for a given key', async () => {
+    it('returns the 99th percentile for a given key.', async () => {
       await Promise.all([
         ResponseTime.create({ statusCode: 200, value: 78 }),
         ResponseTime.create({ statusCode: 200, value: 265 }),

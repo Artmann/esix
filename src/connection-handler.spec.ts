@@ -1,11 +1,12 @@
 import sinon from 'sinon'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const databaseMock = {
-  close: jest.fn(),
-  db: jest.fn()
+  close: vi.fn(),
+  db: vi.fn()
 }
 
-jest.mock('mongodb')
+vi.mock('mongodb')
 
 import { connectionHandler } from './connection-handler'
 
@@ -16,9 +17,9 @@ const sandbox = sinon.createSandbox()
 describe('ConnectionHandler', () => {
   describe('getConnection', () => {
     beforeEach(() => {
-      jest
-        .mocked(MongoClient.connect)
-        .mockImplementation(() => Promise.resolve(databaseMock) as any)
+      vi.mocked(MongoClient.connect).mockImplementation(
+        () => Promise.resolve(databaseMock) as any
+      )
     })
 
     afterEach(() => {
