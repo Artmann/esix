@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [4.0.0] - 2025-03-27
+
+- The changelog has been moved to
+  [GitHub releases](https://github.com/Artmann/esix/releases).
+
 ## [3.2.1] - 2022-04-11
 
 - fix: Don't return all models when passing an empty array to

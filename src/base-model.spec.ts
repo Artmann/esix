@@ -457,6 +457,24 @@ describe('BaseModel', () => {
     })
   })
 
+  describe('pluck', async () => {
+    it('returns an array of values for the given key.', async () => {
+      const cursor = createCursor([
+        { _id: '1', title: 'Book 1' },
+        { _id: '2', title: 'Book 2' },
+        { _id: '3', title: 'Book 3' },
+        { _id: '4', title: 'Book 4' },
+        { _id: '5', title: 'Book 5' }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const titles = await Book.pluck('title')
+
+      expect(titles).toEqual(['Book 1', 'Book 2', 'Book 3', 'Book 4', 'Book 5'])
+    })
+  })
+
   describe('save', () => {
     it('saves a book', async () => {
       vi.spyOn(Date, 'now').mockReturnValue(42)

@@ -42,6 +42,15 @@ const blogPosts = await BlogPost.where('status', 'published')
 blogPosts.forEach((post) => console.log(post.title))
 ```
 
+If you are only interested in a single attribute of a model, you can use the
+`pluck` method to get an array of values for that attribute.
+
+```ts
+const productNames = await Product.where('category', 'lamps').pluck('name')
+
+productNames.forEach((name) => console.log(name))
+```
+
 You can find out more about the different methods available by consulting the
 API documentation for [BaseModel](/api/classes/basemodel.html) and
 [QueryBuilder](/api/classes/querybuilder.html).

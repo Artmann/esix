@@ -249,6 +249,36 @@ describe('Integration', () => {
       updatedAt: null
     })
   })
+
+  it('plucks an attribute.', async () => {
+    await Product.create({ name: 'Widget 1', price: 79.99, categoryId: 1 })
+    await Product.create({ name: 'Widget 2', price: 44.99, categoryId: 1 })
+    await Product.create({ name: 'Widget 3', price: 129.99, categoryId: 1 })
+    await Product.create({ name: 'Widget 4', price: 19.99, categoryId: 1 })
+    await Product.create({ name: 'Chair 1', price: 79.99, categoryId: 2 })
+    await Product.create({ name: 'Chair 2', price: 49.99, categoryId: 2 })
+
+    const names = await Product.pluck('name')
+    const prices = await Product.orderBy('price').pluck('price')
+
+    expect(names).toEqual([
+      'Widget 1',
+      'Widget 2',
+      'Widget 3',
+      'Widget 4',
+      'Chair 1',
+      'Chair 2'
+    ])
+
+    expect(prices).toEqual([
+      19.99,
+      44.99,
+      49.99,
+      79.99,
+      79.99,
+      129.99,
+    ])
+  })
 })
 
 describe('Ordering', () => {
@@ -267,46 +297,43 @@ describe('Ordering', () => {
   })
 
   it('returns products with ascending price.', async () => {
-    const products = await Product.orderBy('price').pluck('name', 'price')
+    const products = await Product.orderBy('price').get()
 
     expect(products).toEqual([
-      { name: 'Widget 4', price: 19.99 },
-      { name: 'Widget 2', price: 44.99 },
-      { name: 'Chair 2', price: 49.99 },
-      { name: 'Widget 1', price: 79.99 },
-      { name: 'Chair 1', price: 79.99 },
-      { name: 'Widget 3', price: 129.99 }
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 4', price: 19.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 2', price: 44.99, updatedAt: null },
+      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 2', price: 49.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 1', price: 79.99, updatedAt: null },
+      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 1', price: 79.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 3', price: 129.99, updatedAt: null },
     ])
   })
 
   it('returns products with descending price.', async () => {
-    const products = await Product.orderBy('price', 'desc').pluck(
-      'name',
-      'price'
-    )
+    const products = await Product.orderBy('price', 'desc').get()
 
     expect(products).toEqual([
-      { name: 'Widget 3', price: 129.99 },
-      { name: 'Widget 1', price: 79.99 },
-      { name: 'Chair 1', price: 79.99 },
-      { name: 'Chair 2', price: 49.99 },
-      { name: 'Widget 2', price: 44.99 },
-      { name: 'Widget 4', price: 19.99 }
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 3', price: 129.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 1', price: 79.99, updatedAt: null },
+      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 1', price: 79.99, updatedAt: null },
+      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 2', price: 49.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 2', price: 44.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 4', price: 19.99, updatedAt: null }
     ])
   })
 
   it('returns products with ordered by multiple fields.', async () => {
     const products = await Product.orderBy('price', 'desc')
       .orderBy('name', 'asc')
-      .pluck('name', 'price')
+      .get()
 
     expect(products).toEqual([
-      { name: 'Widget 3', price: 129.99 },
-      { name: 'Chair 1', price: 79.99 },
-      { name: 'Widget 1', price: 79.99 },
-      { name: 'Chair 2', price: 49.99 },
-      { name: 'Widget 2', price: 44.99 },
-      { name: 'Widget 4', price: 19.99 }
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 3', price: 129.99, updatedAt: null },
+      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 1', price: 79.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 1', price: 79.99, updatedAt: null },
+      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 2', price: 49.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 2', price: 44.99, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 4', price: 19.99, updatedAt: null }
     ])
   })
 })

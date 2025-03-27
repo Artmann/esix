@@ -3,6 +3,7 @@ import { Collection, ObjectId } from 'mongodb'
 import percentile from 'percentile'
 import pluralize from 'pluralize'
 
+import type BaseModel from './base-model'
 import { connectionHandler } from './connection-handler'
 import { sanitize } from './sanitize'
 import type { Dictionary, Document, ObjectType } from './types'
@@ -43,7 +44,7 @@ function normalizeAttributes(originalAttributes: Dictionary): Dictionary {
   return attributes
 }
 
-export default class QueryBuilder<T> {
+export default class QueryBuilder<T extends BaseModel> {
   private readonly ctor: ObjectType<T>
 
   private query: Query = {}
@@ -74,14 +75,20 @@ export default class QueryBuilder<T> {
    *
    * @param key
    */
-  async average(key: string): Promise<number> {
+  async average<K extends keyof T>(key: K): Promise<number> {
     const values = await this.pluck(key)
 
     if (values.length === 0) {
       return 0
     }
 
-    const sum = values.reduce((sum, value) => sum + value, 0)
+    if (!isNumberArray(values)) {
+      throw new Error(
+        `All values returned for ${String(key)} are not numbers. Please check your data.`
+      )
+    }
+
+    const sum = values.reduce((sum, value) => sum + (value as number), 0)
 
     return sum / values.length
   }
@@ -126,7 +133,7 @@ export default class QueryBuilder<T> {
    * @returns Returns the number of models deleted.
    */
   async delete(): Promise<number> {
-    const ids = (await this.pluck('id')) || []
+    const ids = await this.pluck('id')
 
     return this.useCollection(async (collection) => {
       if (ids.length === 0) {
@@ -136,7 +143,7 @@ export default class QueryBuilder<T> {
       if (ids.length === 1) {
         const [id] = ids
         const { deletedCount } = await collection.deleteOne({
-          _id: id
+          _id: id as any
         })
 
         return deletedCount
@@ -144,7 +151,7 @@ export default class QueryBuilder<T> {
 
       const { deletedCount } = await collection.deleteMany({
         _id: {
-          $in: ids
+          $in: ids as any[]
         }
       })
 
@@ -234,8 +241,14 @@ export default class QueryBuilder<T> {
    *
    * @param key
    */
-  async max(key: string): Promise<number> {
+  async max<K extends keyof T>(key: K): Promise<number> {
     const values = await this.pluck(key)
+
+    if (!isNumberArray(values)) {
+      throw new Error(
+        `All values returned for ${String(key)} are not numbers. Please check your data.`
+      )
+    }
 
     return Math.max(...values)
   }
@@ -245,8 +258,14 @@ export default class QueryBuilder<T> {
    *
    * @param key
    */
-  async min(key: string): Promise<number> {
+  async min<K extends keyof T>(key: K): Promise<number> {
     const values = await this.pluck(key)
+
+    if (!isNumberArray(values)) {
+      throw new Error(
+        `All values returned for ${String(key)} are not numbers. Please check your data.`
+      )
+    }
 
     return Math.min(...values)
   }
@@ -273,14 +292,22 @@ export default class QueryBuilder<T> {
    * @param key
    * @param n
    */
-  async percentile(key: string, n: number): Promise<number> {
+  async percentile<K extends keyof T>(key: K, n: number): Promise<number> {
     const values = await this.pluck(key)
 
     if (values.length === 0) {
       return 0
     }
 
-    return percentile(n, values)
+    if (!isNumberArray(values)) {
+      throw new Error(
+        `All values returned for ${String(key)} are not numbers. Please check your data.`
+      )
+    }
+
+    const p = percentile(n, values as number[])
+
+    return typeof p === 'number' ? p : p[0]
   }
 
   /**
@@ -292,43 +319,13 @@ export default class QueryBuilder<T> {
    * ```
    * await Posts.where('categoryId', 2).pluck('id');
    * // => [ '1', '2', '3' ]
-   *
-   * await Products.where('size', 'large').pluck('price', 'name');
-   * // => [ { name: 'Shirt 1', price: 14.99 } ]
-   * ```
    */
-  async pluck(...keys: string[]): Promise<any[]> {
-    if (keys.length === 0) {
-      return []
-    }
+  async pluck<K extends keyof T>(key: K): Promise<T[K][]> {
+    const records = await this.execute({ [(key as string)]: 1 })
 
-    const fields: Fields = keys.reduce(
-      (carry, key) => ({
-        ...carry,
-        [key]: 1
-      }),
-      {}
-    )
+    const values = records.map((record) => record[key])
 
-    const records = await this.execute(fields)
-
-    if (keys.length === 1) {
-      const [key] = keys
-
-      return records.map((record: any) => record[key])
-    }
-
-    const transform = (item: any): any => {
-      return keys.reduce(
-        (carry: any, key: string): any => ({
-          ...carry,
-          [key]: item[key]
-        }),
-        {}
-      )
-    }
-
-    return records.map(transform)
+    return values
   }
 
   /**
@@ -359,10 +356,16 @@ export default class QueryBuilder<T> {
    *
    * @param key
    */
-  async sum(key: string): Promise<number> {
+  async sum<K extends keyof T>(key: K): Promise<number> {
     const values = await this.pluck(key)
 
-    return values.reduce((sum, value) => sum + value, 0)
+    if (!isNumberArray(values)) {
+      throw new Error(
+        `All values returned for ${String(key)} are not numbers. Please check your data.`
+      )
+    }
+
+    return values.reduce((sum, value) => sum + (value as number), 0)
   }
 
   /**
@@ -466,4 +469,8 @@ export default class QueryBuilder<T> {
 
     return result
   }
+}
+
+function isNumberArray(array: any[]): array is number[] {
+  return array.every((item) => typeof item === 'number')
 }
