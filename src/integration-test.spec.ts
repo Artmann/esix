@@ -1,8 +1,9 @@
-import { v1 as createUuid } from 'uuid'
 import mongodb from 'mongo-mock'
+import { MongoClient, ObjectId } from 'mongodb'
+import { v1 as createUuid } from 'uuid'
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { BaseModel } from './'
-import { MongoClient, ObjectId } from 'mongodb'
 import { connectionHandler } from './connection-handler'
 
 mongodb.max_delay = 1
@@ -101,16 +102,18 @@ describe('Integration', () => {
     const db = connection.db(process.env['DB_DATABASE'])
     const collection = db.collection('blog-posts')
 
+    const objectId = new ObjectId()
+
     await collection.insertOne({
-      _id: new ObjectId('my-id'),
+      _id: objectId,
       title: 'Why Custom IDs makes your code fail.'
     })
 
-    const post = await BlogPost.find('my-id')
+    const post = await BlogPost.find(objectId.toHexString())
 
     expect(post).toEqual({
       createdAt: 0,
-      id: 'my-id',
+      id: objectId.toHexString(),
       title: 'Why Custom IDs makes your code fail.',
       updatedAt: null
     })
@@ -142,7 +145,7 @@ describe('Integration', () => {
   })
 
   it('updates existing model', async () => {
-    const dateSpy = jest.spyOn(Date, 'now')
+    const dateSpy = vi.spyOn(Date, 'now')
 
     dateSpy.mockReturnValue(42)
 
@@ -182,7 +185,7 @@ describe('Integration', () => {
   })
 
   it('persists a new model', async () => {
-    jest.spyOn(Date, 'now').mockReturnValue(42)
+    vi.spyOn(Date, 'now').mockReturnValue(42)
 
     const author = new Author()
 
@@ -450,7 +453,7 @@ describe('Documentation', () => {
   })
 
   it('lists all flights', async () => {
-    const spy = jest.spyOn(console, 'log')
+    const spy = vi.spyOn(console, 'log')
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     spy.mockImplementation(() => {})

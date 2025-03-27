@@ -21,8 +21,7 @@
     "format": "prettier --write .",
     "lint": "eslint ./src --ext .ts",
     "prepublish": "yarn build",
-    "test": "jest --coverage --detectOpenHandles --forceExit --runInBand",
-    "test:watch": "jest --watchAll"
+    "test": "vitest"
   },
   "type": "module",
   "main": "dist/index.cjs",
@@ -47,6 +46,7 @@
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
+    "@swc/core": "^1.11.13",
     "@types/highlight.js": "^10.1.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.14",
@@ -71,7 +71,8 @@
     "tsup": "^8.4.0",
     "typedoc": "^0.28.1",
     "typescript": "^5.8.2",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "vitest": "^3.0.9"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }

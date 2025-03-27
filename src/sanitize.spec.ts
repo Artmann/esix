@@ -1,7 +1,9 @@
+import { describe, expect, it } from 'vitest'
+
 import { sanitize } from './sanitize'
 
 describe('sanitize', () => {
-  it('handles objects', () => {
+  it('handles objects.', () => {
     const query = {
       password: 'hunter1',
       username: 'john'

@@ -1,26 +1,27 @@
 import { ObjectId } from 'mongodb'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import BaseModel from './base-model'
 
-jest.mock('mongodb')
+vi.mock('mongodb')
 
 function createCursor(documents: any[]) {
-  const cursor: any = {}
-
-  cursor.limit = jest.fn(() => cursor)
-  cursor.sort = jest.fn(() => cursor)
-  cursor.toArray = () => documents
+  const cursor: any = {
+    limit: vi.fn(() => cursor),
+    sort: vi.fn(() => cursor),
+    toArray: () => documents
+  }
 
   return cursor
 }
 
 const collection = {
-  deleteOne: jest.fn(),
-  deleteMany: jest.fn(),
-  find: jest.fn(),
-  findOne: jest.fn(),
-  insertOne: jest.fn(),
-  updateOne: jest.fn()
+  deleteOne: vi.fn(),
+  deleteMany: vi.fn(),
+  find: vi.fn(),
+  findOne: vi.fn(),
+  insertOne: vi.fn(),
+  updateOne: vi.fn()
 }
 const database = {
   collection: () => Promise.resolve(collection)
@@ -29,9 +30,11 @@ const client = {
   db: () => database
 }
 
-jest.mock('mongo-mock', () => ({
-  MongoClient: {
-    connect: () => Promise.resolve(client)
+vi.mock('mongo-mock', () => ({
+  default: {
+    MongoClient: {
+      connect: () => Promise.resolve(client)
+    }
   }
 }))
 
@@ -59,13 +62,13 @@ describe('BaseModel', () => {
 
     let idCounter = 0
 
-    jest.mocked(ObjectId.prototype.toHexString).mockImplementation(() => {
+    vi.mocked(ObjectId.prototype.toHexString).mockImplementation(() => {
       return ids[idCounter++ % ids.length]
     })
   })
 
   afterEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('all', () => {
@@ -130,13 +133,13 @@ describe('BaseModel', () => {
 
   describe('create', () => {
     it('creates a new Model.', async () => {
-      const dateSpy = jest.spyOn(Date, 'now')
+      const dateSpy = vi.spyOn(Date, 'now')
 
       dateSpy.mockReturnValue(2323555555555)
 
-      jest
-        .mocked(ObjectId.prototype.toHexString)
-        .mockReturnValueOnce('5f0aefba348289a81889a955')
+      vi.mocked(ObjectId.prototype.toHexString).mockReturnValueOnce(
+        '5f0aefba348289a81889a955'
+      )
 
       collection.insertOne.mockResolvedValue({
         insertedId: '5f0aefba348289a81889a955'
@@ -178,11 +181,11 @@ describe('BaseModel', () => {
     })
 
     it('creates a new Model with the given id.', async () => {
-      const dateSpy = jest.spyOn(Date, 'now')
+      const dateSpy = vi.spyOn(Date, 'now')
 
-      jest
-        .mocked(ObjectId.prototype.toHexString)
-        .mockReturnValue('5f0aefba348289a81889a955')
+      vi.mocked(ObjectId.prototype.toHexString).mockReturnValue(
+        '5f0aefba348289a81889a955'
+      )
 
       dateSpy.mockReturnValue(2323555555555)
       collection.insertOne.mockResolvedValue({
@@ -268,11 +271,9 @@ describe('BaseModel', () => {
     })
 
     it('finds a document by id.', async () => {
-      jest
-        .mocked(ObjectId.createFromHexString)
-        .mockImplementation(
-          (hexString: string): ObjectId => new ObjectId(hexString)
-        )
+      vi.mocked(ObjectId.createFromHexString).mockImplementation(
+        (hexString: string): ObjectId => new ObjectId(hexString)
+      )
 
       collection.findOne.mockResolvedValue({
         _id: '5f3568f2a0cdd1c9ba411c43',
@@ -458,11 +459,11 @@ describe('BaseModel', () => {
 
   describe('save', () => {
     it('saves a book', async () => {
-      jest.spyOn(Date, 'now').mockReturnValue(42)
+      vi.spyOn(Date, 'now').mockReturnValue(42)
 
-      jest
-        .mocked(ObjectId.prototype.toHexString)
-        .mockReturnValue('5f347707fdec6e388b5c1d33')
+      vi.mocked(ObjectId.prototype.toHexString).mockReturnValue(
+        '5f347707fdec6e388b5c1d33'
+      )
 
       const book = new Book()
 
