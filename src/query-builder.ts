@@ -110,11 +110,11 @@ export default class QueryBuilder<T> {
    *
    * @internal
    */
-  async create(attributes: { [index: string]: any }): Promise<string> {
-    attributes = normalizeAttributes(attributes)
+  async create(attributes: Record<string, any>): Promise<string> {
+    const normalizedAttributes = normalizeAttributes(attributes)
 
     return this.useCollection(async (collection) => {
-      const { insertedId } = await collection.insertOne(attributes)
+      const { insertedId } = await collection.insertOne(normalizedAttributes)
 
       return insertedId
     })
@@ -161,12 +161,12 @@ export default class QueryBuilder<T> {
 
       try {
         objectId = ObjectId.createFromHexString(id)
-      } catch (error) {}
+      } catch (error) { }
 
       const query = objectId
         ? {
-            $or: [{ _id: objectId }, { _id: sanitize(id) }]
-          }
+          $or: [{ _id: objectId }, { _id: sanitize(id) }]
+        }
         : { _id: sanitize(id) }
 
       const document = await collection.findOne(query as any)
