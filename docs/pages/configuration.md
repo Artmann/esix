@@ -19,9 +19,9 @@ The adapter is used to handle the MongoDB connection. Can be either `default` or
 
 The URL of the database. Defaults to `mongodb://127.0.0.1:27017/`.
 
-`DB_POOL_SIZE`
+`DB_MAX_POOL_SIZE`
 
-The size of the connection pool. Defaults to `10`.
+The maximum size of the connection pool. Defaults to `10`.
 
 `DB_DATABASE`
 

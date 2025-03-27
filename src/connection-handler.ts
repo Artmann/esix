@@ -1,7 +1,7 @@
-import MongoMock from 'mongo-mock';
-import { Db, MongoClient } from 'mongodb';
+import MongoMock from "mongo-mock";
+import { Db, MongoClient } from "mongodb";
 
-import { env } from './env';
+import { env } from "./env";
 
 class ConnectionHandler {
   private client?: MongoClient;
@@ -29,31 +29,37 @@ class ConnectionHandler {
   }
 
   private async createClient(): Promise<MongoClient> {
-    const adapterName = env('DB_ADAPTER', 'default').toLowerCase();
-    const url = env('DB_URL', 'mongodb://127.0.0.1:27017/');
-    const poolSize = parseInt(env('DB_POOL_SIZE', '10'), 10);
+    const adapterName = env("DB_ADAPTER", "default").toLowerCase();
+    const url = env("DB_URL", "mongodb://127.0.0.1:27017/");
 
-    const MockClient = (MongoMock.MongoClient as unknown) as typeof MongoClient;
+    const deprecatedPoolSizeEnv = env("DB_POOL_SIZE", "10");
+    const maxPoolSizeEnv = env("DB_MAX_POOL_SIZE", deprecatedPoolSizeEnv);
+
+    const maxPoolSize = parseInt(maxPoolSizeEnv, 10);
+
+    // TODO: Replace this with a factory function so that we don't initialize clients that's not used.
+    const MockClient = MongoMock.MongoClient as unknown as typeof MongoClient;
 
     const adapters: { [index: string]: typeof MongoClient } = {
       default: MongoClient,
-      mock: MockClient
+      mock: MockClient,
     };
 
+    // TODO: Can we do a type for this?
     if (!adapters.hasOwnProperty(adapterName)) {
       const validAdapterNames = Object.keys(adapters)
-        .map(name => `'${name}'`)
-        .join(', ');
+        .map((name) => `'${name}'`)
+        .join(", ");
 
-      throw new Error(`${ adapterName } is not a valid adapter name. Must be one of ${ validAdapterNames }.`);
+      throw new Error(
+        `${adapterName} is not a valid adapter name. Must be one of ${validAdapterNames}.`,
+      );
     }
 
     const adapter = adapters[adapterName];
 
     const client = await adapter.connect(url, {
-      poolSize,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
+      maxPoolSize: maxPoolSize,
     });
 
     return client;
@@ -64,7 +70,7 @@ class ConnectionHandler {
       this.client = await this.createClient();
     }
 
-    const databaseName = env('DB_DATABASE', '');
+    const databaseName = env("DB_DATABASE", "");
 
     return this.client.db(databaseName);
   }
@@ -72,6 +78,4 @@ class ConnectionHandler {
 
 const connectionHandler = new ConnectionHandler();
 
-export {
-  connectionHandler
-};
+export { connectionHandler };
