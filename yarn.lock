@@ -4462,6 +4462,11 @@ type-fest@^4.37.0:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-4.38.0.tgz#659fa14d1a71c2811400aa3b5272627e0c1e6b96"
   integrity sha512-2dBz5D5ycHIoliLYLi0Q2V7KRaDlH0uWIvmk7TYlAg5slqwiPv1ezJdZm1QEM0xgk29oYWMCbIG7E6gHpvChlg==
 
+typedoc-github-theme@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/typedoc-github-theme/-/typedoc-github-theme-0.2.1.tgz#c20c3d9f7f8825b835034fa9cd8a8ad5e5bbf5f6"
+  integrity sha512-pOgsS9CVAOO3JxQ1V0ocDkrPCULpoWg1OzRmn/mOlyG+vEYwUAp5DAoKrGECdNIomycxcisc8ovcMX0nHDgWTA==
+
 typedoc@^0.28.1:
   version "0.28.1"
   resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.28.1.tgz#23526f452f3824ae1f1b7615dccb7d3e4aa90d83"
