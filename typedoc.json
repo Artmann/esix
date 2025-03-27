@@ -1,9 +1,5 @@
 {
-  "theme": "minimal",
-  "module": "commonjs",
-  "target": "ES6",
   "readme": "README.md",
-  "mode": "file",
   "exclude": "./**/*+(e2e|spec|index).ts",
   "excludePrivate": "true"
 }

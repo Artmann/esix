@@ -1,10 +1,13 @@
 import cpy from 'cpy'
 import frontMatter from 'front-matter'
 import FS, { promises as fs } from 'fs'
-import { compile } from 'handlebars'
+import handlebarsPkg from 'handlebars'
 import hljs from 'highlight.js'
-import marked from 'marked'
+import { marked } from 'marked'
 import { join } from 'path'
+
+const { compile } = handlebarsPkg
+const __dirname = import.meta.dirname
 
 interface BuildConfig {
   outputPath: string
