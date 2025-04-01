@@ -50,6 +50,7 @@ export default class QueryBuilder<T extends BaseModel> {
   private query: Query = {}
 
   private queryLimit?: number
+  private queryOffset?: number
   private queryOrder?: Order
 
   constructor(ctor: ObjectType<T>) {
@@ -352,6 +353,17 @@ export default class QueryBuilder<T extends BaseModel> {
   }
 
   /**
+   * Skips the first `length` models. Useful for pagination.
+   * 
+   * @param length 
+   */
+  skip(length: number): QueryBuilder<T> {
+    this.queryOffset = length
+
+    return this
+  }
+
+  /**
    * Returns the sum of all the values for the given key.
    *
    * @param key
@@ -440,6 +452,10 @@ export default class QueryBuilder<T extends BaseModel> {
 
       if (this.queryOrder) {
         cursor = cursor.sort(this.queryOrder)
+      }
+
+      if (this.queryOffset) {
+        cursor = cursor.skip(this.queryOffset)
       }
 
       if (this.queryLimit) {

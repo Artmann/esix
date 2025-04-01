@@ -281,6 +281,61 @@ describe('Integration', () => {
   })
 })
 
+describe('Pagination', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      DB_ADAPTER: 'mock',
+      DB_DATABASE: `test-${createUuid()}`
+    })
+  })
+
+  afterAll(() => {
+    connectionHandler.closeConnections()
+  })
+
+  it('returns the first page of results.', async () => {
+    for (let i = 0; i < 30; i++) {
+      await Product.create({ name: `Widget ${i + 1}`, price: 10, categoryId: 1 })
+    }
+
+    const products = await Product.limit(10).get()
+
+    expect(products).toEqual([
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 1', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 2', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 3', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 4', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 5', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 6', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 7', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 8', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 9', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 10', price: 10, updatedAt: null },
+    ])
+  })
+
+  it('returns the second page of results.', async () => {
+    for (let i = 0; i < 30; i++) {
+      await Product.create({ name: `Widget ${i + 1}`, price: 10, categoryId: 1 })
+    }
+
+    const products = await Product.skip(10).limit(10).get()
+
+    expect(products).toEqual([
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 11', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 12', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 13', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 14', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 15', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 16', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 17', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 18', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 19', price: 10, updatedAt: null },
+      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 20', price: 10, updatedAt: null },
+    ])
+  })
+})
+
 describe('Ordering', () => {
   beforeEach(async () => {
     Object.assign(process.env, {

@@ -149,6 +149,18 @@ export default class BaseModel {
   }
 
   /**
+   * Skips {length} number of models.
+   *
+   * @param length
+   */
+  static skip<T extends BaseModel>(
+    this: ObjectType<T>,
+    length: number
+  ): QueryBuilder<T> {
+    return new QueryBuilder<T>(this).skip(length)
+  }
+
+  /**
    * Returns a QueryBuilder where `key` matches `value`.
    *
    * Example
