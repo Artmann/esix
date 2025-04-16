@@ -353,6 +353,28 @@ export default class QueryBuilder<T extends BaseModel> {
   }
 
   /**
+   * Searches the collection's text index for the given query.
+   * https://www.mongodb.com/docs/manual/core/indexes/index-types/index-text/
+   * 
+   * @param query 
+   * @param caseSensitive 
+   * @returns 
+   */
+  search(query: string, caseSensitive = false): QueryBuilder<T> {
+    this.query = {
+      ...this.query,
+      ...{
+        $text: {
+          $search: query,
+          $caseSensitive: caseSensitive
+        }
+      }
+    }
+
+    return this
+  }
+
+  /**
    * Skips the first `length` models. Useful for pagination.
    * 
    * @param length 
