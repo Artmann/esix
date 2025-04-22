@@ -87,13 +87,13 @@ export default class BaseModel {
    * const user = await User.findBy('email', 'john.smith@company.com');
    * ```
    *
-   * @param key
+   * @param key - A property of the model or '_id'
    * @param value
    */
-  static async findBy<T extends BaseModel>(
+  static async findBy<T extends BaseModel, K extends keyof T | '_id'>(
     this: ObjectType<T>,
-    key: string,
-    value: any
+    key: K,
+    value: K extends keyof T ? T[K] : any
   ): Promise<T | null> {
     return new QueryBuilder(this).findOne({
       [key]: value
