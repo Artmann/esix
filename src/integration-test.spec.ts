@@ -234,6 +234,55 @@ describe('Integration', () => {
     expect(authors).toEqual([])
   })
 
+  it('finds models with ids not in the given array', async () => {
+    const author1 = await Author.create({ name: 'Ayra York' })
+    const author2 = await Author.create({ name: 'Cain Young' })
+    const author3 = await Author.create({ name: 'Antonio Dennis' })
+
+    const authors = await Author.whereNotIn('id', [author1.id, author3.id]).get()
+
+    expect(authors).toEqual([
+      {
+        createdAt: 42,
+        id: author2.id,
+        name: author2.name,
+        updatedAt: null
+      }
+    ])
+  })
+
+  it('returns all models when an empty array is passed to whereNotIn', async () => {
+    const author1 = await Author.create({ name: 'Ayra York' })
+    const author2 = await Author.create({ name: 'Cain Young' })
+    const author3 = await Author.create({ name: 'Antonio Dennis' })
+
+    const authors = await Author.whereNotIn('id', []).get()
+
+    expect(authors).toHaveLength(3)
+    expect(authors.map(author => author.name).sort()).toEqual([
+      'Antonio Dennis',
+      'Ayra York',
+      'Cain Young'
+    ])
+  })
+
+  it('finds models with a key other than id not in the given array', async () => {
+    await Product.create({ name: 'Widget A', price: 10, categoryId: 1 })
+    await Product.create({ name: 'Widget B', price: 20, categoryId: 2 })
+    await Product.create({ name: 'Widget C', price: 30, categoryId: 3 })
+    await Product.create({ name: 'Widget D', price: 40, categoryId: 4 })
+    await Product.create({ name: 'Widget E', price: 50, categoryId: 5 })
+
+    const products = await Product.whereNotIn('categoryId', [1, 3, 5]).get()
+
+    expect(products).toHaveLength(2)
+    expect(products.map(product => product.name).sort()).toEqual([
+      'Widget B',
+      'Widget D'
+    ])
+    expect(products.map(product => product.categoryId).sort()).toEqual([2, 4])
+  })
+
   it('creates a model with a custom id', async () => {
     await Author.create({
       id: 'author-1',

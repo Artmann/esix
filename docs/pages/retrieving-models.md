@@ -42,6 +42,18 @@ const blogPosts = await BlogPost.where('status', 'published')
 blogPosts.forEach((post) => console.log(post.title))
 ```
 
+You can use `whereIn` to retrieve models where a column's value is within a given array:
+
+```ts
+const users = await User.whereIn('id', [1, 2, 3]).get()
+```
+
+Conversely, you can use `whereNotIn` to retrieve models where a column's value is not within a given array:
+
+```ts
+const users = await User.whereNotIn('id', [1, 2, 3]).get()
+```
+
 If you are only interested in a single attribute of a model, you can use the
 `pluck` method to get an array of values for that attribute.
 

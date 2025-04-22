@@ -692,4 +692,63 @@ describe('BaseModel', () => {
       ])
     })
   })
+
+  describe('whereNotIn', () => {
+    it('finds all documents that do not match the ids', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b341',
+          authorId: 'author-2',
+          createdAt: 1594552340659,
+          isAvailable: true,
+          isbn: '978-3-16-148410-2',
+          title: 'Esix for experts',
+          updatedAt: null
+        },
+        {
+          _id: '5f0aefba348289a81889a921',
+          authorId: 'author-2',
+          createdAt: 1594552346659,
+          isAvailable: true,
+          isbn: '978-3-16-148410-3',
+          title: 'Esix for experts 2',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.whereNotIn('id', [
+        '5f0aeaeacff57e3ec676b340',
+        '5f0aefba348289a81889a920'
+      ]).get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        _id: {
+          $nin: ['5f0aeaeacff57e3ec676b340', '5f0aefba348289a81889a920']
+        }
+      })
+
+      expect(books).toEqual([
+        {
+          authorId: 'author-2',
+          createdAt: 1594552340659,
+          id: '5f0aeaeacff57e3ec676b341',
+          isAvailable: true,
+          isbn: '978-3-16-148410-2',
+          title: 'Esix for experts',
+          updatedAt: null
+        },
+        {
+          authorId: 'author-2',
+          createdAt: 1594552346659,
+          id: '5f0aefba348289a81889a921',
+          isAvailable: true,
+          isbn: '978-3-16-148410-3',
+          title: 'Esix for experts 2',
+          updatedAt: null
+        }
+      ])
+    })
+  })
 })
