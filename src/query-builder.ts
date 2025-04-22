@@ -422,19 +422,44 @@ export default class QueryBuilder<T extends BaseModel> {
   }
 
   /**
-   * Returns all the models with `fieldName` in the array of `values`.
+   * Returns all the models with `key` in the array of `values`.
    *
-   * @param fieldName
+   * @param key
    * @param values
    */
-  whereIn(fieldName: string, values: any[]): QueryBuilder<T> {
-    if (fieldName === 'id') {
-      fieldName = '_id'
+  whereIn(key: string, values: any[]): QueryBuilder<T> {
+    if (key === 'id') {
+      key = '_id'
     }
 
     const query = {
-      [fieldName]: {
+      [key]: {
         $in: sanitize(values)
+      }
+    }
+
+    this.query = {
+      ...this.query,
+      ...query
+    }
+
+    return this
+  }
+
+  /**
+   * Returns all the models with `key` not in the array of `values`.
+   *
+   * @param key
+   * @param values
+   */
+  whereNotIn(key: string, values: any[]): QueryBuilder<T> {
+    if (key === 'id') {
+      key = '_id'
+    }
+
+    const query = {
+      [key]: {
+        $nin: sanitize(values)
       }
     }
 

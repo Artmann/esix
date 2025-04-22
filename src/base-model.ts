@@ -187,17 +187,38 @@ export default class BaseModel {
    * const comments = await Comment.whereIn('postId', [1, 2, 3]).get();
    * ```
    *
-   * @param fieldName
+   * @param key
    * @param values
    */
   static whereIn<T extends BaseModel>(
     this: ObjectType<T>,
-    fieldName: string,
+    key: string,
     values: any[]
   ): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(this)
 
-    return queryBuilder.whereIn(fieldName, values)
+    return queryBuilder.whereIn(key, values)
+  }
+
+  /**
+   * Returns models where `key` is not in the array of `values`.
+   *
+   * Example
+   * ```
+   * const users = await User.whereNotIn('id', [1, 2, 3]).get();
+   * ```
+   *
+   * @param key
+   * @param values
+   */
+  static whereNotIn<T extends BaseModel>(
+    this: ObjectType<T>,
+    key: string,
+    values: any[]
+  ): QueryBuilder<T> {
+    const queryBuilder = new QueryBuilder(this)
+
+    return queryBuilder.whereNotIn(key, values)
   }
 
   /**
