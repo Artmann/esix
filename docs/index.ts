@@ -148,6 +148,47 @@ async function generateSitemap(
   await fs.writeFile(outputPath, html)
 }
 
+async function generateLlmsTxt(
+  siteData: SiteData,
+  buildConfig: BuildConfig
+): Promise<void> {
+  console.log(`Generating llms.txt.`)
+
+  // Read all markdown files and combine their content
+  const config = JSON.parse(await fs.readFile(join(__dirname, 'sidebar.json'), 'utf-8'))
+  
+  let combinedContent = '# Esix ORM Documentation - Complete Reference\n\n'
+  combinedContent += '## Overview\n\n'
+  combinedContent += 'Esix is a slick ORM for MongoDB, inspired by ActiveRecord and Eloquent. It\'s a great way to work with your database in TypeScript using a Convention over Configuration approach where you define your models as normal TypeScript classes with minimal boilerplate.\n\n'
+
+  for (const filenameOrObject of config.links) {
+    const filename: string = isString(filenameOrObject)
+      ? filenameOrObject
+      : filenameOrObject.filename
+
+    const path = join(__dirname, 'pages', filename)
+    const file = await fs.readFile(path, 'utf-8')
+    const content = frontMatter(file)
+    const attributes = content.attributes as any
+
+    // Add section header based on the title from frontmatter
+    if (attributes.title && attributes.title !== 'Getting Started') {
+      combinedContent += `## ${attributes.title}\n\n`
+    }
+
+    // Add the markdown content, removing the frontmatter title if it exists
+    let bodyContent = content.body
+    if (bodyContent.startsWith(`# ${attributes.title}`)) {
+      bodyContent = bodyContent.replace(`# ${attributes.title}`, '').trim()
+    }
+    
+    combinedContent += bodyContent + '\n\n'
+  }
+
+  const outputPath = join(buildConfig.outputPath, 'llms.txt')
+  await fs.writeFile(outputPath, combinedContent)
+}
+
 ;(async () => {
   const siteData = await loadSiteData()
 
@@ -166,4 +207,6 @@ async function generateSitemap(
   await copyPublicFiles(buildConfig.outputPath)
 
   await generateSitemap(siteData, buildConfig)
+
+  await generateLlmsTxt(siteData, buildConfig)
 })()
