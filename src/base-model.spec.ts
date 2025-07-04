@@ -751,4 +751,142 @@ describe('BaseModel', () => {
       ])
     })
   })
+
+  describe('firstOrCreate', () => {
+    it('returns existing model if found', async () => {
+      collection.findOne.mockResolvedValue({
+        _id: '5f0aeaeacff57e3ec676b340',
+        authorId: 'author-1',
+        createdAt: 1594552340652,
+        isAvailable: true,
+        isbn: '978-3-16-148410-0',
+        title: 'Esix for dummies',
+        updatedAt: null
+      })
+
+      const book = await Book.firstOrCreate(
+        { isbn: '978-3-16-148410-0' },
+        { title: 'New Book', isbn: '978-3-16-148410-0', authorId: 'author-2' }
+      )
+
+      expect(collection.findOne).toHaveBeenCalledWith({
+        isbn: '978-3-16-148410-0'
+      })
+
+      expect(book).toEqual({
+        authorId: 'author-1',
+        createdAt: 1594552340652,
+        id: '5f0aeaeacff57e3ec676b340',
+        isAvailable: true,
+        isbn: '978-3-16-148410-0',
+        title: 'Esix for dummies',
+        updatedAt: null
+      })
+    })
+
+    it('creates new model if not found', async () => {
+      const dateSpy = vi.spyOn(Date, 'now')
+      dateSpy.mockReturnValue(2323555555555)
+
+      vi.mocked(ObjectId.prototype.toHexString).mockReturnValueOnce(
+        '5f0aefba348289a81889a955'
+      )
+
+      collection.findOne.mockResolvedValueOnce(null)
+      collection.insertOne.mockResolvedValue({
+        insertedId: '5f0aefba348289a81889a955'
+      })
+      collection.findOne.mockResolvedValueOnce({
+        _id: '5f0aefba348289a81889a955',
+        authorId: 'author-2',
+        createdAt: 2323555555555,
+        isAvailable: true,
+        isbn: '978-3-16-148410-5',
+        title: 'New Book',
+        updatedAt: null
+      })
+
+      const book = await Book.firstOrCreate(
+        { isbn: '978-3-16-148410-5' },
+        { title: 'New Book', isbn: '978-3-16-148410-5', authorId: 'author-2' }
+      )
+
+      expect(collection.findOne).toHaveBeenCalledWith({
+        isbn: '978-3-16-148410-5'
+      })
+
+      expect(collection.insertOne).toHaveBeenCalledWith({
+        _id: '5f0aefba348289a81889a955',
+        authorId: 'author-2',
+        createdAt: 2323555555555,
+        isAvailable: true,
+        isbn: '978-3-16-148410-5',
+        title: 'New Book',
+        updatedAt: null
+      })
+
+      expect(book).toEqual({
+        authorId: 'author-2',
+        createdAt: 2323555555555,
+        id: '5f0aefba348289a81889a955',
+        isAvailable: true,
+        isbn: '978-3-16-148410-5',
+        title: 'New Book',
+        updatedAt: null
+      })
+    })
+
+    it('creates new model using filter as attributes when attributes not provided', async () => {
+      const dateSpy = vi.spyOn(Date, 'now')
+      dateSpy.mockReturnValue(2323555555555)
+
+      vi.mocked(ObjectId.prototype.toHexString).mockReturnValueOnce(
+        '5f0aefba348289a81889a956'
+      )
+
+      collection.findOne.mockResolvedValueOnce(null)
+      collection.insertOne.mockResolvedValue({
+        insertedId: '5f0aefba348289a81889a956'
+      })
+      collection.findOne.mockResolvedValueOnce({
+        _id: '5f0aefba348289a81889a956',
+        authorId: 'author-3',
+        createdAt: 2323555555555,
+        isAvailable: true,
+        isbn: '',
+        title: 'Quick Book',
+        updatedAt: null
+      })
+
+      const book = await Book.firstOrCreate({
+        title: 'Quick Book',
+        authorId: 'author-3'
+      })
+
+      expect(collection.findOne).toHaveBeenCalledWith({
+        title: 'Quick Book',
+        authorId: 'author-3'
+      })
+
+      expect(collection.insertOne).toHaveBeenCalledWith({
+        _id: '5f0aefba348289a81889a956',
+        authorId: 'author-3',
+        createdAt: 2323555555555,
+        isAvailable: true,
+        isbn: '',
+        title: 'Quick Book',
+        updatedAt: null
+      })
+
+      expect(book).toEqual({
+        authorId: 'author-3',
+        createdAt: 2323555555555,
+        id: '5f0aefba348289a81889a956',
+        isAvailable: true,
+        isbn: '',
+        title: 'Quick Book',
+        updatedAt: null
+      })
+    })
+  })
 })

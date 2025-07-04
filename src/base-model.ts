@@ -222,6 +222,43 @@ export default class BaseModel {
   }
 
   /**
+   * Find a model matching the filter, or create a new one with the given attributes.
+   * If attributes are not provided, the filter will be used as the attributes.
+   *
+   * Example
+   * ```
+   * // Retrieve flight by name or create it if it doesn't exist...
+   * const flight = await Flight.firstOrCreate({
+   *   name: 'London to Paris'
+   * });
+   * 
+   * // Retrieve flight by name or create it with the name, delayed, and arrival_time attributes...
+   * const flight = await Flight.firstOrCreate(
+   *   { name: 'London to Paris' },
+   *   { delayed: 1, arrival_time: '11:30' }
+   * );
+   * ```
+   *
+   * @param filter - Object to search for existing model
+   * @param attributes - Attributes to use when creating new model (optional, defaults to filter)
+   */
+  static async firstOrCreate<T extends BaseModel>(
+    this: ObjectType<T>,
+    filter: Partial<T>,
+    attributes?: Partial<T>
+  ): Promise<T> {
+    const queryBuilder = new QueryBuilder(this)
+    
+    const existingModel = await queryBuilder.findOne(filter)
+    
+    if (existingModel) {
+      return existingModel
+    }
+    
+    return (this as any).create({ ...filter, ...attributes })
+  }
+
+  /**
    * Deletes the model from the database.
    *
    * Example
