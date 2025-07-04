@@ -1,7 +1,7 @@
 import mongodb from 'mongo-mock'
 import { MongoClient, ObjectId } from 'mongodb'
 import { v1 as createUuid } from 'uuid'
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { BaseModel } from './'
 import { connectionHandler } from './connection-handler'
@@ -148,14 +148,13 @@ describe('Integration', () => {
 
   it('updates existing model', async () => {
     const dateSpy = vi.spyOn(Date, 'now')
-
-    dateSpy.mockReturnValue(42)
-
+    dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
+    
     const author = await Author.create({
       name: 'John Smith'
     })
 
-    dateSpy.mockReturnValue(123)
+    dateSpy.mockReturnValue(new Date('2023-01-01T10:30:00Z').getTime())
 
     const existingAuthor = await Author.find(author.id)
 
@@ -172,23 +171,24 @@ describe('Integration', () => {
     const author2 = await Author.find(author.id)
 
     expect(existingAuthor).toEqual({
-      createdAt: 42,
+      createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
       id: author.id,
       name: 'John Oliver',
-      updatedAt: 123
+      updatedAt: new Date('2023-01-01T10:30:00Z').getTime()
     })
 
     expect(author2).toEqual({
-      createdAt: 42,
+      createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
       id: author.id,
       name: 'John Oliver',
-      updatedAt: 123
+      updatedAt: new Date('2023-01-01T10:30:00Z').getTime()
     })
   })
 
   it('persists a new model', async () => {
-    vi.spyOn(Date, 'now').mockReturnValue(42)
-
+    const dateSpy = vi.spyOn(Date, 'now')
+    dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
+    
     const author = new Author()
 
     author.name = 'Molly Markel'
@@ -196,7 +196,7 @@ describe('Integration', () => {
     await author.save()
 
     expect(author).toEqual({
-      createdAt: 42,
+      createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
       id: expect.any(String),
       name: 'Molly Markel',
       updatedAt: null
@@ -204,6 +204,9 @@ describe('Integration', () => {
   })
 
   it('finds models by ids', async () => {
+    const dateSpy = vi.spyOn(Date, 'now')
+    dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
+    
     const author1 = await Author.create({ name: 'Ayra York' })
     await Author.create({ name: 'Cain Young' })
     const author3 = await Author.create({ name: 'Antonio Dennis' })
@@ -212,13 +215,13 @@ describe('Integration', () => {
 
     expect(authors).toEqual([
       {
-        createdAt: 42,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: author1.id,
         name: author1.name,
         updatedAt: null
       },
       {
-        createdAt: 42,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: author3.id,
         name: author3.name,
         updatedAt: null
@@ -237,6 +240,9 @@ describe('Integration', () => {
   })
 
   it('finds models with ids not in the given array', async () => {
+    const dateSpy = vi.spyOn(Date, 'now')
+    dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
+    
     const author1 = await Author.create({ name: 'Ayra York' })
     const author2 = await Author.create({ name: 'Cain Young' })
     const author3 = await Author.create({ name: 'Antonio Dennis' })
@@ -245,7 +251,7 @@ describe('Integration', () => {
 
     expect(authors).toEqual([
       {
-        createdAt: 42,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: author2.id,
         name: author2.name,
         updatedAt: null
@@ -286,6 +292,9 @@ describe('Integration', () => {
   })
 
   it('creates a model with a custom id', async () => {
+    const dateSpy = vi.spyOn(Date, 'now')
+    dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
+    
     await Author.create({
       id: 'author-1',
       name: 'Antonio Dennis'
@@ -294,7 +303,7 @@ describe('Integration', () => {
     const author = await Author.find('author-1')
 
     expect(author).toEqual({
-      createdAt: 42,
+      createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
       id: 'author-1',
       name: 'Antonio Dennis',
       updatedAt: null
