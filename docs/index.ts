@@ -155,11 +155,14 @@ async function generateLlmsTxt(
   console.log(`Generating llms.txt.`)
 
   // Read all markdown files and combine their content
-  const config = JSON.parse(await fs.readFile(join(__dirname, 'sidebar.json'), 'utf-8'))
-  
+  const config = JSON.parse(
+    await fs.readFile(join(__dirname, 'sidebar.json'), 'utf-8')
+  )
+
   let combinedContent = '# Esix ORM Documentation - Complete Reference\n\n'
   combinedContent += '## Overview\n\n'
-  combinedContent += 'Esix is a slick ORM for MongoDB, inspired by ActiveRecord and Eloquent. It\'s a great way to work with your database in TypeScript using a Convention over Configuration approach where you define your models as normal TypeScript classes with minimal boilerplate.\n\n'
+  combinedContent +=
+    "Esix is a slick ORM for MongoDB, inspired by ActiveRecord and Eloquent. It's a great way to work with your database in TypeScript using a Convention over Configuration approach where you define your models as normal TypeScript classes with minimal boilerplate.\n\n"
 
   for (const filenameOrObject of config.links) {
     const filename: string = isString(filenameOrObject)
@@ -181,7 +184,7 @@ async function generateLlmsTxt(
     if (bodyContent.startsWith(`# ${attributes.title}`)) {
       bodyContent = bodyContent.replace(`# ${attributes.title}`, '').trim()
     }
-    
+
     combinedContent += bodyContent + '\n\n'
   }
 

@@ -39,11 +39,14 @@ export default class BaseModel {
     const queryBuilder = new QueryBuilder(this)
 
     const instance = new this()
-    const defaultValues = Object.getOwnPropertyNames(instance).reduce((acc: Record<string, any>, key) => {
-      acc[key] = instance[key as keyof T]
+    const defaultValues = Object.getOwnPropertyNames(instance).reduce(
+      (acc: Record<string, any>, key) => {
+        acc[key] = instance[key as keyof T]
 
-      return acc
-    }, {})
+        return acc
+      },
+      {}
+    )
 
     const attributesWithDefaults = {
       ...defaultValues,
@@ -133,12 +136,12 @@ export default class BaseModel {
 
   /**
    * Returns an array of values for the given key.
-   * 
+   *
    * Example
    * ```
    * const titles = await BlogPost.pluck('title');
    * ```
-   * 
+   *
    * @param key
    */
   static pluck<T extends BaseModel, K extends keyof T>(
@@ -231,7 +234,7 @@ export default class BaseModel {
    * const flight = await Flight.firstOrCreate({
    *   name: 'London to Paris'
    * });
-   * 
+   *
    * // Retrieve flight by name or create it with the name, delayed, and arrival_time attributes...
    * const flight = await Flight.firstOrCreate(
    *   { name: 'London to Paris' },
@@ -248,13 +251,13 @@ export default class BaseModel {
     attributes?: Partial<T>
   ): Promise<T> {
     const queryBuilder = new QueryBuilder(this)
-    
+
     const existingModel = await queryBuilder.findOne(filter)
-    
+
     if (existingModel) {
       return existingModel
     }
-    
+
     return (this as any).create({ ...filter, ...attributes })
   }
 

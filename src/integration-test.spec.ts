@@ -1,7 +1,15 @@
 import mongodb from 'mongo-mock'
 import { MongoClient, ObjectId } from 'mongodb'
 import { v1 as createUuid } from 'uuid'
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 
 import { BaseModel } from './'
 import { connectionHandler } from './connection-handler'
@@ -149,7 +157,7 @@ describe('Integration', () => {
   it('updates existing model', async () => {
     const dateSpy = vi.spyOn(Date, 'now')
     dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
-    
+
     const author = await Author.create({
       name: 'John Smith'
     })
@@ -188,7 +196,7 @@ describe('Integration', () => {
   it('persists a new model', async () => {
     const dateSpy = vi.spyOn(Date, 'now')
     dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
-    
+
     const author = new Author()
 
     author.name = 'Molly Markel'
@@ -206,7 +214,7 @@ describe('Integration', () => {
   it('finds models by ids', async () => {
     const dateSpy = vi.spyOn(Date, 'now')
     dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
-    
+
     const author1 = await Author.create({ name: 'Ayra York' })
     await Author.create({ name: 'Cain Young' })
     const author3 = await Author.create({ name: 'Antonio Dennis' })
@@ -242,12 +250,15 @@ describe('Integration', () => {
   it('finds models with ids not in the given array', async () => {
     const dateSpy = vi.spyOn(Date, 'now')
     dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
-    
+
     const author1 = await Author.create({ name: 'Ayra York' })
     const author2 = await Author.create({ name: 'Cain Young' })
     const author3 = await Author.create({ name: 'Antonio Dennis' })
 
-    const authors = await Author.whereNotIn('id', [author1.id, author3.id]).get()
+    const authors = await Author.whereNotIn('id', [
+      author1.id,
+      author3.id
+    ]).get()
 
     expect(authors).toEqual([
       {
@@ -267,7 +278,7 @@ describe('Integration', () => {
     const authors = await Author.whereNotIn('id', []).get()
 
     expect(authors).toHaveLength(3)
-    expect(authors.map(author => author.name).sort()).toEqual([
+    expect(authors.map((author) => author.name).sort()).toEqual([
       'Antonio Dennis',
       'Ayra York',
       'Cain Young'
@@ -284,17 +295,17 @@ describe('Integration', () => {
     const products = await Product.whereNotIn('categoryId', [1, 3, 5]).get()
 
     expect(products).toHaveLength(2)
-    expect(products.map(product => product.name).sort()).toEqual([
+    expect(products.map((product) => product.name).sort()).toEqual([
       'Widget B',
       'Widget D'
     ])
-    expect(products.map(product => product.categoryId).sort()).toEqual([2, 4])
+    expect(products.map((product) => product.categoryId).sort()).toEqual([2, 4])
   })
 
   it('creates a model with a custom id', async () => {
     const dateSpy = vi.spyOn(Date, 'now')
     dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
-    
+
     await Author.create({
       id: 'author-1',
       name: 'Antonio Dennis'
@@ -330,14 +341,7 @@ describe('Integration', () => {
       'Chair 2'
     ])
 
-    expect(prices).toEqual([
-      19.99,
-      44.99,
-      49.99,
-      79.99,
-      79.99,
-      129.99,
-    ])
+    expect(prices).toEqual([19.99, 44.99, 49.99, 79.99, 79.99, 129.99])
   })
 })
 
@@ -355,43 +359,191 @@ describe('Pagination', () => {
 
   it('returns the first page of results.', async () => {
     for (let i = 0; i < 30; i++) {
-      await Product.create({ name: `Widget ${i + 1}`, price: 10, categoryId: 1 })
+      await Product.create({
+        name: `Widget ${i + 1}`,
+        price: 10,
+        categoryId: 1
+      })
     }
 
     const products = await Product.limit(10).get()
 
     expect(products).toEqual([
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 1', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 2', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 3', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 4', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 5', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 6', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 7', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 8', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 9', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 10', price: 10, updatedAt: null },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 1',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 2',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 3',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 4',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 5',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 6',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 7',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 8',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 9',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 10',
+        price: 10,
+        updatedAt: null
+      }
     ])
   })
 
   it('returns the second page of results.', async () => {
     for (let i = 0; i < 30; i++) {
-      await Product.create({ name: `Widget ${i + 1}`, price: 10, categoryId: 1 })
+      await Product.create({
+        name: `Widget ${i + 1}`,
+        price: 10,
+        categoryId: 1
+      })
     }
 
     const products = await Product.skip(10).limit(10).get()
 
     expect(products).toEqual([
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 11', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 12', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 13', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 14', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 15', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 16', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 17', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 18', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 19', price: 10, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 20', price: 10, updatedAt: null },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 11',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 12',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 13',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 14',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 15',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 16',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 17',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 18',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 19',
+        price: 10,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 20',
+        price: 10,
+        updatedAt: null
+      }
     ])
   })
 })
@@ -415,12 +567,54 @@ describe('Ordering', () => {
     const products = await Product.orderBy('price').get()
 
     expect(products).toEqual([
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 4', price: 19.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 2', price: 44.99, updatedAt: null },
-      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 2', price: 49.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 1', price: 79.99, updatedAt: null },
-      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 1', price: 79.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 3', price: 129.99, updatedAt: null },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 4',
+        price: 19.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 2',
+        price: 44.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 2,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Chair 2',
+        price: 49.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 1',
+        price: 79.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 2,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Chair 1',
+        price: 79.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 3',
+        price: 129.99,
+        updatedAt: null
+      }
     ])
   })
 
@@ -428,12 +622,54 @@ describe('Ordering', () => {
     const products = await Product.orderBy('price', 'desc').get()
 
     expect(products).toEqual([
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 3', price: 129.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 1', price: 79.99, updatedAt: null },
-      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 1', price: 79.99, updatedAt: null },
-      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 2', price: 49.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 2', price: 44.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 4', price: 19.99, updatedAt: null }
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 3',
+        price: 129.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 1',
+        price: 79.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 2,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Chair 1',
+        price: 79.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 2,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Chair 2',
+        price: 49.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 2',
+        price: 44.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 4',
+        price: 19.99,
+        updatedAt: null
+      }
     ])
   })
 
@@ -443,12 +679,54 @@ describe('Ordering', () => {
       .get()
 
     expect(products).toEqual([
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 3', price: 129.99, updatedAt: null },
-      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 1', price: 79.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 1', price: 79.99, updatedAt: null },
-      { categoryId: 2, createdAt: expect.any(Number), id: expect.any(String), name: 'Chair 2', price: 49.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 2', price: 44.99, updatedAt: null },
-      { categoryId: 1, createdAt: expect.any(Number), id: expect.any(String), name: 'Widget 4', price: 19.99, updatedAt: null }
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 3',
+        price: 129.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 2,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Chair 1',
+        price: 79.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 1',
+        price: 79.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 2,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Chair 2',
+        price: 49.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 2',
+        price: 44.99,
+        updatedAt: null
+      },
+      {
+        categoryId: 1,
+        createdAt: expect.any(Number),
+        id: expect.any(String),
+        name: 'Widget 4',
+        price: 19.99,
+        updatedAt: null
+      }
     ])
   })
 })
@@ -689,7 +967,7 @@ describe('Documentation', () => {
   it('lists all flights', async () => {
     const spy = vi.spyOn(console, 'log')
 
-    spy.mockImplementation(() => { })
+    spy.mockImplementation(() => {})
 
     await Flight.create({
       name: 'Indian Air 9600'

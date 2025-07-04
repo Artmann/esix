@@ -18,6 +18,25 @@ const book = await Book.find(22)
 console.log(book.title)
 ```
 
+You can also find a model by a specific field using the `findBy` method:
+
+```ts
+const user = await User.findBy('email', 'john@example.com')
+
+console.log(user.name)
+```
+
+To get the first model that matches your query conditions, use the `first`
+method:
+
+```ts
+const latestPost = await BlogPost.where('status', 'published')
+  .orderBy('createdAt', 'desc')
+  .first()
+
+console.log(latestPost.title)
+```
+
 You can also get all the models in the collection.
 
 ```ts
@@ -42,13 +61,15 @@ const blogPosts = await BlogPost.where('status', 'published')
 blogPosts.forEach((post) => console.log(post.title))
 ```
 
-You can use `whereIn` to retrieve models where a column's value is within a given array:
+You can use `whereIn` to retrieve models where a column's value is within a
+given array:
 
 ```ts
 const users = await User.whereIn('id', [1, 2, 3]).get()
 ```
 
-Conversely, you can use `whereNotIn` to retrieve models where a column's value is not within a given array:
+Conversely, you can use `whereNotIn` to retrieve models where a column's value
+is not within a given array:
 
 ```ts
 const users = await User.whereNotIn('id', [1, 2, 3]).get()
@@ -61,6 +82,22 @@ If you are only interested in a single attribute of a model, you can use the
 const productNames = await Product.where('category', 'lamps').pluck('name')
 
 productNames.forEach((name) => console.log(name))
+```
+
+## Pagination
+
+For pagination, you can use the `skip` method to offset results and combine it
+with `limit`:
+
+```ts
+const page = 2
+const perPage = 10
+const offset = (page - 1) * perPage
+
+const products = await Product.where('category', 'electronics')
+  .skip(offset)
+  .limit(perPage)
+  .get()
 ```
 
 You can find out more about the different methods available by consulting the

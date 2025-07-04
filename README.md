@@ -96,8 +96,7 @@ await user.delete()
 const activeUsers = await User.where('isActive', true).get()
 
 // Multiple conditions
-const youngActiveUsers = await User
-  .where('isActive', true)
+const youngActiveUsers = await User.where('isActive', true)
   .where('age', '<', 25)
   .get()
 
@@ -134,12 +133,15 @@ Find existing records or create new ones:
 
 ```ts
 // Find user by email, create if doesn't exist
-const user = await User.firstOrCreate({
-  email: 'new@example.com'
-}, {
-  name: 'New User',
-  age: 25
-})
+const user = await User.firstOrCreate(
+  {
+    email: 'new@example.com'
+  },
+  {
+    name: 'New User',
+    age: 25
+  }
+)
 
 // Using only filter (attributes default to filter)
 const settings = await Settings.firstOrCreate({
@@ -163,7 +165,10 @@ class Author extends BaseModel {
 // Usage
 const author = await Author.find('author123')
 const authorPosts = await author.posts().get()
-const publishedPosts = await author.posts().where('publishedAt', '!=', null).get()
+const publishedPosts = await author
+  .posts()
+  .where('publishedAt', '!=', null)
+  .get()
 ```
 
 ### Real-world Example
@@ -171,12 +176,11 @@ const publishedPosts = await author.posts().where('publishedAt', '!=', null).get
 ```ts
 // Blog API endpoints
 export async function getPosts(req: Request, res: Response) {
-  const posts = await Post
-    .where('publishedAt', '!=', null)
+  const posts = await Post.where('publishedAt', '!=', null)
     .orderBy('publishedAt', 'desc')
     .limit(20)
     .get()
-  
+
   res.json({ posts })
 }
 
@@ -187,19 +191,19 @@ export async function createPost(req: Request, res: Response) {
     authorId: req.user.id,
     tags: req.body.tags || []
   })
-  
+
   res.json({ post })
 }
 
 export async function getOrCreateUser(req: Request, res: Response) {
   const user = await User.firstOrCreate(
     { email: req.body.email },
-    { 
+    {
       name: req.body.name,
-      isActive: true 
+      isActive: true
     }
   )
-  
+
   res.json({ user, created: user.createdAt === user.updatedAt })
 }
 ```
@@ -214,4 +218,5 @@ Esix works with zero configuration but supports these environment variables:
 
 ## Documentation
 
-For comprehensive documentation, visit [https://esix.netlify.app/](https://esix.netlify.app/).
+For comprehensive documentation, visit
+[https://esix.netlify.app/](https://esix.netlify.app/).

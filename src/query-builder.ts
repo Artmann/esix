@@ -169,12 +169,12 @@ export default class QueryBuilder<T extends BaseModel> {
 
       try {
         objectId = ObjectId.createFromHexString(id)
-      } catch (error) { }
+      } catch (error) {}
 
       const query = objectId
         ? {
-          $or: [{ _id: objectId }, { _id: sanitize(id) }]
-        }
+            $or: [{ _id: objectId }, { _id: sanitize(id) }]
+          }
         : { _id: sanitize(id) }
 
       const document = await collection.findOne(query as any)
@@ -322,7 +322,7 @@ export default class QueryBuilder<T extends BaseModel> {
    * // => [ '1', '2', '3' ]
    */
   async pluck<K extends keyof T>(key: K): Promise<T[K][]> {
-    const records = await this.execute({ [(key as string)]: 1 })
+    const records = await this.execute({ [key as string]: 1 })
 
     const values = records.map((record) => record[key])
 
@@ -355,10 +355,10 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Searches the collection's text index for the given query.
    * https://www.mongodb.com/docs/manual/core/indexes/index-types/index-text/
-   * 
-   * @param query 
-   * @param caseSensitive 
-   * @returns 
+   *
+   * @param query
+   * @param caseSensitive
+   * @returns
    */
   search(query: string, caseSensitive = false): QueryBuilder<T> {
     this.query = {
@@ -376,8 +376,8 @@ export default class QueryBuilder<T extends BaseModel> {
 
   /**
    * Skips the first `length` models. Useful for pagination.
-   * 
-   * @param length 
+   *
+   * @param length
    */
   skip(length: number): QueryBuilder<T> {
     this.queryOffset = length

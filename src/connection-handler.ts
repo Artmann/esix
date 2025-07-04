@@ -39,7 +39,7 @@ class ConnectionHandler {
 
     const adapters: Record<string, typeof MongoClient> = {
       default: MongoClient,
-      mock: (MongoMock.MongoClient as unknown) as typeof MongoClient
+      mock: MongoMock.MongoClient as unknown as typeof MongoClient
     }
 
     if (!adapters.hasOwnProperty(adapterName)) {
