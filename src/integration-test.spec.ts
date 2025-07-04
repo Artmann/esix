@@ -24,6 +24,8 @@ class BlogPost extends BaseModel {
 
 class Flight extends BaseModel {
   public name = ''
+  public delayed = 0
+  public arrival_time = ''
 }
 
 class Product extends BaseModel {
@@ -572,6 +574,98 @@ describe('Deletion', () => {
 
     expect(numberOfRemovedProducts).toEqual(0)
     expect(products.length).toEqual(6)
+  })
+})
+
+describe('FirstOrCreate', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      DB_ADAPTER: 'mock',
+      DB_DATABASE: `test-${createUuid()}`
+    })
+  })
+
+  it('returns existing flight when found', async () => {
+    // Create initial flight
+    const existingFlight = await Flight.create({
+      name: 'London to Paris',
+      delayed: 0,
+      arrival_time: '10:30'
+    })
+
+    // Try to firstOrCreate with same name
+    const flight = await Flight.firstOrCreate(
+      { name: 'London to Paris' },
+      { name: 'London to Paris', delayed: 1, arrival_time: '11:30' }
+    )
+
+    // Should return existing flight, not create new one
+    expect(flight.id).toBe(existingFlight.id)
+    expect(flight.delayed).toBe(0) // Should have original value
+    expect(flight.arrival_time).toBe('10:30') // Should have original value
+
+    // Verify only one flight exists
+    const allFlights = await Flight.all()
+    expect(allFlights).toHaveLength(1)
+  })
+
+  it('creates new flight when not found', async () => {
+    // Try to firstOrCreate with non-existing name
+    const flight = await Flight.firstOrCreate(
+      { name: 'London to Paris' },
+      { name: 'London to Paris', delayed: 1, arrival_time: '11:30' }
+    )
+
+    // Should create new flight
+    expect(flight.id).toBeDefined()
+    expect(flight.name).toBe('London to Paris')
+    expect(flight.delayed).toBe(1)
+    expect(flight.arrival_time).toBe('11:30')
+    expect(flight.createdAt).toBeGreaterThan(0)
+    expect(flight.updatedAt).toBe(null)
+
+    // Verify flight was actually created in database
+    const foundFlight = await Flight.find(flight.id)
+    expect(foundFlight).toEqual(flight)
+  })
+
+  it('creates new flight using filter as attributes when attributes not provided', async () => {
+    // Try to firstOrCreate with only filter
+    const flight = await Flight.firstOrCreate({
+      name: 'Paris to London'
+    })
+
+    // Should create new flight using filter values
+    expect(flight.id).toBeDefined()
+    expect(flight.name).toBe('Paris to London')
+    expect(flight.delayed).toBe(0) // Default value from model
+    expect(flight.arrival_time).toBe('') // Default value from model
+    expect(flight.createdAt).toBeGreaterThan(0)
+    expect(flight.updatedAt).toBe(null)
+
+    // Verify flight was actually created in database
+    const foundFlight = await Flight.find(flight.id)
+    expect(foundFlight).toEqual(flight)
+  })
+
+  it('finds existing flight with filter-only syntax', async () => {
+    // Create initial flight
+    const existingFlight = await Flight.create({
+      name: 'New York to London'
+    })
+
+    // Try to firstOrCreate with same name (filter-only syntax)
+    const flight = await Flight.firstOrCreate({
+      name: 'New York to London'
+    })
+
+    // Should return existing flight
+    expect(flight.id).toBe(existingFlight.id)
+    expect(flight.name).toBe('New York to London')
+
+    // Verify only one flight exists
+    const allFlights = await Flight.where('name', 'New York to London').get()
+    expect(allFlights).toHaveLength(1)
   })
 })
 

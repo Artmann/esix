@@ -12,6 +12,7 @@ Esix is a TypeScript database library for MongoDB, heavily inspired by Laravel's
 - Test specific test: `yarn test -t "test name pattern"`
 - Type check: `yarn tsc --noEmit`
 - Documentation: `yarn docs:build` and `yarn docs:serve`
+- Use the "--run" parameter when running the test suite
 
 ## Code Style Guidelines
 - **TypeScript**: Strict typing with null checks and proper return types
