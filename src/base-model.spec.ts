@@ -70,6 +70,7 @@ describe('BaseModel', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.useRealTimers()
   })
 
   describe('all', () => {
@@ -138,9 +139,8 @@ describe('BaseModel', () => {
 
   describe('create', () => {
     it('creates a new Model.', async () => {
-      const dateSpy = vi.spyOn(Date, 'now')
-
-      dateSpy.mockReturnValue(2323555555555)
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
 
       vi.mocked(ObjectId.prototype.toHexString).mockReturnValueOnce(
         '5f0aefba348289a81889a955'
@@ -152,7 +152,7 @@ describe('BaseModel', () => {
       collection.findOne.mockResolvedValue({
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
@@ -161,7 +161,7 @@ describe('BaseModel', () => {
 
       const book = await Book.create({
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
@@ -170,7 +170,7 @@ describe('BaseModel', () => {
       expect(collection.insertOne).toHaveBeenCalledWith({
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
@@ -179,7 +179,7 @@ describe('BaseModel', () => {
 
       expect(book).toEqual({
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
         isbn: '978-3-16-148410-3',
@@ -189,20 +189,19 @@ describe('BaseModel', () => {
     })
 
     it('creates a new Model with the given id.', async () => {
-      const dateSpy = vi.spyOn(Date, 'now')
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
 
       vi.mocked(ObjectId.prototype.toHexString).mockReturnValue(
         '5f0aefba348289a81889a955'
       )
-
-      dateSpy.mockReturnValue(2323555555555)
       collection.insertOne.mockResolvedValue({
         insertedId: '5f0aefba348289a81889a955'
       })
       collection.findOne.mockResolvedValue({
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
@@ -211,7 +210,7 @@ describe('BaseModel', () => {
 
       const book = await Book.create({
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
@@ -221,7 +220,7 @@ describe('BaseModel', () => {
       expect(collection.insertOne).toHaveBeenCalledWith({
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
@@ -230,7 +229,7 @@ describe('BaseModel', () => {
 
       expect(book).toEqual({
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
         isbn: '978-3-16-148410-3',
@@ -249,7 +248,7 @@ describe('BaseModel', () => {
       collection.findOne.mockResolvedValue({
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
         updatedAt: null
@@ -257,7 +256,7 @@ describe('BaseModel', () => {
 
       await Book.create({
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
@@ -267,7 +266,7 @@ describe('BaseModel', () => {
       expect(collection.insertOne).toHaveBeenCalledWith({
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
         title: 'Esix for dummies 3',
@@ -530,7 +529,8 @@ describe('BaseModel', () => {
 
   describe('save', () => {
     it('saves a book', async () => {
-      vi.spyOn(Date, 'now').mockReturnValue(42)
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
 
       vi.mocked(ObjectId.prototype.toHexString).mockReturnValue(
         '5f347707fdec6e388b5c1d33'
@@ -552,7 +552,7 @@ describe('BaseModel', () => {
           $set: {
             _id: '5f347707fdec6e388b5c1d33',
             authorId: 'author-1',
-            createdAt: 42,
+            createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
             isAvailable: true,
             isbn: '9780525590453',
             title: 'The Testaments',
@@ -785,8 +785,8 @@ describe('BaseModel', () => {
     })
 
     it('creates new model if not found', async () => {
-      const dateSpy = vi.spyOn(Date, 'now')
-      dateSpy.mockReturnValue(2323555555555)
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
 
       vi.mocked(ObjectId.prototype.toHexString).mockReturnValueOnce(
         '5f0aefba348289a81889a955'
@@ -799,7 +799,7 @@ describe('BaseModel', () => {
       collection.findOne.mockResolvedValueOnce({
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-2',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-5',
         title: 'New Book',
@@ -818,7 +818,7 @@ describe('BaseModel', () => {
       expect(collection.insertOne).toHaveBeenCalledWith({
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-2',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-5',
         title: 'New Book',
@@ -827,7 +827,7 @@ describe('BaseModel', () => {
 
       expect(book).toEqual({
         authorId: 'author-2',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
         isbn: '978-3-16-148410-5',
@@ -837,8 +837,8 @@ describe('BaseModel', () => {
     })
 
     it('creates new model using filter as attributes when attributes not provided', async () => {
-      const dateSpy = vi.spyOn(Date, 'now')
-      dateSpy.mockReturnValue(2323555555555)
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
 
       vi.mocked(ObjectId.prototype.toHexString).mockReturnValueOnce(
         '5f0aefba348289a81889a956'
@@ -851,7 +851,7 @@ describe('BaseModel', () => {
       collection.findOne.mockResolvedValueOnce({
         _id: '5f0aefba348289a81889a956',
         authorId: 'author-3',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '',
         title: 'Quick Book',
@@ -871,7 +871,7 @@ describe('BaseModel', () => {
       expect(collection.insertOne).toHaveBeenCalledWith({
         _id: '5f0aefba348289a81889a956',
         authorId: 'author-3',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '',
         title: 'Quick Book',
@@ -880,7 +880,7 @@ describe('BaseModel', () => {
 
       expect(book).toEqual({
         authorId: 'author-3',
-        createdAt: 2323555555555,
+        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a956',
         isAvailable: true,
         isbn: '',
