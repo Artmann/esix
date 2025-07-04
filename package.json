@@ -1,6 +1,6 @@
 {
   "name": "esix",
-  "version": "5.3.0",
+  "version": "5.4.0",
   "description": "A really slick ORM for MongoDB.",
   "author": "Christoffer Artmann",
   "license": "MIT",
