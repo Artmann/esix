@@ -110,7 +110,8 @@ types.
 ## Recent Implementations
 
 - **Aggregation Functions**: Added static aggregation methods to BaseModel for
-  direct use on model classes (count, sum, average, max, min, percentile, aggregate)
+  direct use on model classes (count, sum, average, max, min, percentile,
+  aggregate)
 - **whereNotIn**: Added to filter out records where a field's value is within a
   given array
 - **Improved Types**: Enhanced type safety for methods like `findBy` using
