@@ -6,17 +6,30 @@ Esix is a TypeScript database library for MongoDB, heavily inspired by Laravel's
 Eloquent. Models map to documents in the database, and the QueryBuilder is used
 to select which documents to retrieve.
 
+## Monorepo Structure
+
+This project uses Turborepo to manage a monorepo with the following structure:
+- `packages/esix/` - The main Esix ORM package
+- `docs/` - Documentation site build system (to be migrated to Next.js)
+
 ## Build & Test Commands
 
+From the root directory (using Turborepo):
+- Build all packages: `yarn build`
+- Lint all packages: `yarn lint`
+- Format all packages: `yarn format`
+- Test all packages: `yarn test`
+- Type check all packages: `yarn typecheck`
+- Documentation: `yarn docs:build` and `yarn docs:serve`
+
+From the esix package directory (`packages/esix/`):
 - Build: `yarn build`
 - Lint: `yarn lint`
 - Format: `yarn format`
 - Test all: `yarn test`
 - Test single file: `yarn test path/to/file.spec.ts`
 - Test specific test: `yarn test -t "test name pattern"`
-- Type check: `yarn tsc --noEmit`
-- Documentation: `yarn docs:build` and `yarn docs:serve`
-- Use the "--run" parameter when running the test suite
+- Type check: `yarn typecheck`
 
 ## Code Style Guidelines
 
@@ -31,11 +44,11 @@ to select which documents to retrieve.
 
 ## File Organization
 
-- `src/base-model.ts` - Base model class all models extend from
-- `src/query-builder.ts` - Query building logic for MongoDB operations
-- `src/types.ts` - TypeScript type definitions
-- `src/connection-handler.ts` - MongoDB connection management
-- `src/sanitize.ts` - Input sanitization to prevent NoSQL injection
+- `packages/esix/src/base-model.ts` - Base model class all models extend from
+- `packages/esix/src/query-builder.ts` - Query building logic for MongoDB operations
+- `packages/esix/src/types.ts` - TypeScript type definitions
+- `packages/esix/src/connection-handler.ts` - MongoDB connection management
+- `packages/esix/src/sanitize.ts` - Input sanitization to prevent NoSQL injection
 - Model definitions extend BaseModel
 - Test files use .spec.ts extension
 - Each class should have a single responsibility

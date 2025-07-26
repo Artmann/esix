@@ -1,0 +1,69 @@
+{
+  "name": "esix",
+  "version": "5.4.0",
+  "description": "A really slick ORM for MongoDB.",
+  "author": "Christoffer Artmann",
+  "license": "MIT",
+  "repository": "https://github.com/Artmann/esix",
+  "homepage": "https://esix.netlify.app/",
+  "keywords": [
+    "mongodb",
+    "orm",
+    "typescript",
+    "esix",
+    "blazing-fast"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "apidocs:build": "typedoc --options typedoc.json --out ../../docs/dist/api src/",
+    "format": "prettier --write .",
+    "lint": "eslint ./src --ext .ts",
+    "prepublish": "yarn build",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">= 20"
+  },
+  "peerDependencies": {
+    "mongo-mock": "^4.0.0",
+    "mongodb": "^6.0.0"
+  },
+  "dependencies": {
+    "change-case": "^5.4.4",
+    "percentile": "^1.6.0",
+    "pluralize": "^8.0.0",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.11.13",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.13.14",
+    "@types/pluralize": "^0.0.33",
+    "@types/sinon": "^17.0.4",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "eslint": "^9.23.0",
+    "jest": "^29.7.0",
+    "mongo-mock": "^4.2.0",
+    "mongodb": "^6.15.0",
+    "prettier": "^3.5.3",
+    "sinon": "^20.0.0",
+    "ts-jest": "^29.3.0",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.28.0",
+    "uuid": "^11.1.0",
+    "vitest": "^3.0.9"
+  }
+}
