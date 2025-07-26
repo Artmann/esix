@@ -3,5 +3,6 @@ coverage/
 dist/
 docs/dist/
 node_modules/
+turbo/
 
 *.log
