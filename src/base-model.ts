@@ -66,7 +66,9 @@ export default class BaseModel {
    * const userCount = await User.count();
    * ```
    */
-  static async count<T extends BaseModel>(this: ObjectType<T>): Promise<number> {
+  static async count<T extends BaseModel>(
+    this: ObjectType<T>
+  ): Promise<number> {
     return new QueryBuilder(this).count()
   }
 

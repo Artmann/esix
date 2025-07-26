@@ -84,9 +84,9 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552340652,
           isAvailable: true,
-          isbn: '978-3-16-148410-0',
-          pages: 0,
-          title: 'Esix for dummies',
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
           updatedAt: null
         },
         {
@@ -94,9 +94,9 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552346653,
           isAvailable: true,
-          isbn: '978-3-16-148410-1',
-          pages: 0,
-          title: 'Esix for dummies 2',
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
           updatedAt: null
         }
       ])
@@ -113,9 +113,9 @@ describe('BaseModel', () => {
           createdAt: 1594552340652,
           id: '5f3568f2a0cdd1c9ba411c43',
           isAvailable: true,
-          isbn: '978-3-16-148410-0',
-          pages: 0,
-          title: 'Esix for dummies',
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
           updatedAt: null
         },
         {
@@ -123,9 +123,9 @@ describe('BaseModel', () => {
           createdAt: 1594552346653,
           id: '5f3569089f762e8323e4eb84',
           isAvailable: true,
-          isbn: '978-3-16-148410-1',
-          pages: 0,
-          title: 'Esix for dummies 2',
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
           updatedAt: null
         }
       ])
@@ -161,17 +161,18 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '978-3-16-148410-3',
-        pages: 0,
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        pages: 376,
+        title: 'Wuthering Heights',
         updatedAt: null
       })
 
       const book = await Book.create({
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
-        isbn: '978-3-16-148410-3',
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        title: 'Wuthering Heights',
+        pages: 376,
         updatedAt: null
       })
 
@@ -180,9 +181,9 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '978-3-16-148410-3',
-        pages: 0,
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        pages: 376,
+        title: 'Wuthering Heights',
         updatedAt: null
       })
 
@@ -191,9 +192,9 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
-        isbn: '978-3-16-148410-3',
-        pages: 0,
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        pages: 376,
+        title: 'Wuthering Heights',
         updatedAt: null
       })
     })
@@ -213,9 +214,9 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '978-3-16-148410-3',
-        pages: 0,
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        pages: 376,
+        title: 'Wuthering Heights',
         updatedAt: null
       })
 
@@ -223,8 +224,9 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
-        isbn: '978-3-16-148410-3',
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        title: 'Wuthering Heights',
+        pages: 376,
         updatedAt: null
       })
 
@@ -233,9 +235,9 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '978-3-16-148410-3',
-        pages: 0,
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        pages: 376,
+        title: 'Wuthering Heights',
         updatedAt: null
       })
 
@@ -244,9 +246,9 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
-        isbn: '978-3-16-148410-3',
-        pages: 0,
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        pages: 376,
+        title: 'Wuthering Heights',
         updatedAt: null
       })
     })
@@ -262,8 +264,9 @@ describe('BaseModel', () => {
         _id: '5f0aefba348289a81889a955',
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
-        isbn: '978-3-16-148410-3',
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        pages: 376,
+        title: 'Wuthering Heights',
         updatedAt: null
       })
 
@@ -271,8 +274,9 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
-        isbn: '978-3-16-148410-3',
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        title: 'Wuthering Heights',
+        pages: 376,
         updatedAt: null
       })
 
@@ -281,9 +285,9 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '978-3-16-148410-3',
-        pages: 0,
-        title: 'Esix for dummies 3',
+        isbn: '9780486411095',
+        pages: 376,
+        title: 'Wuthering Heights',
         updatedAt: null
       })
     })
@@ -294,8 +298,9 @@ describe('BaseModel', () => {
       const cursor = createCursor([
         {
           _id: '5f3568f2a0cdd1c9ba411c43',
-          title: 'The Testaments',
-          isbn: '9780525590453',
+          title: 'Pride and Prejudice',
+          isbn: '9780486284736',
+          pages: 279,
           authorId: 'author-1'
         }
       ])
@@ -306,8 +311,9 @@ describe('BaseModel', () => {
       })
 
       const book = await Book.create({
-        title: 'The Testaments',
-        isbn: '9780525590453',
+        title: 'Pride and Prejudice',
+        isbn: '9780486284736',
+        pages: 279,
         authorId: 'author-1'
       })
 
@@ -339,8 +345,9 @@ describe('BaseModel', () => {
         _id: '5f3568f2a0cdd1c9ba411c43',
         authorId: 'author-1',
         createdAt: 1594552340652,
-        isbn: '978-3-16-148410-0',
-        title: 'Esix for dummies',
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
         updatedAt: null
       })
 
@@ -358,9 +365,9 @@ describe('BaseModel', () => {
         createdAt: 1594552340652,
         isAvailable: true,
         id: '5f3568f2a0cdd1c9ba411c43',
-        isbn: '978-3-16-148410-0',
-        pages: 0,
-        title: 'Esix for dummies',
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
         updatedAt: null
       })
     })
@@ -370,10 +377,10 @@ describe('BaseModel', () => {
     it('returns null for non existing documents.', async () => {
       collection.findOne.mockReturnValue(null)
 
-      const book = await Book.findBy('isbn', '978-3-16-148410-0')
+      const book = await Book.findBy('isbn', '9780486284736')
 
       expect(collection.findOne).toHaveBeenCalledWith({
-        isbn: '978-3-16-148410-0'
+        isbn: '9780486284736'
       })
 
       expect(book).toBeNull()
@@ -385,16 +392,16 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: 1594552340652,
         isAvailable: true,
-        isbn: '978-3-16-148410-0',
-        pages: 0,
-        title: 'Esix for dummies',
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
         updatedAt: null
       })
 
-      const book = await Book.findBy('isbn', '978-3-16-148410-0')
+      const book = await Book.findBy('isbn', '9780486284736')
 
       expect(collection.findOne).toHaveBeenCalledWith({
-        isbn: '978-3-16-148410-0'
+        isbn: '9780486284736'
       })
 
       expect(book).toEqual({
@@ -402,9 +409,9 @@ describe('BaseModel', () => {
         createdAt: 1594552340652,
         isAvailable: true,
         id: '5f3568f2a0cdd1c9ba411c43',
-        isbn: '978-3-16-148410-0',
-        pages: 0,
-        title: 'Esix for dummies',
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
         updatedAt: null
       })
     })
@@ -418,9 +425,9 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552340652,
           isAvailable: true,
-          isbn: '978-3-16-148410-0',
-          pages: 0,
-          title: 'Esix for dummies',
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
           updatedAt: null
         },
         {
@@ -428,9 +435,9 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552346653,
           isAvailable: true,
-          isbn: '978-3-16-148410-1',
-          pages: 0,
-          title: 'Esix for dummies 2',
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
           updatedAt: null
         }
       ])
@@ -448,9 +455,9 @@ describe('BaseModel', () => {
         createdAt: 1594552340652,
         isAvailable: true,
         id: '5f0aeaeacff57e3ec676b340',
-        isbn: '978-3-16-148410-0',
-        pages: 0,
-        title: 'Esix for dummies',
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
         updatedAt: null
       })
     })
@@ -558,8 +565,9 @@ describe('BaseModel', () => {
 
       const book = new Book()
 
-      book.title = 'The Testaments'
-      book.isbn = '9780525590453'
+      book.title = 'Emma'
+      book.isbn = '9780141439600'
+      book.pages = 448
       book.authorId = 'author-1'
 
       await book.save()
@@ -574,9 +582,9 @@ describe('BaseModel', () => {
             authorId: 'author-1',
             createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
             isAvailable: true,
-            isbn: '9780525590453',
-            pages: 0,
-            title: 'The Testaments',
+            isbn: '9780141439600',
+            pages: 448,
+            title: 'Emma',
             updatedAt: null
           }
         },
@@ -595,9 +603,9 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552340652,
           isAvailable: true,
-          isbn: '978-3-16-148410-0',
-          pages: 0,
-          title: 'Esix for dummies',
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
           updatedAt: null
         },
         {
@@ -605,9 +613,9 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552346653,
           isAvailable: true,
-          isbn: '978-3-16-148410-1',
-          pages: 0,
-          title: 'Esix for dummies 2',
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
           updatedAt: null
         }
       ])
@@ -626,9 +634,9 @@ describe('BaseModel', () => {
           createdAt: 1594552340652,
           id: '5f0aeaeacff57e3ec676b340',
           isAvailable: true,
-          isbn: '978-3-16-148410-0',
-          pages: 0,
-          title: 'Esix for dummies',
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
           updatedAt: null
         },
         {
@@ -636,9 +644,9 @@ describe('BaseModel', () => {
           createdAt: 1594552346653,
           id: '5f0aefba348289a81889a920',
           isAvailable: true,
-          isbn: '978-3-16-148410-1',
-          pages: 0,
-          title: 'Esix for dummies 2',
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
           updatedAt: null
         }
       ])
@@ -667,9 +675,9 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552340652,
           isAvailable: true,
-          isbn: '978-3-16-148410-0',
-          pages: 0,
-          title: 'Esix for dummies',
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
           updatedAt: null
         },
         {
@@ -677,9 +685,9 @@ describe('BaseModel', () => {
           authorId: 'author-1',
           createdAt: 1594552346653,
           isAvailable: true,
-          isbn: '978-3-16-148410-1',
-          pages: 0,
-          title: 'Esix for dummies 2',
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
           updatedAt: null
         }
       ])
@@ -703,9 +711,9 @@ describe('BaseModel', () => {
           createdAt: 1594552340652,
           id: '5f0aeaeacff57e3ec676b340',
           isAvailable: true,
-          isbn: '978-3-16-148410-0',
-          pages: 0,
-          title: 'Esix for dummies',
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
           updatedAt: null
         },
         {
@@ -713,9 +721,9 @@ describe('BaseModel', () => {
           createdAt: 1594552346653,
           id: '5f0aefba348289a81889a920',
           isAvailable: true,
-          isbn: '978-3-16-148410-1',
-          pages: 0,
-          title: 'Esix for dummies 2',
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
           updatedAt: null
         }
       ])
@@ -730,9 +738,9 @@ describe('BaseModel', () => {
           authorId: 'author-2',
           createdAt: 1594552340659,
           isAvailable: true,
-          isbn: '978-3-16-148410-2',
-          pages: 0,
-          title: 'Esix for experts',
+          isbn: '9780486415871',
+          pages: 512,
+          title: 'Moby Dick',
           updatedAt: null
         },
         {
@@ -740,9 +748,9 @@ describe('BaseModel', () => {
           authorId: 'author-2',
           createdAt: 1594552346659,
           isAvailable: true,
-          isbn: '978-3-16-148410-3',
-          pages: 0,
-          title: 'Esix for experts 2',
+          isbn: '9780486409825',
+          pages: 304,
+          title: 'The Picture of Dorian Gray',
           updatedAt: null
         }
       ])
@@ -766,9 +774,9 @@ describe('BaseModel', () => {
           createdAt: 1594552340659,
           id: '5f0aeaeacff57e3ec676b341',
           isAvailable: true,
-          isbn: '978-3-16-148410-2',
-          pages: 0,
-          title: 'Esix for experts',
+          isbn: '9780486415871',
+          pages: 512,
+          title: 'Moby Dick',
           updatedAt: null
         },
         {
@@ -776,9 +784,9 @@ describe('BaseModel', () => {
           createdAt: 1594552346659,
           id: '5f0aefba348289a81889a921',
           isAvailable: true,
-          isbn: '978-3-16-148410-3',
-          pages: 0,
-          title: 'Esix for experts 2',
+          isbn: '9780486409825',
+          pages: 304,
+          title: 'The Picture of Dorian Gray',
           updatedAt: null
         }
       ])
@@ -792,19 +800,24 @@ describe('BaseModel', () => {
         authorId: 'author-1',
         createdAt: 1594552340652,
         isAvailable: true,
-        isbn: '978-3-16-148410-0',
-        pages: 0,
-        title: 'Esix for dummies',
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
         updatedAt: null
       })
 
       const book = await Book.firstOrCreate(
-        { isbn: '978-3-16-148410-0' },
-        { title: 'New Book', isbn: '978-3-16-148410-0', authorId: 'author-2' }
+        { isbn: '9780486284736' },
+        {
+          title: 'Pride and Prejudice',
+          isbn: '9780486284736',
+          pages: 279,
+          authorId: 'author-2'
+        }
       )
 
       expect(collection.findOne).toHaveBeenCalledWith({
-        isbn: '978-3-16-148410-0'
+        isbn: '9780486284736'
       })
 
       expect(book).toEqual({
@@ -812,9 +825,9 @@ describe('BaseModel', () => {
         createdAt: 1594552340652,
         id: '5f0aeaeacff57e3ec676b340',
         isAvailable: true,
-        isbn: '978-3-16-148410-0',
-        pages: 0,
-        title: 'Esix for dummies',
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
         updatedAt: null
       })
     })
@@ -836,19 +849,24 @@ describe('BaseModel', () => {
         authorId: 'author-2',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '978-3-16-148410-5',
-        pages: 0,
-        title: 'New Book',
+        isbn: '9780140449266',
+        pages: 688,
+        title: 'Crime and Punishment',
         updatedAt: null
       })
 
       const book = await Book.firstOrCreate(
-        { isbn: '978-3-16-148410-5' },
-        { title: 'New Book', isbn: '978-3-16-148410-5', authorId: 'author-2' }
+        { isbn: '9780140449266' },
+        {
+          title: 'Crime and Punishment',
+          isbn: '9780140449266',
+          pages: 688,
+          authorId: 'author-2'
+        }
       )
 
       expect(collection.findOne).toHaveBeenCalledWith({
-        isbn: '978-3-16-148410-5'
+        isbn: '9780140449266'
       })
 
       expect(collection.insertOne).toHaveBeenCalledWith({
@@ -856,9 +874,9 @@ describe('BaseModel', () => {
         authorId: 'author-2',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '978-3-16-148410-5',
-        pages: 0,
-        title: 'New Book',
+        isbn: '9780140449266',
+        pages: 688,
+        title: 'Crime and Punishment',
         updatedAt: null
       })
 
@@ -867,9 +885,9 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
-        isbn: '978-3-16-148410-5',
-        pages: 0,
-        title: 'New Book',
+        isbn: '9780140449266',
+        pages: 688,
+        title: 'Crime and Punishment',
         updatedAt: null
       })
     })
@@ -891,19 +909,23 @@ describe('BaseModel', () => {
         authorId: 'author-3',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '',
-        pages: 0,
-        title: 'Quick Book',
+        isbn: '9780486282114',
+        pages: 320,
+        title: 'The Great Gatsby',
         updatedAt: null
       })
 
       const book = await Book.firstOrCreate({
-        title: 'Quick Book',
+        title: 'The Great Gatsby',
+        isbn: '9780486282114',
+        pages: 320,
         authorId: 'author-3'
       })
 
       expect(collection.findOne).toHaveBeenCalledWith({
-        title: 'Quick Book',
+        title: 'The Great Gatsby',
+        isbn: '9780486282114',
+        pages: 320,
         authorId: 'author-3'
       })
 
@@ -912,9 +934,9 @@ describe('BaseModel', () => {
         authorId: 'author-3',
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
-        isbn: '',
-        pages: 0,
-        title: 'Quick Book',
+        isbn: '9780486282114',
+        pages: 320,
+        title: 'The Great Gatsby',
         updatedAt: null
       })
 
@@ -923,9 +945,9 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         id: '5f0aefba348289a81889a956',
         isAvailable: true,
-        isbn: '',
-        pages: 0,
-        title: 'Quick Book',
+        isbn: '9780486282114',
+        pages: 320,
+        title: 'The Great Gatsby',
         updatedAt: null
       })
     })
@@ -946,9 +968,9 @@ describe('BaseModel', () => {
     describe('sum', () => {
       it('returns the sum of values for a given key', async () => {
         const cursor = createCursor([
-          { _id: '1', isbn: '123', pages: 100 },
-          { _id: '2', isbn: '456', pages: 200 },
-          { _id: '3', isbn: '789', pages: 150 }
+          { _id: '1', isbn: '9780486284736', pages: 279 },
+          { _id: '2', isbn: '9780141439518', pages: 544 },
+          { _id: '3', isbn: '9780486411095', pages: 376 }
         ])
 
         collection.find.mockReturnValue(cursor)
@@ -956,37 +978,37 @@ describe('BaseModel', () => {
         const sum = await Book.sum('pages')
 
         expect(collection.find).toHaveBeenCalledWith({}, { pages: 1 })
-        expect(sum).toEqual(450)
+        expect(sum).toEqual(1199)
       })
 
       it('calculates sum correctly for numeric values', async () => {
         const cursor = createCursor([
-          { _id: '1', pages: 100 },
-          { _id: '2', pages: 200 },
-          { _id: '3', pages: 150 }
+          { _id: '1', pages: 279 },
+          { _id: '2', pages: 544 },
+          { _id: '3', pages: 376 }
         ])
 
         collection.find.mockReturnValue(cursor)
 
         const sum = await Book.sum('pages')
 
-        expect(sum).toEqual(450)
+        expect(sum).toEqual(1199)
       })
     })
 
     describe('average', () => {
       it('calculates average correctly for numeric values', async () => {
         const cursor = createCursor([
-          { _id: '1', pages: 100 },
-          { _id: '2', pages: 200 },
-          { _id: '3', pages: 150 }
+          { _id: '1', pages: 320 },
+          { _id: '2', pages: 400 },
+          { _id: '3', pages: 280 }
         ])
 
         collection.find.mockReturnValue(cursor)
 
         const average = await Book.average('pages')
 
-        expect(average).toEqual(150)
+        expect(average).toEqual(333.3333333333333)
       })
 
       it('returns 0 when no values exist', async () => {
@@ -1003,41 +1025,41 @@ describe('BaseModel', () => {
     describe('max', () => {
       it('returns the maximum value for a given key', async () => {
         const cursor = createCursor([
-          { _id: '1', pages: 100 },
-          { _id: '2', pages: 300 },
-          { _id: '3', pages: 200 }
+          { _id: '1', pages: 279 },
+          { _id: '2', pages: 688 },
+          { _id: '3', pages: 544 }
         ])
 
         collection.find.mockReturnValue(cursor)
 
         const max = await Book.max('pages')
 
-        expect(max).toEqual(300)
+        expect(max).toEqual(688)
       })
     })
 
     describe('min', () => {
       it('returns the minimum value for a given key', async () => {
         const cursor = createCursor([
-          { _id: '1', pages: 100 },
-          { _id: '2', pages: 300 },
-          { _id: '3', pages: 200 }
+          { _id: '1', pages: 279 },
+          { _id: '2', pages: 688 },
+          { _id: '3', pages: 544 }
         ])
 
         collection.find.mockReturnValue(cursor)
 
         const min = await Book.min('pages')
 
-        expect(min).toEqual(100)
+        expect(min).toEqual(279)
       })
     })
 
     describe('percentile', () => {
       it('returns the nth percentile for a given key', async () => {
         const cursor = createCursor([
-          { _id: '1', pages: 100 },
-          { _id: '2', pages: 200 },
-          { _id: '3', pages: 300 }
+          { _id: '1', pages: 320 },
+          { _id: '2', pages: 400 },
+          { _id: '3', pages: 480 }
         ])
 
         collection.find.mockReturnValue(cursor)
@@ -1045,7 +1067,7 @@ describe('BaseModel', () => {
         const percentile = await Book.percentile('pages', 50)
 
         expect(collection.find).toHaveBeenCalledWith({}, { pages: 1 })
-        expect(percentile).toEqual(200)
+        expect(percentile).toEqual(400)
       })
     })
 
