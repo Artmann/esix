@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "build": "turbo build",
+    "dev": "turbo dev",
     "docs:build": "node ./docs/index.ts",
     "docs:serve": "serve docs/dist",
     "test": "turbo test",

@@ -28,6 +28,9 @@ This project uses [Turborepo](https://turbo.build/) to manage the monorepo struc
 # Install dependencies
 yarn install
 
+# Start all development servers
+yarn dev
+
 # Build all packages
 yarn build
 
@@ -47,9 +50,12 @@ yarn typecheck
 ### Package Structure
 
 - `packages/esix/` - The main Esix ORM package
-- `docs/` - Documentation site build system (to be migrated to Next.js)
+- `packages/website/` - Next.js documentation website
+- `docs/` - Legacy documentation build system (to be replaced by website)
 
-### Working on the Esix Package
+### Working on Specific Packages
+
+#### Esix Package
 
 To work specifically on the Esix package:
 
@@ -65,6 +71,43 @@ yarn test
 
 # Run linting
 yarn lint
+```
+
+#### Website Package
+
+To work on the Next.js documentation website:
+
+```bash
+# Start the development server
+yarn workspace website dev
+
+# Or navigate to the package
+cd packages/website
+
+# Start development server
+yarn dev
+
+# Build for production
+yarn build
+
+# Start production server
+yarn start
+```
+
+### Development Workflow
+
+```bash
+# Start all development servers (recommended for full-stack development)
+yarn dev
+
+# Work on specific packages
+yarn workspace esix build
+yarn workspace website dev
+
+# Run commands across all packages
+yarn build    # Build everything
+yarn test     # Test everything
+yarn lint     # Lint everything
 ```
 
 Working with MongoDB in TypeScript usually means choosing between simplicity and
