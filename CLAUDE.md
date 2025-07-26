@@ -65,6 +65,43 @@ to select which documents to retrieve.
 - **skip**: Skip a number of results (for pagination)
 - **pluck**: Extract an array of values for a specific field
 
+## Aggregation Methods
+
+- **aggregate**: Direct access to MongoDB aggregation pipeline
+- **average**: Calculate average of values for a field
+- **count**: Count total number of documents
+- **max**: Find maximum value for a field
+- **min**: Find minimum value for a field
+- **percentile**: Calculate nth percentile for a field
+- **sum**: Calculate sum of values for a field
+
+### Aggregation Examples
+
+```typescript
+// Count all users
+const userCount = await User.count()
+
+// Sum all order amounts
+const totalSales = await Order.sum('amount')
+
+// Get average user age
+const avgAge = await User.average('age')
+
+// Find maximum score
+const highScore = await Test.max('score')
+
+// Get 95th percentile response time
+const p95 = await ResponseTime.percentile('value', 95)
+
+// Complex aggregations with MongoDB pipeline
+const results = await User.aggregate([
+  { $group: { _id: '$department', count: { $sum: 1 } } }
+])
+
+// Chaining with query methods
+const avgAgeForAdults = await User.where('age', { $gte: 18 }).average('age')
+```
+
 ## Documentation
 
 Document all public methods with JSDoc comments including parameters and return
@@ -72,6 +109,8 @@ types.
 
 ## Recent Implementations
 
+- **Aggregation Functions**: Added static aggregation methods to BaseModel for
+  direct use on model classes (count, sum, average, max, min, percentile, aggregate)
 - **whereNotIn**: Added to filter out records where a field's value is within a
   given array
 - **Improved Types**: Enhanced type safety for methods like `findBy` using

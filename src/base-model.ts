@@ -10,6 +10,26 @@ export default class BaseModel {
   public updatedAt: number | null = null
 
   /**
+   * Direct access to Mongo's aggregation functions.
+   *
+   * Example
+   * ```
+   * const results = await User.aggregate([
+   *   { $group: { _id: '$department', count: { $sum: 1 } } }
+   * ]);
+   * ```
+   *
+   * @param stages
+   * @returns The result of the aggregations
+   */
+  static async aggregate<T extends BaseModel>(
+    this: ObjectType<T>,
+    stages: Record<string, unknown>[]
+  ) {
+    return new QueryBuilder(this).aggregate(stages)
+  }
+
+  /**
    * Returns all models.
    *
    * Example
@@ -19,6 +39,35 @@ export default class BaseModel {
    */
   static async all<T extends BaseModel>(this: ObjectType<T>): Promise<T[]> {
     return new QueryBuilder(this).where({}).get()
+  }
+
+  /**
+   * Returns the average of all the values for the given key.
+   *
+   * Example
+   * ```
+   * const avgAge = await User.average('age');
+   * ```
+   *
+   * @param key
+   */
+  static async average<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): Promise<number> {
+    return new QueryBuilder(this).average(key)
+  }
+
+  /**
+   * Returns the number of documents for this model.
+   *
+   * Example
+   * ```
+   * const userCount = await User.count();
+   * ```
+   */
+  static async count<T extends BaseModel>(this: ObjectType<T>): Promise<number> {
+    return new QueryBuilder(this).count()
   }
 
   /**
@@ -104,6 +153,43 @@ export default class BaseModel {
   }
 
   /**
+   * Find a model matching the filter, or create a new one with the given attributes.
+   * If attributes are not provided, the filter will be used as the attributes.
+   *
+   * Example
+   * ```
+   * // Retrieve flight by name or create it if it doesn't exist...
+   * const flight = await Flight.firstOrCreate({
+   *   name: 'London to Paris'
+   * });
+   *
+   * // Retrieve flight by name or create it with the name, delayed, and arrival_time attributes...
+   * const flight = await Flight.firstOrCreate(
+   *   { name: 'London to Paris' },
+   *   { delayed: 1, arrival_time: '11:30' }
+   * );
+   * ```
+   *
+   * @param filter - Object to search for existing model
+   * @param attributes - Attributes to use when creating new model (optional, defaults to filter)
+   */
+  static async firstOrCreate<T extends BaseModel>(
+    this: ObjectType<T>,
+    filter: Partial<T>,
+    attributes?: Partial<T>
+  ): Promise<T> {
+    const queryBuilder = new QueryBuilder(this)
+
+    const existingModel = await queryBuilder.findOne(filter)
+
+    if (existingModel) {
+      return existingModel
+    }
+
+    return (this as any).create({ ...filter, ...attributes })
+  }
+
+  /**
    * Limits the number of models returned.
    *
    * @param length
@@ -113,6 +199,40 @@ export default class BaseModel {
     length: number
   ): QueryBuilder<T> {
     return new QueryBuilder<T>(this).limit(length)
+  }
+
+  /**
+   * Returns the largest value for the given key.
+   *
+   * Example
+   * ```
+   * const maxScore = await Test.max('score');
+   * ```
+   *
+   * @param key
+   */
+  static async max<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): Promise<number> {
+    return new QueryBuilder(this).max(key)
+  }
+
+  /**
+   * Returns the smallest value for the given key.
+   *
+   * Example
+   * ```
+   * const minAge = await User.min('age');
+   * ```
+   *
+   * @param key
+   */
+  static async min<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): Promise<number> {
+    return new QueryBuilder(this).min(key)
   }
 
   /**
@@ -132,6 +252,26 @@ export default class BaseModel {
     order: 'asc' | 'desc' = 'asc'
   ): QueryBuilder<T> {
     return new QueryBuilder<T>(this).orderBy(key, order)
+  }
+
+  /**
+   * Returns the nth percentile of all the values for the given key.
+   *
+   * Example
+   * ```
+   * const median = await ResponseTime.percentile('value', 50);
+   * const p95 = await ResponseTime.percentile('value', 95);
+   * ```
+   *
+   * @param key
+   * @param n
+   */
+  static async percentile<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K,
+    n: number
+  ): Promise<number> {
+    return new QueryBuilder(this).percentile(key, n)
   }
 
   /**
@@ -161,6 +301,23 @@ export default class BaseModel {
     length: number
   ): QueryBuilder<T> {
     return new QueryBuilder<T>(this).skip(length)
+  }
+
+  /**
+   * Returns the sum of all the values for the given key.
+   *
+   * Example
+   * ```
+   * const totalSales = await Order.sum('amount');
+   * ```
+   *
+   * @param key
+   */
+  static async sum<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): Promise<number> {
+    return new QueryBuilder(this).sum(key)
   }
 
   /**
@@ -222,43 +379,6 @@ export default class BaseModel {
     const queryBuilder = new QueryBuilder(this)
 
     return queryBuilder.whereNotIn(key, values)
-  }
-
-  /**
-   * Find a model matching the filter, or create a new one with the given attributes.
-   * If attributes are not provided, the filter will be used as the attributes.
-   *
-   * Example
-   * ```
-   * // Retrieve flight by name or create it if it doesn't exist...
-   * const flight = await Flight.firstOrCreate({
-   *   name: 'London to Paris'
-   * });
-   *
-   * // Retrieve flight by name or create it with the name, delayed, and arrival_time attributes...
-   * const flight = await Flight.firstOrCreate(
-   *   { name: 'London to Paris' },
-   *   { delayed: 1, arrival_time: '11:30' }
-   * );
-   * ```
-   *
-   * @param filter - Object to search for existing model
-   * @param attributes - Attributes to use when creating new model (optional, defaults to filter)
-   */
-  static async firstOrCreate<T extends BaseModel>(
-    this: ObjectType<T>,
-    filter: Partial<T>,
-    attributes?: Partial<T>
-  ): Promise<T> {
-    const queryBuilder = new QueryBuilder(this)
-
-    const existingModel = await queryBuilder.findOne(filter)
-
-    if (existingModel) {
-      return existingModel
-    }
-
-    return (this as any).create({ ...filter, ...attributes })
   }
 
   /**
