@@ -21,7 +21,9 @@ const collection = {
   find: vi.fn(),
   findOne: vi.fn(),
   insertOne: vi.fn(),
-  updateOne: vi.fn()
+  updateOne: vi.fn(),
+  count: vi.fn(),
+  aggregate: vi.fn()
 }
 const database = {
   collection: () => Promise.resolve(collection)
@@ -42,6 +44,7 @@ class Book extends BaseModel {
   public isAvailable = true
   public isbn = ''
   public title = ''
+  public pages = 0
 
   public authorId?: string
 }
@@ -82,6 +85,7 @@ describe('BaseModel', () => {
           createdAt: 1594552340652,
           isAvailable: true,
           isbn: '978-3-16-148410-0',
+          pages: 0,
           title: 'Esix for dummies',
           updatedAt: null
         },
@@ -91,6 +95,7 @@ describe('BaseModel', () => {
           createdAt: 1594552346653,
           isAvailable: true,
           isbn: '978-3-16-148410-1',
+          pages: 0,
           title: 'Esix for dummies 2',
           updatedAt: null
         }
@@ -109,6 +114,7 @@ describe('BaseModel', () => {
           id: '5f3568f2a0cdd1c9ba411c43',
           isAvailable: true,
           isbn: '978-3-16-148410-0',
+          pages: 0,
           title: 'Esix for dummies',
           updatedAt: null
         },
@@ -118,6 +124,7 @@ describe('BaseModel', () => {
           id: '5f3569089f762e8323e4eb84',
           isAvailable: true,
           isbn: '978-3-16-148410-1',
+          pages: 0,
           title: 'Esix for dummies 2',
           updatedAt: null
         }
@@ -155,6 +162,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
+        pages: 0,
         title: 'Esix for dummies 3',
         updatedAt: null
       })
@@ -173,6 +181,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
+        pages: 0,
         title: 'Esix for dummies 3',
         updatedAt: null
       })
@@ -183,6 +192,7 @@ describe('BaseModel', () => {
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
         isbn: '978-3-16-148410-3',
+        pages: 0,
         title: 'Esix for dummies 3',
         updatedAt: null
       })
@@ -204,6 +214,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
+        pages: 0,
         title: 'Esix for dummies 3',
         updatedAt: null
       })
@@ -223,6 +234,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
+        pages: 0,
         title: 'Esix for dummies 3',
         updatedAt: null
       })
@@ -233,6 +245,7 @@ describe('BaseModel', () => {
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
         isbn: '978-3-16-148410-3',
+        pages: 0,
         title: 'Esix for dummies 3',
         updatedAt: null
       })
@@ -269,6 +282,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-3',
+        pages: 0,
         title: 'Esix for dummies 3',
         updatedAt: null
       })
@@ -345,6 +359,7 @@ describe('BaseModel', () => {
         isAvailable: true,
         id: '5f3568f2a0cdd1c9ba411c43',
         isbn: '978-3-16-148410-0',
+        pages: 0,
         title: 'Esix for dummies',
         updatedAt: null
       })
@@ -371,6 +386,7 @@ describe('BaseModel', () => {
         createdAt: 1594552340652,
         isAvailable: true,
         isbn: '978-3-16-148410-0',
+        pages: 0,
         title: 'Esix for dummies',
         updatedAt: null
       })
@@ -387,6 +403,7 @@ describe('BaseModel', () => {
         isAvailable: true,
         id: '5f3568f2a0cdd1c9ba411c43',
         isbn: '978-3-16-148410-0',
+        pages: 0,
         title: 'Esix for dummies',
         updatedAt: null
       })
@@ -402,6 +419,7 @@ describe('BaseModel', () => {
           createdAt: 1594552340652,
           isAvailable: true,
           isbn: '978-3-16-148410-0',
+          pages: 0,
           title: 'Esix for dummies',
           updatedAt: null
         },
@@ -411,6 +429,7 @@ describe('BaseModel', () => {
           createdAt: 1594552346653,
           isAvailable: true,
           isbn: '978-3-16-148410-1',
+          pages: 0,
           title: 'Esix for dummies 2',
           updatedAt: null
         }
@@ -430,6 +449,7 @@ describe('BaseModel', () => {
         isAvailable: true,
         id: '5f0aeaeacff57e3ec676b340',
         isbn: '978-3-16-148410-0',
+        pages: 0,
         title: 'Esix for dummies',
         updatedAt: null
       })
@@ -555,6 +575,7 @@ describe('BaseModel', () => {
             createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
             isAvailable: true,
             isbn: '9780525590453',
+            pages: 0,
             title: 'The Testaments',
             updatedAt: null
           }
@@ -575,6 +596,7 @@ describe('BaseModel', () => {
           createdAt: 1594552340652,
           isAvailable: true,
           isbn: '978-3-16-148410-0',
+          pages: 0,
           title: 'Esix for dummies',
           updatedAt: null
         },
@@ -584,6 +606,7 @@ describe('BaseModel', () => {
           createdAt: 1594552346653,
           isAvailable: true,
           isbn: '978-3-16-148410-1',
+          pages: 0,
           title: 'Esix for dummies 2',
           updatedAt: null
         }
@@ -604,6 +627,7 @@ describe('BaseModel', () => {
           id: '5f0aeaeacff57e3ec676b340',
           isAvailable: true,
           isbn: '978-3-16-148410-0',
+          pages: 0,
           title: 'Esix for dummies',
           updatedAt: null
         },
@@ -613,6 +637,7 @@ describe('BaseModel', () => {
           id: '5f0aefba348289a81889a920',
           isAvailable: true,
           isbn: '978-3-16-148410-1',
+          pages: 0,
           title: 'Esix for dummies 2',
           updatedAt: null
         }
@@ -643,6 +668,7 @@ describe('BaseModel', () => {
           createdAt: 1594552340652,
           isAvailable: true,
           isbn: '978-3-16-148410-0',
+          pages: 0,
           title: 'Esix for dummies',
           updatedAt: null
         },
@@ -652,6 +678,7 @@ describe('BaseModel', () => {
           createdAt: 1594552346653,
           isAvailable: true,
           isbn: '978-3-16-148410-1',
+          pages: 0,
           title: 'Esix for dummies 2',
           updatedAt: null
         }
@@ -677,6 +704,7 @@ describe('BaseModel', () => {
           id: '5f0aeaeacff57e3ec676b340',
           isAvailable: true,
           isbn: '978-3-16-148410-0',
+          pages: 0,
           title: 'Esix for dummies',
           updatedAt: null
         },
@@ -686,6 +714,7 @@ describe('BaseModel', () => {
           id: '5f0aefba348289a81889a920',
           isAvailable: true,
           isbn: '978-3-16-148410-1',
+          pages: 0,
           title: 'Esix for dummies 2',
           updatedAt: null
         }
@@ -702,6 +731,7 @@ describe('BaseModel', () => {
           createdAt: 1594552340659,
           isAvailable: true,
           isbn: '978-3-16-148410-2',
+          pages: 0,
           title: 'Esix for experts',
           updatedAt: null
         },
@@ -711,6 +741,7 @@ describe('BaseModel', () => {
           createdAt: 1594552346659,
           isAvailable: true,
           isbn: '978-3-16-148410-3',
+          pages: 0,
           title: 'Esix for experts 2',
           updatedAt: null
         }
@@ -736,6 +767,7 @@ describe('BaseModel', () => {
           id: '5f0aeaeacff57e3ec676b341',
           isAvailable: true,
           isbn: '978-3-16-148410-2',
+          pages: 0,
           title: 'Esix for experts',
           updatedAt: null
         },
@@ -745,6 +777,7 @@ describe('BaseModel', () => {
           id: '5f0aefba348289a81889a921',
           isAvailable: true,
           isbn: '978-3-16-148410-3',
+          pages: 0,
           title: 'Esix for experts 2',
           updatedAt: null
         }
@@ -760,6 +793,7 @@ describe('BaseModel', () => {
         createdAt: 1594552340652,
         isAvailable: true,
         isbn: '978-3-16-148410-0',
+        pages: 0,
         title: 'Esix for dummies',
         updatedAt: null
       })
@@ -779,6 +813,7 @@ describe('BaseModel', () => {
         id: '5f0aeaeacff57e3ec676b340',
         isAvailable: true,
         isbn: '978-3-16-148410-0',
+        pages: 0,
         title: 'Esix for dummies',
         updatedAt: null
       })
@@ -802,6 +837,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-5',
+        pages: 0,
         title: 'New Book',
         updatedAt: null
       })
@@ -821,6 +857,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '978-3-16-148410-5',
+        pages: 0,
         title: 'New Book',
         updatedAt: null
       })
@@ -831,6 +868,7 @@ describe('BaseModel', () => {
         id: '5f0aefba348289a81889a955',
         isAvailable: true,
         isbn: '978-3-16-148410-5',
+        pages: 0,
         title: 'New Book',
         updatedAt: null
       })
@@ -854,6 +892,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '',
+        pages: 0,
         title: 'Quick Book',
         updatedAt: null
       })
@@ -874,6 +913,7 @@ describe('BaseModel', () => {
         createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
         isAvailable: true,
         isbn: '',
+        pages: 0,
         title: 'Quick Book',
         updatedAt: null
       })
@@ -884,8 +924,149 @@ describe('BaseModel', () => {
         id: '5f0aefba348289a81889a956',
         isAvailable: true,
         isbn: '',
+        pages: 0,
         title: 'Quick Book',
         updatedAt: null
+      })
+    })
+  })
+
+  describe('Static Aggregation Functions', () => {
+    describe('count', () => {
+      it('returns the number of documents', async () => {
+        collection.count = vi.fn().mockResolvedValue(5)
+
+        const count = await Book.count()
+
+        expect(collection.count).toHaveBeenCalledWith({})
+        expect(count).toEqual(5)
+      })
+    })
+
+    describe('sum', () => {
+      it('returns the sum of values for a given key', async () => {
+        const cursor = createCursor([
+          { _id: '1', isbn: '123', pages: 100 },
+          { _id: '2', isbn: '456', pages: 200 },
+          { _id: '3', isbn: '789', pages: 150 }
+        ])
+
+        collection.find.mockReturnValue(cursor)
+
+        const sum = await Book.sum('pages')
+
+        expect(collection.find).toHaveBeenCalledWith({}, { pages: 1 })
+        expect(sum).toEqual(450)
+      })
+
+      it('calculates sum correctly for numeric values', async () => {
+        const cursor = createCursor([
+          { _id: '1', pages: 100 },
+          { _id: '2', pages: 200 },
+          { _id: '3', pages: 150 }
+        ])
+
+        collection.find.mockReturnValue(cursor)
+
+        const sum = await Book.sum('pages')
+
+        expect(sum).toEqual(450)
+      })
+    })
+
+    describe('average', () => {
+      it('calculates average correctly for numeric values', async () => {
+        const cursor = createCursor([
+          { _id: '1', pages: 100 },
+          { _id: '2', pages: 200 },
+          { _id: '3', pages: 150 }
+        ])
+
+        collection.find.mockReturnValue(cursor)
+
+        const average = await Book.average('pages')
+
+        expect(average).toEqual(150)
+      })
+
+      it('returns 0 when no values exist', async () => {
+        const cursor = createCursor([])
+
+        collection.find.mockReturnValue(cursor)
+
+        const average = await Book.average('pages')
+
+        expect(average).toEqual(0)
+      })
+    })
+
+    describe('max', () => {
+      it('returns the maximum value for a given key', async () => {
+        const cursor = createCursor([
+          { _id: '1', pages: 100 },
+          { _id: '2', pages: 300 },
+          { _id: '3', pages: 200 }
+        ])
+
+        collection.find.mockReturnValue(cursor)
+
+        const max = await Book.max('pages')
+
+        expect(max).toEqual(300)
+      })
+    })
+
+    describe('min', () => {
+      it('returns the minimum value for a given key', async () => {
+        const cursor = createCursor([
+          { _id: '1', pages: 100 },
+          { _id: '2', pages: 300 },
+          { _id: '3', pages: 200 }
+        ])
+
+        collection.find.mockReturnValue(cursor)
+
+        const min = await Book.min('pages')
+
+        expect(min).toEqual(100)
+      })
+    })
+
+    describe('percentile', () => {
+      it('returns the nth percentile for a given key', async () => {
+        const cursor = createCursor([
+          { _id: '1', pages: 100 },
+          { _id: '2', pages: 200 },
+          { _id: '3', pages: 300 }
+        ])
+
+        collection.find.mockReturnValue(cursor)
+
+        const percentile = await Book.percentile('pages', 50)
+
+        expect(collection.find).toHaveBeenCalledWith({}, { pages: 1 })
+        expect(percentile).toEqual(200)
+      })
+    })
+
+    describe('aggregate', () => {
+      it('calls the aggregate method on the collection', async () => {
+        const aggregationStages = [
+          { $group: { _id: '$authorId', count: { $sum: 1 } } }
+        ]
+        const aggregationResult = [
+          { _id: 'author-1', count: 3 },
+          { _id: 'author-2', count: 2 }
+        ]
+
+        collection.aggregate = vi.fn().mockReturnValue({
+          toArray: vi.fn().mockResolvedValue(aggregationResult)
+        })
+
+        const result = await Book.aggregate(aggregationStages)
+
+        expect(collection.aggregate).toHaveBeenCalledWith(aggregationStages)
+        expect(result).toEqual(aggregationResult)
       })
     })
   })
