@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import Link from 'next/link'
+
 import './globals.css'
 import { cn } from '@/lib/utils'
-import Link from 'next/link'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -34,7 +35,7 @@ export default function RootLayout({
         )}
       >
         <header className="sticky top-0 z-10 text-sm h-[60px] font-semibold border-b border-neutral-800">
-          <div className="container h-full mx-auto">
+          <div className="px-5 h-full mx-auto">
             <div className="flex justify-between items-center h-full">
               <div>
                 <Link
