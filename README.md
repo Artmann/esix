@@ -13,6 +13,60 @@
 
 </p>
 
+## Development
+
+This project uses [Turborepo](https://turbo.build/) to manage the monorepo structure. The main package is located in `packages/esix/`.
+
+### Prerequisites
+
+- Node.js 20+
+- Yarn
+
+### Getting Started
+
+```bash
+# Install dependencies
+yarn install
+
+# Build all packages
+yarn build
+
+# Run tests
+yarn test
+
+# Run linting
+yarn lint
+
+# Format code
+yarn format
+
+# Type check
+yarn typecheck
+```
+
+### Package Structure
+
+- `packages/esix/` - The main Esix ORM package
+- `docs/` - Documentation site build system (to be migrated to Next.js)
+
+### Working on the Esix Package
+
+To work specifically on the Esix package:
+
+```bash
+# Navigate to the package
+cd packages/esix
+
+# Build the package
+yarn build
+
+# Run tests
+yarn test
+
+# Run linting
+yarn lint
+```
+
 Working with MongoDB in TypeScript usually means choosing between simplicity and
 type safety. Native drivers require verbose, untyped queries, while most ORMs
 demand extensive configuration and boilerplate.
