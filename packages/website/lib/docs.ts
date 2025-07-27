@@ -2,7 +2,9 @@ import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 import { remark } from 'remark'
-import html from 'remark-html'
+import remarkRehype from 'remark-rehype'
+import rehypeHighlight from 'rehype-highlight'
+import rehypeStringify from 'rehype-stringify'
 
 const docsDirectory = path.join(process.cwd(), 'content/docs')
 
@@ -20,7 +22,9 @@ export async function getDocBySlug(slug: string): Promise<DocData | null> {
     const { data, content } = matter(fileContents)
     
     const processedContent = await remark()
-      .use(html)
+      .use(remarkRehype)
+      .use(rehypeHighlight)
+      .use(rehypeStringify)
       .process(content)
     
     return {
