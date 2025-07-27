@@ -34,12 +34,12 @@ export default function RootLayout({
           'bg-neutral-900 text-neutral-50 antialiased'
         )}
       >
-        <header className="sticky top-0 z-10 text-sm h-[60px] font-semibold border-b border-neutral-800">
-          <div className="px-5 h-full mx-auto">
+        <header className="sticky top-0 z-10 text-sm h-[60px] font-semibold bg-neutral-900 border-b border-neutral-800">
+          <div className="px-6 h-full mx-auto">
             <div className="flex justify-between items-center h-full">
               <div>
                 <Link
-                  className="font-bold text-pink-500 hover:text-pink-400"
+                  className="font-bold text-pink-500 hover:text-pink-600"
                   href="/"
                 >
                   ESIX
