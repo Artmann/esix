@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -118,6 +119,72 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .prose {
+    @apply text-foreground max-w-none;
+  }
+  
+  .prose h1 {
+    @apply text-3xl font-bold mb-6 mt-8 text-white;
+  }
+  
+  .prose h2 {
+    @apply text-2xl font-semibold mb-4 mt-8 text-white;
+  }
+  
+  .prose h3 {
+    @apply text-xl font-semibold mb-3 mt-6 text-white;
+  }
+  
+  .prose p {
+    @apply mb-4 leading-7 text-neutral-300;
+  }
+  
+  .prose pre {
+    @apply bg-neutral-900 border border-neutral-700 rounded-lg p-4 overflow-x-auto mb-4;
+  }
+  
+  .prose code {
+    @apply bg-neutral-800 text-neutral-200 px-1.5 py-0.5 rounded text-sm font-mono;
+  }
+  
+  .prose pre code {
+    @apply bg-transparent p-0 text-neutral-200;
+  }
+  
+  .prose ul, .prose ol {
+    @apply mb-4 pl-6;
+  }
+  
+  .prose li {
+    @apply mb-2 text-neutral-300;
+  }
+  
+  .prose blockquote {
+    @apply border-l-4 border-blue-500 pl-4 italic text-neutral-400 mb-4;
+  }
+  
+  .prose a {
+    @apply text-blue-400 hover:text-blue-300 underline;
+  }
+  
+  .prose table {
+    @apply w-full border-collapse border border-neutral-700 mb-4;
+  }
+  
+  .prose th, .prose td {
+    @apply border border-neutral-700 px-3 py-2 text-left;
+  }
+  
+  .prose th {
+    @apply bg-neutral-800 font-semibold text-white;
+  }
+  
+  .prose td {
+    @apply text-neutral-300;
   }
 }
 

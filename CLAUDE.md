@@ -138,3 +138,7 @@ types.
 - The `keyof` operator to get property names: `K extends keyof T | '_id'`
 - Constructor typing with `ObjectType<T>`
 - Method chaining with `this` return types
+
+## Development Environment Notes
+
+- The dev server is already running on port 3000
