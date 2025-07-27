@@ -41,6 +41,7 @@ From the esix package directory (`packages/esix/`):
 - **Imports**: Group external then internal imports
 - **Error Handling**: Promise-based with proper type guards and null handling
 - **Testing**: BDD style with describe/it blocks, clear test sections per method
+- **Default Sorting**: Order things in alphabetical order by default
 
 ## File Organization
 
