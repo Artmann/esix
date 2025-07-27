@@ -1,6 +1,6 @@
 import fs from 'fs'
-import path from 'path'
 import matter from 'gray-matter'
+import path from 'path'
 import { remark } from 'remark'
 import remarkRehype from 'remark-rehype'
 import rehypeHighlight from 'rehype-highlight'
@@ -20,13 +20,13 @@ export async function getDocBySlug(slug: string): Promise<DocData | null> {
     const fullPath = path.join(docsDirectory, `${slug}.md`)
     const fileContents = fs.readFileSync(fullPath, 'utf8')
     const { data, content } = matter(fileContents)
-    
+
     const processedContent = await remark()
       .use(remarkRehype)
       .use(rehypeHighlight)
       .use(rehypeStringify)
       .process(content)
-    
+
     return {
       slug,
       title: data.title || slug,

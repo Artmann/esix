@@ -1,12 +1,15 @@
 import { Metadata } from 'next'
+
 import { getDocBySlug } from '@/lib/docs'
 
 export async function generateMetadata(): Promise<Metadata> {
   const doc = await getDocBySlug('introduction')
-  
+
   return {
     title: doc?.title ? `${doc.title} - Esix` : 'Documentation - Esix',
-    description: doc?.description || 'Complete documentation for Esix, the type-safe MongoDB ORM with zero configuration.'
+    description:
+      doc?.description ||
+      'Complete documentation for Esix, the type-safe MongoDB ORM with zero configuration.'
   }
 }
 

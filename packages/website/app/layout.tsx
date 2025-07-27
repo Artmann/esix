@@ -73,7 +73,7 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main>{children}</main>
+        <main className="w-full">{children}</main>
 
         <footer className="py-24 text-sm font-medium text-neutral-400 border-t border-neutral-800">
           <div className="px-6 mx-auto text-center">

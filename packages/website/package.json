@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@catppuccin/highlightjs": "^1.0.1",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/typography": "^0.5.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
