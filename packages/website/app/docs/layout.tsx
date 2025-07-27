@@ -28,34 +28,30 @@ export default function DocsLayout({
   const pathname = usePathname()
 
   return (
-    <div className="w-full h-screen overflow-hidden px-6">
-      <div className="w-full h-full flex">
-        <div className="overflow-y-auto">
-          <nav className="py-6">
-            <ul className="text-sm font-medium">
-              {sidebarLinks.map((link) => {
-                const isActive = pathname === link.href
-                return (
-                  <li key={link.href}>
-                    <Link
-                      className={cn(
-                        'inline-block py-1.5 leading-5 hover:text-white',
-                        isActive ? 'text-white' : 'text-neutral-400'
-                      )}
-                      href={link.href}
-                    >
-                      {link.title}
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          </nav>
-        </div>
+    <div className="p-6">
+      <div className="w-full relative">
+        <nav className="fixed z-10">
+          <ul className="text-sm font-medium">
+            {sidebarLinks.map((link) => {
+              const isActive = pathname === link.href
+              return (
+                <li key={link.href}>
+                  <Link
+                    className={cn(
+                      'inline-block py-1.5 leading-5 hover:text-white',
+                      isActive ? 'text-white' : 'text-neutral-400'
+                    )}
+                    href={link.href}
+                  >
+                    {link.title}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
 
-        <div className="flex-1 min-w-0 overflow-y-auto p-6">
-          <article className="w-full max-w-4xl mx-auto">{children}</article>
-        </div>
+        <article className="w-full max-w-3xl mx-auto">{children}</article>
       </div>
     </div>
   )
