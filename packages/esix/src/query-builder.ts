@@ -409,7 +409,8 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Adds a constraint to the current query.
    *
-   * @param queryOrKey - A query object or property name to filter by
+   * @param query - A query object to filter by
+   * @param key - Property name to filter by
    * @param value - The value to filter by when using key/value format
    */
   where(query: Query): QueryBuilder<T>

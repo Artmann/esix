@@ -34,6 +34,7 @@ export async function getDocBySlug(slug: string): Promise<DocData | null> {
       content: processedContent.toString()
     }
   } catch (error) {
+    console.error(`Failed to get doc by slug "${slug}":`, error)
     return null
   }
 }
@@ -45,6 +46,7 @@ export function getAllDocSlugs(): string[] {
       .filter((name) => name.endsWith('.md'))
       .map((name) => name.replace(/\.md$/, ''))
   } catch (error) {
+    console.error('Failed to get all doc slugs:', error)
     return []
   }
 }
