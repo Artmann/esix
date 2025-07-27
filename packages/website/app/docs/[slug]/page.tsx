@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+
 import { getDocBySlug, getAllDocSlugs } from '@/lib/docs'
 
 interface DocPageProps {
@@ -13,10 +14,12 @@ export async function generateStaticParams() {
   }))
 }
 
-export async function generateMetadata({ params }: DocPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params
+}: DocPageProps): Promise<Metadata> {
   const { slug } = await params
   const doc = await getDocBySlug(slug)
-  
+
   if (!doc) {
     return {
       title: 'Page Not Found'
@@ -25,7 +28,9 @@ export async function generateMetadata({ params }: DocPageProps): Promise<Metada
 
   return {
     title: `${doc.title} - Esix Documentation`,
-    description: doc.description || `Learn about ${doc.title} in the Esix ORM documentation.`
+    description:
+      doc.description ||
+      `Learn about ${doc.title} in the Esix ORM documentation.`
   }
 }
 
