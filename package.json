@@ -8,29 +8,19 @@
     "build": "turbo build",
     "build-api-docs": "typedoc --options ./packages/esix/typedoc.json --tsconfig ./packages/esix/tsconfig.json --out ./packages/website/public/api ./packages/esix/src/",
     "dev": "turbo dev",
-    "docs:build": "node ./docs/index.ts",
-    "docs:serve": "serve docs/dist",
     "test": "turbo test",
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
-    "@types/highlight.js": "^10.1.0",
     "@types/node": "^22.13.14",
-    "cpy": "^11.1.0",
-    "front-matter": "^4.0.2",
-    "handlebars": "^4.7.8",
-    "highlight.js": "^11.11.1",
-    "marked": "^15.0.7",
     "prettier": "^3.5.3",
-    "serve": "^14.2.4",
     "ts-node": "^10.9.2",
     "turbo": "^2.5.5",
     "typedoc": "^0.28.1",
     "typedoc-github-theme": "^0.2.1",
-    "typescript": "^5.8.2",
-    "uuid": "^11.1.0"
+    "typescript": "^5.8.2"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
