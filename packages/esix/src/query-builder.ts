@@ -8,6 +8,10 @@ import { connectionHandler } from './connection-handler'
 import { sanitize } from './sanitize'
 import type { Dictionary, Document, ObjectType } from './types'
 
+/**
+ * Represents a MongoDB query object with flexible field-value pairs.
+ * Used for building database queries with various operators and conditions.
+ */
 export type Query = { [index: string]: any }
 
 type Order = { [index: string]: 1 | -1 }
@@ -405,8 +409,8 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Adds a constraint to the current query.
    *
-   * @param key
-   * @oaram value
+   * @param queryOrKey - A query object or property name to filter by
+   * @param value - The value to filter by when using key/value format
    */
   where(query: Query): QueryBuilder<T>
   where(key: string, value: any): QueryBuilder<T>

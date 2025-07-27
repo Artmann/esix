@@ -3,6 +3,10 @@ import { Db, MongoClient } from 'mongodb'
 
 import { env } from './env'
 
+/**
+ * Handles MongoDB database connections and provides access to database instances.
+ * Supports both real MongoDB connections and mock connections for testing.
+ */
 class ConnectionHandler {
   private client?: MongoClient
 
@@ -74,4 +78,4 @@ class ConnectionHandler {
 
 const connectionHandler = new ConnectionHandler()
 
-export { connectionHandler }
+export { ConnectionHandler, connectionHandler }
