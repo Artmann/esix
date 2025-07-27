@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin '@tailwindcss/typography';
+@import '@catppuccin/highlightjs/css/catppuccin-mocha.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -144,15 +145,15 @@
   }
   
   .prose pre {
-    @apply bg-neutral-900 border border-neutral-700 rounded-lg p-4 overflow-x-auto mb-4;
+    @apply border border-neutral-700 rounded-lg overflow-x-auto mb-4;
   }
   
-  .prose code {
+  .prose code:not(.hljs) {
     @apply bg-neutral-800 text-neutral-200 px-1.5 py-0.5 rounded text-sm font-mono;
   }
   
-  .prose pre code {
-    @apply bg-transparent p-0 text-neutral-200;
+  .prose pre code.hljs {
+    @apply bg-transparent p-0 block;
   }
   
   .prose ul, .prose ol {
@@ -186,6 +187,25 @@
   .prose td {
     @apply text-neutral-300;
   }
+}
+
+/* Custom styling for highlighted code blocks */
+.hljs {
+  border-radius: 8px;
+  padding: 1rem !important;
+  margin: 0 !important;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Fix for prose container */
+.prose pre {
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.prose pre .hljs {
+  border-radius: 8px;
 }
 
 * {

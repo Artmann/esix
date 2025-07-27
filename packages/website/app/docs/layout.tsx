@@ -30,7 +30,7 @@ export default function DocsLayout({
   return (
     <div className="p-6">
       <div className="w-full relative">
-        <nav className="fixed z-10">
+        <nav className="fixed z-10 hidden lg:block">
           <ul className="text-sm font-medium">
             {sidebarLinks.map((link) => {
               const isActive = pathname === link.href
