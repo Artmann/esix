@@ -75,7 +75,11 @@ export default function RootLayout({
 
         <main>{children}</main>
 
-        <footer className="py-10 text-sm font-medium text-neutral-400 border-t border-neutral-800"></footer>
+        <footer className="py-24 text-sm font-medium text-neutral-400 border-t border-neutral-800">
+          <div className="px-6 mx-auto text-center">
+            Made with ❤️ in Barcelona
+          </div>
+        </footer>
       </body>
     </html>
   )

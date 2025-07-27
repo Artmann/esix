@@ -1,5 +1,5 @@
 {
-  "readme": "README.md",
+  "readme": "../../README.md",
   "exclude": "./**/*+(e2e|spec|index).ts",
   "excludePrivate": "true"
 }

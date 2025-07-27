@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "build": "turbo build",
+    "build-api-docs": "typedoc --options ./packages/esix/typedoc.json --tsconfig ./packages/esix/tsconfig.json --out ./packages/website/public/api ./packages/esix/src/",
     "dev": "turbo dev",
     "docs:build": "node ./docs/index.ts",
     "docs:serve": "serve docs/dist",
