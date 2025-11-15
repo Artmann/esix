@@ -15,3 +15,9 @@ export type Dictionary = { [index: string]: any }
  * Used for raw document data before model instantiation.
  */
 export type Document = { [index: string]: any }
+
+/**
+ * Comparison operators supported for query conditions.
+ * Maps to MongoDB query operators.
+ */
+export type ComparisonOperator = '=' | '!=' | '<>' | '>' | '>=' | '<' | '<='

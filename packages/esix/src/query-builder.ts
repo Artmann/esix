@@ -6,7 +6,12 @@ import pluralize from 'pluralize'
 import type BaseModel from './base-model'
 import { connectionHandler } from './connection-handler'
 import { sanitize } from './sanitize'
-import type { Dictionary, Document, ObjectType } from './types'
+import type {
+  ComparisonOperator,
+  Dictionary,
+  Document,
+  ObjectType
+} from './types'
 
 /**
  * Represents a MongoDB query object with flexible field-value pairs.
@@ -411,19 +416,72 @@ export default class QueryBuilder<T extends BaseModel> {
    *
    * @param query - A query object to filter by
    * @param key - Property name to filter by
-   * @param value - The value to filter by when using key/value format
+   * @param operatorOrValue - Comparison operator or value when using 2-param syntax
+   * @param value - The value to filter by when using 3-param syntax with operator
    */
   where(query: Query): QueryBuilder<T>
   where(key: string, value: any): QueryBuilder<T>
-  where(queryOrKey: Query | string, value?: any): QueryBuilder<T> {
-    const query = isString(queryOrKey) ? { [queryOrKey]: value } : queryOrKey
+  where(key: string, operator: ComparisonOperator, value: any): QueryBuilder<T>
+  where(
+    queryOrKey: Query | string,
+    operatorOrValue?: ComparisonOperator | any,
+    value?: any
+  ): QueryBuilder<T> {
+    let query: Query
+
+    if (isString(queryOrKey)) {
+      // Three-parameter syntax: where('age', '>', 18)
+      if (value !== undefined) {
+        const operator = operatorOrValue as ComparisonOperator
+        const sanitizedValue = sanitize(value)
+        query = { [queryOrKey]: this.buildOperatorQuery(operator, sanitizedValue) }
+      }
+      // Two-parameter syntax: where('status', 'active')
+      else {
+        query = { [queryOrKey]: sanitize(operatorOrValue) }
+      }
+    }
+    // Object syntax: where({ status: 'active' })
+    else {
+      query = sanitize(queryOrKey)
+    }
 
     this.query = {
       ...this.query,
-      ...sanitize(query)
+      ...query
     }
 
     return this
+  }
+
+  /**
+   * Builds a MongoDB query object for a given comparison operator.
+   *
+   * @param operator - The comparison operator
+   * @param value - The value to compare against
+   * @returns MongoDB query object or raw value
+   */
+  private buildOperatorQuery(
+    operator: ComparisonOperator,
+    value: any
+  ): any | Query {
+    switch (operator) {
+      case '=':
+        return value
+      case '!=':
+      case '<>':
+        return { $ne: value }
+      case '>':
+        return { $gt: value }
+      case '>=':
+        return { $gte: value }
+      case '<':
+        return { $lt: value }
+      case '<=':
+        return { $lte: value }
+      default:
+        return value
+    }
   }
 
   /**

@@ -667,6 +667,255 @@ describe('BaseModel', () => {
     })
   })
 
+  describe('where with comparison operators', () => {
+    it('filters using greater than operator', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
+          updatedAt: null
+        },
+        {
+          _id: '5f0aefba348289a81889a920',
+          authorId: 'author-2',
+          createdAt: 1594552346653,
+          isAvailable: true,
+          isbn: '9780140449266',
+          pages: 688,
+          title: 'Crime and Punishment',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('pages', '>', 300).get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        pages: { $gt: 300 }
+      })
+
+      expect(books).toHaveLength(2)
+    })
+
+    it('filters using greater than or equal operator', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('pages', '>=', 279).get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        pages: { $gte: 279 }
+      })
+
+      expect(books).toHaveLength(1)
+    })
+
+    it('filters using less than operator', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('pages', '<', 300).get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        pages: { $lt: 300 }
+      })
+
+      expect(books).toHaveLength(1)
+    })
+
+    it('filters using less than or equal operator', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
+          updatedAt: null
+        },
+        {
+          _id: '5f0aefba348289a81889a920',
+          authorId: 'author-1',
+          createdAt: 1594552346653,
+          isAvailable: true,
+          isbn: '9780486411095',
+          pages: 376,
+          title: 'Wuthering Heights',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('pages', '<=', 376).get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        pages: { $lte: 376 }
+      })
+
+      expect(books).toHaveLength(2)
+    })
+
+    it('filters using equals operator', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('pages', '=', 279).get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        pages: 279
+      })
+
+      expect(books).toHaveLength(1)
+    })
+
+    it('filters using not equals operator (!=)', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('pages', '!=', 279).get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        pages: { $ne: 279 }
+      })
+
+      expect(books).toHaveLength(1)
+    })
+
+    it('filters using not equals operator (<>)', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780141439518',
+          pages: 544,
+          title: 'Jane Eyre',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('pages', '<>', 279).get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        pages: { $ne: 279 }
+      })
+
+      expect(books).toHaveLength(1)
+    })
+
+    it('chains multiple comparison operators', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780486411095',
+          pages: 376,
+          title: 'Wuthering Heights',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('pages', '>', 300)
+        .where('pages', '<', 500)
+        .get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        pages: { $lt: 500 }
+      })
+
+      expect(books).toHaveLength(1)
+    })
+
+    it('maintains backward compatibility with 2-parameter syntax', async () => {
+      const cursor = createCursor([
+        {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
+          updatedAt: null
+        }
+      ])
+
+      collection.find.mockReturnValue(cursor)
+
+      const books = await Book.where('authorId', 'author-1').get()
+
+      expect(collection.find).toHaveBeenCalledWith({
+        authorId: 'author-1'
+      })
+
+      expect(books).toHaveLength(1)
+    })
+  })
+
   describe('whereIn', () => {
     it('finds all documets that matches the ids', async () => {
       const cursor = createCursor([
