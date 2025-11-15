@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 
 import QueryBuilder from './query-builder'
-import type { ObjectType, Dictionary } from './types'
+import type { ComparisonOperator, Dictionary, ObjectType } from './types'
 import { camelCase } from 'change-case'
 
 export default class BaseModel {
@@ -323,22 +323,44 @@ export default class BaseModel {
   }
 
   /**
-   * Returns a QueryBuilder where `key` matches `value`.
+   * Returns a QueryBuilder where `key` matches `value` or satisfies the comparison.
    *
    * Example
    * ```
    * const posts = await BlogPost.where('status', 'published').get();
+   * const adults = await User.where('age', '>=', 18).get();
+   * const youngUsers = await User.where('age', '<', 30).get();
    * ```
    *
    * @param key
-   * @param value
+   * @param operatorOrValue - Comparison operator or value when using 2-param syntax
+   * @param value - The value when using 3-param syntax with operator
    */
   static where<T extends BaseModel>(
     this: ObjectType<T>,
     key: string,
     value: any
+  ): QueryBuilder<T>
+  static where<T extends BaseModel>(
+    this: ObjectType<T>,
+    key: string,
+    operator: ComparisonOperator,
+    value: any
+  ): QueryBuilder<T>
+  static where<T extends BaseModel>(
+    this: ObjectType<T>,
+    key: string,
+    operatorOrValue: ComparisonOperator | any,
+    value?: any
   ): QueryBuilder<T> {
-    return new QueryBuilder(this).where(key, value)
+    if (value !== undefined) {
+      return new QueryBuilder(this).where(
+        key,
+        operatorOrValue as ComparisonOperator,
+        value
+      )
+    }
+    return new QueryBuilder(this).where(key, operatorOrValue)
   }
 
   /**
