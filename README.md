@@ -192,9 +192,22 @@ await user.delete()
 // Find by field
 const activeUsers = await User.where('isActive', true).get()
 
+// Comparison operators
+const adults = await User.where('age', '>', 18).get()
+const seniors = await User.where('age', '>=', 65).get()
+const youngUsers = await User.where('age', '<', 30).get()
+const affordableItems = await Product.where('price', '<=', 50).get()
+const nonBannedUsers = await User.where('status', '!=', 'banned').get()
+
 // Multiple conditions
 const youngActiveUsers = await User.where('isActive', true)
   .where('age', '<', 25)
+  .get()
+
+// Range queries
+const workingAge = await User
+  .where('age', '>=', 18)
+  .where('age', '<=', 65)
   .get()
 
 // Find one
