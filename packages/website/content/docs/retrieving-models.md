@@ -60,6 +60,71 @@ const blogPosts = await BlogPost.where('status', 'published')
 blogPosts.forEach((post) => console.log(post.title))
 ```
 
+## Comparison Operators
+
+The `where` method supports comparison operators for numeric and date comparisons, similar to Laravel's Eloquent:
+
+```ts
+// Greater than
+const adults = await User.where('age', '>', 18).get()
+
+// Greater than or equal
+const eligibleVoters = await User.where('age', '>=', 18).get()
+
+// Less than
+const youngUsers = await User.where('age', '<', 30).get()
+
+// Less than or equal
+const affordableProducts = await Product.where('price', '<=', 100).get()
+
+// Equals (explicit)
+const exactMatch = await Product.where('price', '=', 49.99).get()
+
+// Not equals
+const activeUsers = await User.where('status', '!=', 'banned').get()
+const alsActive = await User.where('status', '<>', 'banned').get() // alternative syntax
+```
+
+You can chain multiple comparison operators together:
+
+```ts
+// Users between 18 and 65 years old
+const workingAgeUsers = await User
+  .where('age', '>=', 18)
+  .where('age', '<=', 65)
+  .get()
+
+// Products in a price range
+const affordableProducts = await Product
+  .where('price', '>', 10)
+  .where('price', '<', 100)
+  .where('inStock', true)
+  .get()
+
+// Posts with many views
+const popularPosts = await BlogPost
+  .where('views', '>', 1000)
+  .where('status', 'published')
+  .orderBy('views', 'desc')
+  .get()
+```
+
+### Supported Operators
+
+| Operator | Description           | Example                         |
+|----------|-----------------------|---------------------------------|
+| `=`      | Equals                | `.where('age', '=', 25)`       |
+| `!=`     | Not equals            | `.where('status', '!=', 'banned')` |
+| `<>`     | Not equals (alternate)| `.where('status', '<>', 'banned')` |
+| `>`      | Greater than          | `.where('age', '>', 18)`       |
+| `>=`     | Greater than or equal | `.where('score', '>=', 100)`   |
+| `<`      | Less than             | `.where('age', '<', 65)`       |
+| `<=`     | Less than or equal    | `.where('price', '<=', 50)`    |
+
+Note: The two-parameter syntax `where('status', 'published')` is still supported for equality comparisons and remains the recommended approach for simple equality checks.
+
+## Array Queries
+
 You can use `whereIn` to retrieve models where a column's value is within a
 given array:
 

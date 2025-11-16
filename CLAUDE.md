@@ -69,7 +69,11 @@ From the esix package directory (`packages/esix/`):
 
 ## Query Methods
 
-- **where**: Filter by field equality
+- **where**: Filter by field equality or comparison
+  - Two-parameter syntax: `where('status', 'active')` for equality
+  - Three-parameter syntax: `where('age', '>', 18)` with comparison operators
+  - Supported operators: `=`, `!=`, `<>`, `>`, `>=`, `<`, `<=`
+  - Maps to MongoDB operators: `$gt`, `$gte`, `$lt`, `$lte`, `$ne`
 - **whereIn**: Filter where a field's value is in an array
 - **whereNotIn**: Filter where a field's value is not in an array
 - **find**: Find a model by its ID
@@ -78,6 +82,26 @@ From the esix package directory (`packages/esix/`):
 - **limit**: Limit the number of results
 - **skip**: Skip a number of results (for pagination)
 - **pluck**: Extract an array of values for a specific field
+
+### Query Examples
+
+```typescript
+// Equality (two-parameter syntax)
+const activeUsers = await User.where('status', 'active').get()
+
+// Comparison operators (three-parameter syntax)
+const adults = await User.where('age', '>', 18).get()
+const seniors = await User.where('age', '>=', 65).get()
+const youngUsers = await User.where('age', '<', 30).get()
+const affordableProducts = await Product.where('price', '<=', 50).get()
+const activeUsers = await User.where('status', '!=', 'banned').get()
+
+// Chaining multiple conditions
+const workingAge = await User
+  .where('age', '>=', 18)
+  .where('age', '<=', 65)
+  .get()
+```
 
 ## Aggregation Methods
 
@@ -123,6 +147,9 @@ types.
 
 ## Recent Implementations
 
+- **Comparison Operators**: Added support for comparison operators in where
+  clauses (`>`, `>=`, `<`, `<=`, `=`, `!=`, `<>`), following Laravel Eloquent
+  and Rails Active Record patterns
 - **Aggregation Functions**: Added static aggregation methods to BaseModel for
   direct use on model classes (count, sum, average, max, min, percentile,
   aggregate)
