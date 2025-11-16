@@ -9,119 +9,27 @@
   <a href="https://www.npmjs.com/package/esix"><img src="https://img.shields.io/npm/dm/esix.svg" alt="npm downloads"></a>
   <a href="https://github.com/Artmann/esix/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Artmann/esix.svg" alt="License"></a>
   <a href="https://github.com/Artmann/esix/actions"><img src="https://img.shields.io/github/actions/workflow/status/Artmann/esix/build.yml" alt="Build Status"></a>
-<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-Ready-blue.svg" alt="TypeScript"></a>
-
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-Ready-blue.svg" alt="TypeScript"></a>
 </p>
 
-## Development
+---
 
-This project uses [Turborepo](https://turbo.build/) to manage the monorepo structure. The main package is located in `packages/esix/`.
+Working with MongoDB in TypeScript usually means choosing between simplicity and type safety. Native drivers require verbose, untyped queries, while most ORMs demand extensive configuration and boilerplate.
 
-### Prerequisites
+Esix brings the elegance of ActiveRecord and Eloquent to MongoDB with full TypeScript support. Define your models as simple TypeScript classes, and Esix automatically handles database operations and type inference through sensible conventions.
 
-- Node.js 20+
-- Yarn
+**No configuration files, no setup overhead**—just MongoDB development that feels as natural as working with any TypeScript object while maintaining the flexibility that makes MongoDB powerful.
 
-### Getting Started
+## Features
 
-```bash
-# Install dependencies
-yarn install
-
-# Start all development servers
-yarn dev
-
-# Build all packages
-yarn build
-
-# Run tests
-yarn test
-
-# Run linting
-yarn lint
-
-# Format code
-yarn format
-
-# Type check
-yarn typecheck
-```
-
-### Package Structure
-
-- `packages/esix/` - The main Esix ORM package
-- `packages/website/` - Next.js documentation website
-- `docs/` - Legacy documentation build system (to be replaced by website)
-
-### Working on Specific Packages
-
-#### Esix Package
-
-To work specifically on the Esix package:
-
-```bash
-# Navigate to the package
-cd packages/esix
-
-# Build the package
-yarn build
-
-# Run tests
-yarn test
-
-# Run linting
-yarn lint
-```
-
-#### Website Package
-
-To work on the Next.js documentation website:
-
-```bash
-# Start the development server
-yarn workspace website dev
-
-# Or navigate to the package
-cd packages/website
-
-# Start development server
-yarn dev
-
-# Build for production
-yarn build
-
-# Start production server
-yarn start
-```
-
-### Development Workflow
-
-```bash
-# Start all development servers (recommended for full-stack development)
-yarn dev
-
-# Work on specific packages
-yarn workspace esix build
-yarn workspace website dev
-
-# Run commands across all packages
-yarn build    # Build everything
-yarn test     # Test everything
-yarn lint     # Lint everything
-```
-
-Working with MongoDB in TypeScript usually means choosing between simplicity and
-type safety. Native drivers require verbose, untyped queries, while most ORMs
-demand extensive configuration and boilerplate.
-
-Esix brings the elegance of ActiveRecord and Eloquent to MongoDB with full
-TypeScript support. Define your models as simple TypeScript classes, and Esix
-automatically handles database operations and type inference through sensible
-conventions.
-
-No configuration files, no setup overhead—just MongoDB development that feels as
-natural as working with any TypeScript object while maintaining the flexibility
-that makes MongoDB powerful.
+- **Zero Configuration** - No decorators, no config files, just TypeScript classes
+- **Full Type Safety** - Leverages TypeScript's type system for compile-time safety
+- **Eloquent-Style API** - Familiar, intuitive syntax inspired by Laravel and ActiveRecord
+- **Automatic Connection** - Connects to MongoDB automatically when needed
+- **Rich Query Builder** - Fluent API with comparison operators, sorting, pagination, and more
+- **Aggregation Support** - Built-in methods for common aggregations (count, sum, average, etc.)
+- **Relationships** - Simple, type-safe relationship definitions
+- **NoSQL Injection Protection** - Automatic input sanitization
 
 ## Installation
 
@@ -188,6 +96,8 @@ await user.delete()
 
 ### Querying
 
+Esix provides a powerful, fluent query builder with full type safety:
+
 ```ts
 // Find by field
 const activeUsers = await User.where('isActive', true).get()
@@ -200,7 +110,8 @@ const affordableItems = await Product.where('price', '<=', 50).get()
 const nonBannedUsers = await User.where('status', '!=', 'banned').get()
 
 // Multiple conditions
-const youngActiveUsers = await User.where('isActive', true)
+const youngActiveUsers = await User
+  .where('isActive', true)
   .where('age', '<', 25)
   .get()
 
@@ -237,20 +148,41 @@ const titles = await Post.pluck('title')
 const authors = await Post.pluck('authorId')
 ```
 
+### Aggregations
+
+```ts
+// Count documents
+const userCount = await User.count()
+const activeCount = await User.where('isActive', true).count()
+
+// Sum values
+const totalSales = await Order.sum('amount')
+
+// Calculate averages
+const avgAge = await User.average('age')
+
+// Find min/max
+const lowestPrice = await Product.min('price')
+const highestScore = await Test.max('score')
+
+// Percentiles
+const p95ResponseTime = await ResponseTime.percentile('value', 95)
+
+// Custom aggregations
+const results = await User.aggregate([
+  { $group: { _id: '$department', count: { $sum: 1 } } }
+])
+```
+
 ### First or Create
 
-Find existing records or create new ones:
+Find existing records or create new ones atomically:
 
 ```ts
 // Find user by email, create if doesn't exist
 const user = await User.firstOrCreate(
-  {
-    email: 'new@example.com'
-  },
-  {
-    name: 'New User',
-    age: 25
-  }
+  { email: 'new@example.com' },
+  { name: 'New User', age: 25 }
 )
 
 // Using only filter (attributes default to filter)
@@ -261,6 +193,8 @@ const settings = await Settings.firstOrCreate({
 ```
 
 ### Relationships
+
+Define relationships between models with type safety:
 
 ```ts
 class Author extends BaseModel {
@@ -286,7 +220,8 @@ const publishedPosts = await author
 ```ts
 // Blog API endpoints
 export async function getPosts(req: Request, res: Response) {
-  const posts = await Post.where('publishedAt', '!=', null)
+  const posts = await Post
+    .where('publishedAt', '!=', null)
     .orderBy('publishedAt', 'desc')
     .limit(20)
     .get()
@@ -308,10 +243,7 @@ export async function createPost(req: Request, res: Response) {
 export async function getOrCreateUser(req: Request, res: Response) {
   const user = await User.firstOrCreate(
     { email: req.body.email },
-    {
-      name: req.body.name,
-      isActive: true
-    }
+    { name: req.body.name, isActive: true }
   )
 
   res.json({ user, created: user.createdAt === user.updatedAt })
@@ -328,5 +260,12 @@ Esix works with zero configuration but supports these environment variables:
 
 ## Documentation
 
-For comprehensive documentation, visit
-[https://esix.netlify.app/](https://esix.netlify.app/).
+For comprehensive documentation, visit [https://esix.netlify.app/](https://esix.netlify.app/).
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
+
+## License
+
+MIT © [Christoffer Artmann](https://github.com/Artmann)
