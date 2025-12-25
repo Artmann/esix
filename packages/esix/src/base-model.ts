@@ -245,12 +245,12 @@ export default class BaseModel {
    * const posts = await BlogPost.orderBy('publishedAt', 'desc').get();
    * ```
    *
-   * @param key
+   * @param key - A property of the model
    * @param order
    */
-  static orderBy<T extends BaseModel>(
+  static orderBy<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
-    key: string,
+    key: K,
     order: 'asc' | 'desc' = 'asc'
   ): QueryBuilder<T> {
     return new QueryBuilder<T>(this).orderBy(key, order)
@@ -332,24 +332,24 @@ export default class BaseModel {
    * const youngUsers = await User.where('age', '<', 30).get();
    * ```
    *
-   * @param key
+   * @param key - A property of the model
    * @param operatorOrValue - Comparison operator or value when using 2-param syntax
    * @param value - The value when using 3-param syntax with operator
    */
-  static where<T extends BaseModel>(
+  static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
-    key: string,
+    key: K,
     value: any
   ): QueryBuilder<T>
-  static where<T extends BaseModel>(
+  static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
-    key: string,
+    key: K,
     operator: ComparisonOperator,
     value: any
   ): QueryBuilder<T>
-  static where<T extends BaseModel>(
+  static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
-    key: string,
+    key: K,
     operatorOrValue: ComparisonOperator | any,
     value?: any
   ): QueryBuilder<T> {
@@ -371,12 +371,12 @@ export default class BaseModel {
    * const comments = await Comment.whereIn('postId', [1, 2, 3]).get();
    * ```
    *
-   * @param key
+   * @param key - A property of the model
    * @param values
    */
-  static whereIn<T extends BaseModel>(
+  static whereIn<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
-    key: string,
+    key: K,
     values: any[]
   ): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(this)
@@ -392,12 +392,12 @@ export default class BaseModel {
    * const users = await User.whereNotIn('id', [1, 2, 3]).get();
    * ```
    *
-   * @param key
+   * @param key - A property of the model
    * @param values
    */
-  static whereNotIn<T extends BaseModel>(
+  static whereNotIn<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
-    key: string,
+    key: K,
     values: any[]
   ): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(this)
@@ -433,10 +433,10 @@ export default class BaseModel {
   ): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(ctor)
 
-    foreignKey = foreignKey || camelCase(`${this.constructor.name}Id`)
-    localKey = localKey || 'id'
+    const fk = foreignKey || camelCase(`${this.constructor.name}Id`)
+    const lk = localKey || 'id'
 
-    return queryBuilder.where(foreignKey, (this as any)[localKey])
+    return queryBuilder.where({ [fk]: (this as any)[lk] })
   }
 
   /**

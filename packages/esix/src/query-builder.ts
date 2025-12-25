@@ -283,9 +283,10 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Sorts the models by the given key.
    *
-   * @param key The key you want to sort by.
+   * @param key - A property of the model to sort by.
    * @param order Defaults to ascending order.
    */
+  orderBy<K extends keyof T>(key: K, order?: 'asc' | 'desc'): QueryBuilder<T>
   orderBy(key: string, order: 'asc' | 'desc' = 'asc'): QueryBuilder<T> {
     if (!this.queryOrder) {
       this.queryOrder = {}
@@ -415,13 +416,17 @@ export default class QueryBuilder<T extends BaseModel> {
    * Adds a constraint to the current query.
    *
    * @param query - A query object to filter by
-   * @param key - Property name to filter by
+   * @param key - Property name to filter by (must be a valid model field)
    * @param operatorOrValue - Comparison operator or value when using 2-param syntax
    * @param value - The value to filter by when using 3-param syntax with operator
    */
   where(query: Query): QueryBuilder<T>
-  where(key: string, value: any): QueryBuilder<T>
-  where(key: string, operator: ComparisonOperator, value: any): QueryBuilder<T>
+  where<K extends keyof T>(key: K, value: any): QueryBuilder<T>
+  where<K extends keyof T>(
+    key: K,
+    operator: ComparisonOperator,
+    value: any
+  ): QueryBuilder<T>
   where(
     queryOrKey: Query | string,
     operatorOrValue?: ComparisonOperator | any,
@@ -487,16 +492,15 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Returns all the models with `key` in the array of `values`.
    *
-   * @param key
+   * @param key - A property of the model
    * @param values
    */
+  whereIn<K extends keyof T>(key: K, values: any[]): QueryBuilder<T>
   whereIn(key: string, values: any[]): QueryBuilder<T> {
-    if (key === 'id') {
-      key = '_id'
-    }
+    const keyStr = key === 'id' ? '_id' : key
 
     const query = {
-      [key]: {
+      [keyStr]: {
         $in: sanitize(values)
       }
     }
@@ -512,16 +516,15 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Returns all the models with `key` not in the array of `values`.
    *
-   * @param key
+   * @param key - A property of the model
    * @param values
    */
+  whereNotIn<K extends keyof T>(key: K, values: any[]): QueryBuilder<T>
   whereNotIn(key: string, values: any[]): QueryBuilder<T> {
-    if (key === 'id') {
-      key = '_id'
-    }
+    const keyStr = key === 'id' ? '_id' : key
 
     const query = {
-      [key]: {
+      [keyStr]: {
         $nin: sanitize(values)
       }
     }
