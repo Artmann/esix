@@ -10,6 +10,7 @@
   <a href="https://github.com/Artmann/esix/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Artmann/esix.svg" alt="License"></a>
   <a href="https://github.com/Artmann/esix/actions"><img src="https://img.shields.io/github/actions/workflow/status/Artmann/esix/build.yml" alt="Build Status"></a>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-Ready-blue.svg" alt="TypeScript"></a>
+  <a href="https://deepwiki.com/Artmann/esix"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
 </p>
 
 ---
