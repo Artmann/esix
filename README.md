@@ -261,7 +261,7 @@ Esix works with zero configuration but supports these environment variables:
 
 ## Documentation
 
-For comprehensive documentation, visit [https://esix.netlify.app/](https://esix.netlify.app/).
+For comprehensive documentation, visit <https://www.esixorm.com/>.
 
 ## Contributing
 
