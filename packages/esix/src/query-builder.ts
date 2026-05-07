@@ -1,10 +1,9 @@
-import * as changeCase from 'change-case'
 import { Collection, ObjectId } from 'mongodb'
 import percentile from 'percentile'
-import pluralize from 'pluralize'
 
 import type BaseModel from './base-model'
 import { connectionHandler } from './connection-handler'
+import { getCollectionName } from './naming'
 import { sanitize } from './sanitize'
 import type {
   ComparisonOperator,
@@ -17,17 +16,13 @@ import type {
  * Represents a MongoDB query object with flexible field-value pairs.
  * Used for building database queries with various operators and conditions.
  */
-export type Query = { [index: string]: any }
+export type Query = { [index: string]: unknown }
 
 type Order = { [index: string]: 1 | -1 }
 type Fields = { [index: string]: 1 }
 
 function isString(x: any): x is string {
   return typeof x === 'string'
-}
-
-function normalizeName(className: string): string {
-  return pluralize(changeCase.kebabCase(className))
 }
 
 function normalizeAttributes(originalAttributes: Dictionary): Dictionary {
@@ -448,7 +443,7 @@ export default class QueryBuilder<T extends BaseModel> {
     }
     // Object syntax: where({ status: 'active' })
     else {
-      query = sanitize(queryOrKey)
+      query = sanitize(queryOrKey) as Query
     }
 
     this.query = {
@@ -588,7 +583,7 @@ export default class QueryBuilder<T extends BaseModel> {
   private async useCollection<K>(
     block: (collection: Collection) => Promise<any>
   ): Promise<K> {
-    const collectionName = normalizeName(this.ctor.name)
+    const collectionName = getCollectionName(this.ctor.name)
 
     const connection = await connectionHandler.getConnection()
 
