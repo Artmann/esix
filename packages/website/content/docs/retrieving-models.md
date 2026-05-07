@@ -17,6 +17,11 @@ const book = await Book.find(22)
 console.log(book.title)
 ```
 
+`find` accepts both ObjectId hex strings and plain string ids. If the value is
+not a valid 24-character hex string, Esix transparently falls back to a string
+`_id` lookup. Invalid input never throws — `find` just returns `null` when no
+matching document exists.
+
 You can also find a model by a specific field using the `findBy` method:
 
 ```ts
@@ -148,10 +153,42 @@ const productNames = await Product.where('category', 'lamps').pluck('name')
 productNames.forEach((name) => console.log(name))
 ```
 
+## Distinct Values
+
+Use `distinct` to get the unique values of a field across the current query:
+
+```ts
+const tags = await Post.where('published', true).distinct('tag')
+```
+
+The result is a deduplicated array of values for the field, respecting any
+active `where` constraints.
+
+## Full-Text Search
+
+Once your collection has a [text index](https://www.mongodb.com/docs/manual/core/indexes/index-types/index-text/),
+use `search` to run full-text queries:
+
+```ts
+const results = await Post.search('mongodb typescript').get()
+```
+
+If the collection has no text index, Esix surfaces a descriptive error
+explaining how to create one.
+
 ## Pagination
 
-For pagination, you can use the `skip` method to offset results and combine it
-with `limit`:
+The fastest way to paginate is `paginate(page, perPage)`, which returns the
+page of models alongside the metadata you need to render pagination UIs:
+
+```ts
+const { data, total, page, perPage, lastPage } = await Post
+  .where('published', true)
+  .paginate(1, 20)
+```
+
+For more control, you can fall back to manual offset pagination using `skip`
+and `limit`:
 
 ```ts
 const page = 2
@@ -187,3 +224,10 @@ await Product.where('category', 'lamps').percentile('price', 50)
 
 await Product.where('category', 'lamps').sum('price')
 ```
+
+When the query matches no documents, the numeric aggregates (`average`,
+`max`, `min`, `percentile`, `sum`) return `0` rather than throwing.
+
+`percentile` requires `n` to be a finite number between `0` and `100`. Any
+other value (including `NaN` and `Infinity`) throws a descriptive error so
+that bad inputs do not silently return misleading results.

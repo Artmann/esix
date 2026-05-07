@@ -9,7 +9,8 @@ import type {
   ComparisonOperator,
   Dictionary,
   Document,
-  ObjectType
+  ObjectType,
+  Paginated
 } from './types'
 
 /**
@@ -165,6 +166,39 @@ export default class QueryBuilder<T extends BaseModel> {
   }
 
   /**
+   * Decrements the given numeric key by `by` for every document matching
+   * the current query. Translates to MongoDB's `$inc` operator.
+   *
+   * Example
+   * ```
+   * await Account.where('id', accountId).decrement('balance', 25);
+   * ```
+   *
+   * @returns The number of documents that were modified.
+   */
+  async decrement<K extends keyof T>(key: K, by: number = 1): Promise<number> {
+    return this.increment(key, -by)
+  }
+
+  /**
+   * Returns the unique values of the given key for documents matching the
+   * current query.
+   *
+   * Example
+   * ```
+   * const tags = await Post.where('published', true).distinct('tag');
+   * ```
+   *
+   * @param key
+   */
+  async distinct<K extends keyof T>(key: K): Promise<T[K][]> {
+    return this.useCollection(async (collection) => {
+      const values = await collection.distinct(key as string, this.query as any)
+      return values as T[K][]
+    })
+  }
+
+  /**
    * Returns the model with the given id or null if there is no matching model.
    */
   async find(id: string): Promise<T | null> {
@@ -228,6 +262,30 @@ export default class QueryBuilder<T extends BaseModel> {
    */
   async get(): Promise<T[]> {
     return this.execute()
+  }
+
+  /**
+   * Increments the given numeric key by `by` for every document matching
+   * the current query. Translates to MongoDB's `$inc` operator.
+   *
+   * Example
+   * ```
+   * await Post.where('id', postId).increment('views');
+   * await User.where('isActive', true).increment('score', 5);
+   * ```
+   *
+   * @returns The number of documents that were modified.
+   */
+  async increment<K extends keyof T>(key: K, by: number = 1): Promise<number> {
+    return this.useCollection(async (collection) => {
+      const { modifiedCount } = await collection.updateMany(
+        this.query as any,
+        {
+          $inc: { [key as string]: by }
+        }
+      )
+      return modifiedCount
+    })
   }
 
   /**
@@ -298,6 +356,41 @@ export default class QueryBuilder<T extends BaseModel> {
     this.queryOrder[key] = order === 'asc' ? 1 : -1
 
     return this
+  }
+
+  /**
+   * Returns the page of models matching the current query along with the
+   * total count and the metadata needed to render pagination UIs.
+   *
+   * Example
+   * ```
+   * const { data, total, lastPage } = await Post.paginate(1, 20);
+   * ```
+   *
+   * @param page The page to fetch, starting at 1.
+   * @param perPage The number of models per page.
+   */
+  async paginate(page: number, perPage: number): Promise<Paginated<T>> {
+    if (!Number.isInteger(page) || page < 1) {
+      throw new Error(
+        `paginate() page must be an integer >= 1, received: ${page}`
+      )
+    }
+    if (!Number.isInteger(perPage) || perPage < 1) {
+      throw new Error(
+        `paginate() perPage must be an integer >= 1, received: ${perPage}`
+      )
+    }
+
+    const total = await this.count()
+
+    this.queryOffset = (page - 1) * perPage
+    this.queryLimit = perPage
+
+    const data = await this.execute()
+    const lastPage = total === 0 ? 1 : Math.ceil(total / perPage)
+
+    return { data, total, page, perPage, lastPage }
   }
 
   /**

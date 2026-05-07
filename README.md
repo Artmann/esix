@@ -136,7 +136,10 @@ const nonAdmins = await User.whereNotIn('role', ['admin', 'moderator']).get()
 ### Advanced Queries
 
 ```ts
-// Pagination
+// Pagination — built-in helper that returns data + metadata
+const { data, total, lastPage } = await Post.paginate(1, 20)
+
+// Manual pagination with skip/limit
 const page1 = await Post.limit(10).get()
 const page2 = await Post.skip(10).limit(10).get()
 
@@ -147,6 +150,22 @@ const popularPosts = await Post.orderBy('views', 'desc').limit(5).get()
 // Extract specific field values
 const titles = await Post.pluck('title')
 const authors = await Post.pluck('authorId')
+
+// Distinct values
+const tags = await Post.where('published', true).distinct('tag')
+
+// Full-text search (requires a text index on the collection)
+const results = await Post.search('mongodb typescript').get()
+```
+
+### Updating Counts
+
+Bump numeric fields without round-tripping through `.save()`:
+
+```ts
+await Post.where('id', postId).increment('views')
+await User.where('isActive', true).increment('score', 5)
+await Account.where('id', accountId).decrement('balance', 25)
 ```
 
 ### Aggregations
@@ -195,25 +214,41 @@ const settings = await Settings.firstOrCreate({
 
 ### Relationships
 
-Define relationships between models with type safety:
+Define relationships between models with type safety. Esix ships with
+`hasMany`, `hasOne`, and `belongsTo`:
 
 ```ts
 class Author extends BaseModel {
   public name = ''
 
-  // Get all posts by this author
+  // One author -> many posts
   posts() {
-    return this.hasMany(Post, 'authorId')
+    return this.hasMany(Post)
+  }
+
+  // One author -> one profile
+  profile() {
+    return this.hasOne(Profile)
+  }
+}
+
+class Post extends BaseModel {
+  public title = ''
+  public authorId = ''
+
+  // Inverse: each post belongs to an author
+  author() {
+    return this.belongsTo(Author)
   }
 }
 
 // Usage
 const author = await Author.find('author123')
 const authorPosts = await author.posts().get()
-const publishedPosts = await author
-  .posts()
-  .where('publishedAt', '!=', null)
-  .get()
+const profile = await author.profile()
+
+const post = await Post.find('post-1')
+const writer = await post.author()
 ```
 
 ### Real-world Example
