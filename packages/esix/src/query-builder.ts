@@ -601,7 +601,8 @@ export default class QueryBuilder<T extends BaseModel> {
         if (isTextIndexMissingError(error, this.query)) {
           throw new Error(
             `search() requires a text index on the "${collection.collectionName}" collection. ` +
-              `Create one with db.${collection.collectionName}.createIndex({ "<field>": "text" }).`
+              `Create one with db["${collection.collectionName}"].createIndex({ "<field>": "text" }).`,
+            { cause: error }
           )
         }
         throw error
@@ -628,14 +629,29 @@ function isNumberArray(array: any[]): array is number[] {
   return array.every((item) => typeof item === 'number')
 }
 
-function isTextIndexMissingError(
+export function isTextIndexMissingError(
   error: unknown,
   query: { [key: string]: unknown }
 ): boolean {
   if (!('$text' in query)) {
     return false
   }
+
+  const code =
+    error && typeof error === 'object' && 'code' in error
+      ? (error as { code?: unknown }).code
+      : undefined
+  const codeName =
+    error && typeof error === 'object' && 'codeName' in error
+      ? (error as { codeName?: unknown }).codeName
+      : undefined
+
+  if (code === 27 || codeName === 'IndexNotFound') {
+    return true
+  }
+
   const message =
     error instanceof Error ? error.message : String(error ?? '')
-  return /text index/i.test(message) || /\$text/i.test(message)
+
+  return /text index required for \$text query/i.test(message)
 }
