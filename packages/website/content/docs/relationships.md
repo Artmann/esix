@@ -41,7 +41,7 @@ const allPosts = await author.posts().get()
 // Only the published ones, latest first.
 const recentPosts = await author
   .posts()
-  .where('publishedAt', { $ne: null })
+  .where('publishedAt', '!=', null)
   .orderBy('publishedAt', 'desc')
   .limit(5)
   .get()

@@ -213,3 +213,76 @@ describe('hasOne', () => {
     expect(post).toBeNull()
   })
 })
+
+describe('distinct', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      DB_ADAPTER: 'mock',
+      DB_DATABASE: `test-${createUuid()}`
+    })
+  })
+
+  afterAll(() => {
+    connectionHandler.closeConnections()
+  })
+
+  it('returns deduplicated values for a field.', async () => {
+    await Post.create({ title: 'A', tag: 'mongo', published: true })
+    await Post.create({ title: 'B', tag: 'mongo', published: true })
+    await Post.create({ title: 'C', tag: 'typescript', published: true })
+    await Post.create({ title: 'D', tag: 'typescript', published: false })
+
+    const tags = await Post.distinct('tag')
+
+    expect(tags.sort()).toEqual(['mongo', 'typescript'])
+  })
+
+  it('respects active where constraints.', async () => {
+    await Post.create({ title: 'A', tag: 'mongo', published: true })
+    await Post.create({ title: 'B', tag: 'typescript', published: true })
+    await Post.create({ title: 'C', tag: 'draft-only', published: false })
+
+    const publishedTags = await Post.where('published', true).distinct('tag')
+
+    expect(publishedTags.sort()).toEqual(['mongo', 'typescript'])
+  })
+
+  it('returns an empty array when no documents match.', async () => {
+    const tags = await Post.where('published', true).distinct('tag')
+
+    expect(tags).toEqual([])
+  })
+})
+
+describe('where("id", ...)', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      DB_ADAPTER: 'mock',
+      DB_DATABASE: `test-${createUuid()}`
+    })
+  })
+
+  afterAll(() => {
+    connectionHandler.closeConnections()
+  })
+
+  it('finds the document via where("id", ...).first().', async () => {
+    const created = await Post.create({ title: 'Findable' })
+
+    const found = await Post.where('id', created.id).first()
+
+    expect(found).not.toBeNull()
+    expect(found?.id).toEqual(created.id)
+  })
+
+  it('updates the matching document via where("id", ...).increment().', async () => {
+    const post = await Post.create({ title: 'Counter', views: 0 })
+
+    const modified = await Post.where('id', post.id).increment('views', 3)
+
+    expect(modified).toEqual(1)
+
+    const reloaded = await Post.find(post.id)
+    expect(reloaded?.views).toEqual(3)
+  })
+})

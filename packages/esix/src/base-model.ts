@@ -452,14 +452,6 @@ export default class BaseModel {
   }
 
   /**
-   * Deletes the model from the database.
-   *
-   * Example
-   * ```
-   * await post.delete();
-   * ```
-   */
-  /**
    * Returns the parent record this model belongs to. The foreign key
    * defaults to the camelCase of the parent class name suffixed with
    * `Id` (e.g. `Author` -> `authorId`); the owner key defaults to
@@ -488,6 +480,14 @@ export default class BaseModel {
     return queryBuilder.where({ [ok]: value }).first()
   }
 
+  /**
+   * Deletes the model from the database.
+   *
+   * Example
+   * ```
+   * await post.delete();
+   * ```
+   */
   async delete(): Promise<number> {
     const queryBuilder = new QueryBuilder(
       this.constructor as ObjectType<BaseModel>

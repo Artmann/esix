@@ -193,8 +193,29 @@ export default class QueryBuilder<T extends BaseModel> {
    */
   async distinct<K extends keyof T>(key: K): Promise<T[K][]> {
     return this.useCollection(async (collection) => {
-      const values = await collection.distinct(key as string, this.query as any)
-      return values as T[K][]
+      const keyStr = (key as string) === 'id' ? '_id' : (key as string)
+      const documents = await collection
+        .find(this.query, { projection: { [keyStr]: 1 } })
+        .toArray()
+
+      const seen = new Set<unknown>()
+      const result: T[K][] = []
+
+      for (const document of documents) {
+        const value = (document as Record<string, unknown>)[keyStr]
+        if (value === null || value === undefined) {
+          continue
+        }
+        const dedupeKey =
+          typeof value === 'object' ? JSON.stringify(value) : value
+        if (seen.has(dedupeKey)) {
+          continue
+        }
+        seen.add(dedupeKey)
+        result.push(value as T[K])
+      }
+
+      return result
     })
   }
 
@@ -537,20 +558,26 @@ export default class QueryBuilder<T extends BaseModel> {
     let query: Query
 
     if (isString(queryOrKey)) {
+      const keyStr = queryOrKey === 'id' ? '_id' : queryOrKey
+
       // Three-parameter syntax: where('age', '>', 18)
       if (value !== undefined) {
         const operator = operatorOrValue as ComparisonOperator
         const sanitizedValue = sanitize(value)
-        query = { [queryOrKey]: this.buildOperatorQuery(operator, sanitizedValue) }
+        query = { [keyStr]: this.buildOperatorQuery(operator, sanitizedValue) }
       }
       // Two-parameter syntax: where('status', 'active')
       else {
-        query = { [queryOrKey]: sanitize(operatorOrValue) }
+        query = { [keyStr]: sanitize(operatorOrValue) }
       }
     }
     // Object syntax: where({ status: 'active' })
     else {
-      query = sanitize(queryOrKey) as Query
+      const sanitized = sanitize(queryOrKey) as Query
+      query = {}
+      for (const [k, v] of Object.entries(sanitized)) {
+        query[k === 'id' ? '_id' : k] = v
+      }
     }
 
     this.query = {
