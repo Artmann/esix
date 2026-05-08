@@ -169,9 +169,9 @@ describe('Aggregate Functions', () => {
     it.each([['max'], ['min'], ['sum'], ['average']] as const)(
       '%s returns 0 when no records match.',
       async (method) => {
-        const result = await (
-          ResponseTime.where('statusCode', 999) as any
-        )[method]('value')
+        const result = await (ResponseTime.where('statusCode', 999) as any)[
+          method
+        ]('value')
 
         expect(result).toEqual(0)
       }

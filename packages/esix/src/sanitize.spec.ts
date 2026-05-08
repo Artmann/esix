@@ -47,31 +47,27 @@ describe('sanitize', () => {
     expect(sanitize([{ $gt: 0 }, { id: 1 }])).toEqual([{}, { id: 1 }])
   })
 
-  it.each([
-    ['$gt'],
-    ['$lt'],
-    ['$regex'],
-    ['$where'],
-    ['$function'],
-    ['$expr']
-  ])('strips %s operator at any depth.', (operator) => {
-    const input = {
-      level1: {
-        level2: {
-          [operator]: 'malicious',
-          safe: 'ok'
+  it.each([['$gt'], ['$lt'], ['$regex'], ['$where'], ['$function'], ['$expr']])(
+    'strips %s operator at any depth.',
+    (operator) => {
+      const input = {
+        level1: {
+          level2: {
+            [operator]: 'malicious',
+            safe: 'ok'
+          }
         }
       }
-    }
 
-    expect(sanitize(input)).toEqual({
-      level1: {
-        level2: {
-          safe: 'ok'
+      expect(sanitize(input)).toEqual({
+        level1: {
+          level2: {
+            safe: 'ok'
+          }
         }
-      }
-    })
-  })
+      })
+    }
+  )
 
   it('throws when input nesting exceeds the depth limit.', () => {
     let nested: Record<string, unknown> = {}
