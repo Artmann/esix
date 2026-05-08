@@ -57,3 +57,9 @@ The class name is transformed by:
 2. Making it plural
 
 This means you don't need to configure collection names manually - just name your model classes descriptively and Esix handles the rest!
+
+## Relationships
+
+Models can declare relationships to one another with `hasMany`, `hasOne`, and
+`belongsTo`. These helpers are documented in detail in the
+[Relationships](/docs/relationships) guide.

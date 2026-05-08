@@ -1,7 +1,12 @@
 import 'reflect-metadata'
 
 import QueryBuilder from './query-builder'
-import type { ComparisonOperator, Dictionary, ObjectType } from './types'
+import type {
+  ComparisonOperator,
+  Dictionary,
+  ObjectType,
+  Paginated
+} from './types'
 import { camelCase } from 'change-case'
 
 export default class BaseModel {
@@ -195,6 +200,24 @@ export default class BaseModel {
   }
 
   /**
+   * Returns the unique values of the given key across all documents in
+   * this collection.
+   *
+   * Example
+   * ```
+   * const tags = await Post.distinct('tag');
+   * ```
+   *
+   * @param key
+   */
+  static distinct<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): Promise<T[K][]> {
+    return new QueryBuilder(this).distinct(key)
+  }
+
+  /**
    * Limits the number of models returned.
    *
    * @param length
@@ -257,6 +280,26 @@ export default class BaseModel {
     order: 'asc' | 'desc' = 'asc'
   ): QueryBuilder<T> {
     return new QueryBuilder<T>(this).orderBy(key, order)
+  }
+
+  /**
+   * Returns a page of models along with the total count and metadata for
+   * rendering pagination UIs.
+   *
+   * Example
+   * ```
+   * const { data, total, lastPage } = await Post.paginate(1, 20);
+   * ```
+   *
+   * @param page The page to fetch, starting at 1.
+   * @param perPage The number of models per page.
+   */
+  static paginate<T extends BaseModel>(
+    this: ObjectType<T>,
+    page: number,
+    perPage: number
+  ): Promise<Paginated<T>> {
+    return new QueryBuilder(this).paginate(page, perPage)
   }
 
   /**
@@ -409,6 +452,35 @@ export default class BaseModel {
   }
 
   /**
+   * Returns the parent record this model belongs to. The foreign key
+   * defaults to the camelCase of the parent class name suffixed with
+   * `Id` (e.g. `Author` -> `authorId`); the owner key defaults to
+   * `id`. Returns `null` when the foreign key is unset.
+   */
+  async belongsTo<T extends BaseModel>(
+    ctor: ObjectType<T>,
+    foreignKey?: string,
+    ownerKey?: string
+  ): Promise<T | null> {
+    const fk = foreignKey || camelCase(`${ctor.name}Id`)
+    const ok = ownerKey || 'id'
+
+    const value = (this as unknown as Record<string, unknown>)[fk]
+
+    if (value === undefined || value === null) {
+      return null
+    }
+
+    const queryBuilder = new QueryBuilder(ctor)
+
+    if (ok === 'id') {
+      return queryBuilder.find(String(value))
+    }
+
+    return queryBuilder.where({ [ok]: value }).first()
+  }
+
+  /**
    * Deletes the model from the database.
    *
    * Example
@@ -440,6 +512,18 @@ export default class BaseModel {
     const lk = localKey || 'id'
 
     return queryBuilder.where({ [fk]: (this as any)[lk] })
+  }
+
+  /**
+   * Returns the single related record matching this model. Mirrors
+   * `hasMany` but resolves to a single record (or `null`).
+   */
+  hasOne<T extends BaseModel>(
+    ctor: ObjectType<T>,
+    foreignKey?: string,
+    localKey?: string
+  ): Promise<T | null> {
+    return this.hasMany(ctor, foreignKey, localKey).first()
   }
 
   /**

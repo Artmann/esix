@@ -70,3 +70,22 @@ The `firstOrCreate` method's first argument contains the attributes that you
 want to search for. The second argument contains the additional attributes to
 add to the model if it doesn't exist. If the second argument is not provided,
 the attributes from the first argument will be used when creating the model.
+
+## Increment & Decrement
+
+When you only need to bump a numeric field, use `increment` and `decrement`
+directly on the query builder. They translate to MongoDB's `$inc` operator and
+respect the current `where` constraints.
+
+```ts
+// Add 1 to the views of the matching post.
+await Post.where('id', postId).increment('views')
+
+// Add 5 to the score of every active user.
+await User.where('isActive', true).increment('score', 5)
+
+// Subtract from a balance.
+await Account.where('id', accountId).decrement('balance', 25)
+```
+
+Both methods return the number of documents that were modified.

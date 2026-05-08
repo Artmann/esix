@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.0] - 2026-05-07
+
+### Added
+
+- feat: `QueryBuilder.paginate(page, perPage)` and `BaseModel.paginate(page,
+  perPage)` return `{ data, total, page, perPage, lastPage }` for one-shot
+  pagination.
+- feat: `QueryBuilder.distinct(key)` and `BaseModel.distinct(key)` return the
+  unique values for a field, respecting any active `where` constraints.
+- feat: `QueryBuilder.increment(key, by?)` and `decrement(key, by?)` translate
+  to MongoDB's `$inc` and return the number of modified documents.
+- feat: `BaseModel.hasOne(ctor, foreignKey?, localKey?)` and
+  `BaseModel.belongsTo(ctor, foreignKey?, ownerKey?)` complete the
+  relationship helpers alongside `hasMany`.
+- docs: New Relationships guide on the website covering `hasMany`, `hasOne`,
+  and `belongsTo` along with foreign/local key conventions.
+
 ## [4.0.0] - 2025-03-27
 
 - The changelog has been moved to

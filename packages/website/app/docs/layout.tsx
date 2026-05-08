@@ -16,6 +16,7 @@ const sidebarLinks = [
     href: '/docs/inserting-and-updating-models'
   },
   { title: 'Deleting Models', href: '/docs/deleting-models' },
+  { title: 'Relationships', href: '/docs/relationships' },
   { title: 'Pagination', href: '/docs/pagination' },
   { title: 'Testing', href: '/docs/testing' }
 ]

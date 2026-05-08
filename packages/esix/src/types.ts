@@ -21,3 +21,15 @@ export type Document = { [index: string]: any }
  * Maps to MongoDB query operators.
  */
 export type ComparisonOperator = '=' | '!=' | '<>' | '>' | '>=' | '<' | '<='
+
+/**
+ * Result of QueryBuilder.paginate() / BaseModel.paginate(). Bundles the
+ * page of models with the metadata needed to render pagination UIs.
+ */
+export interface Paginated<T> {
+  data: T[]
+  total: number
+  page: number
+  perPage: number
+  lastPage: number
+}
