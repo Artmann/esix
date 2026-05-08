@@ -336,6 +336,20 @@ describe('BaseModel', () => {
       expect(book).toBeNull()
     })
 
+    it.each([[''], ['not-hex'], ['zzz']])(
+      'returns null and does not throw for invalid id %p.',
+      async (badId) => {
+        collection.findOne.mockReturnValue(null)
+        vi.mocked(ObjectId.createFromHexString).mockImplementation(() => {
+          throw new Error('not a valid ObjectId')
+        })
+
+        const book = await Book.find(badId)
+
+        expect(book).toBeNull()
+      }
+    )
+
     it('finds a document by id.', async () => {
       vi.mocked(ObjectId.createFromHexString).mockImplementation(
         (hexString: string): ObjectId => new ObjectId(hexString)

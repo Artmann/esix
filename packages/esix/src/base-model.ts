@@ -110,7 +110,10 @@ export default class BaseModel {
     })
 
     if (!model) {
-      throw new Error('Failed to create model.')
+      throw new Error(
+        `Failed to create ${this.name} (id: ${String(id)}). ` +
+          `The document was inserted but could not be retrieved afterwards.`
+      )
     }
 
     return model

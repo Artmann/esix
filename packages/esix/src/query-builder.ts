@@ -254,6 +254,10 @@ export default class QueryBuilder<T extends BaseModel> {
   async max<K extends keyof T>(key: K): Promise<number> {
     const values = await this.pluck(key)
 
+    if (values.length === 0) {
+      return 0
+    }
+
     if (!isNumberArray(values)) {
       throw new Error(
         `All values returned for ${String(key)} are not numbers. Please check your data.`
@@ -270,6 +274,10 @@ export default class QueryBuilder<T extends BaseModel> {
    */
   async min<K extends keyof T>(key: K): Promise<number> {
     const values = await this.pluck(key)
+
+    if (values.length === 0) {
+      return 0
+    }
 
     if (!isNumberArray(values)) {
       throw new Error(
@@ -304,6 +312,12 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param n
    */
   async percentile<K extends keyof T>(key: K, n: number): Promise<number> {
+    if (typeof n !== 'number' || !Number.isFinite(n) || n < 0 || n > 100) {
+      throw new Error(
+        `Percentile n must be a finite number between 0 and 100, received: ${n}`
+      )
+    }
+
     const values = await this.pluck(key)
 
     if (values.length === 0) {
@@ -559,29 +573,40 @@ export default class QueryBuilder<T extends BaseModel> {
 
   private execute(fields?: Fields): Promise<T[]> {
     return this.useCollection(async (collection) => {
-      let cursor = fields
-        ? collection.find(this.query, fields)
-        : collection.find(this.query)
+      try {
+        let cursor = fields
+          ? collection.find(this.query, fields)
+          : collection.find(this.query)
 
-      if (this.queryOrder) {
-        cursor = cursor.sort(this.queryOrder)
+        if (this.queryOrder) {
+          cursor = cursor.sort(this.queryOrder)
+        }
+
+        if (this.queryOffset) {
+          cursor = cursor.skip(this.queryOffset)
+        }
+
+        if (this.queryLimit) {
+          cursor = cursor.limit(this.queryLimit)
+        }
+
+        const documents = await cursor.toArray()
+
+        const records = documents
+          .filter((document) => document)
+          .map((document): T => this.createInstance(document))
+
+        return records
+      } catch (error) {
+        if (isTextIndexMissingError(error, this.query)) {
+          throw new Error(
+            `search() requires a text index on the "${collection.collectionName}" collection. ` +
+              `Create one with db["${collection.collectionName}"].createIndex({ "<field>": "text" }).`,
+            { cause: error }
+          )
+        }
+        throw error
       }
-
-      if (this.queryOffset) {
-        cursor = cursor.skip(this.queryOffset)
-      }
-
-      if (this.queryLimit) {
-        cursor = cursor.limit(this.queryLimit)
-      }
-
-      const documents = await cursor.toArray()
-
-      const records = documents
-        .filter((document) => document)
-        .map((document): T => this.createInstance(document))
-
-      return records
     })
   }
 
@@ -602,4 +627,31 @@ export default class QueryBuilder<T extends BaseModel> {
 
 function isNumberArray(array: any[]): array is number[] {
   return array.every((item) => typeof item === 'number')
+}
+
+export function isTextIndexMissingError(
+  error: unknown,
+  query: { [key: string]: unknown }
+): boolean {
+  if (!('$text' in query)) {
+    return false
+  }
+
+  const code =
+    error && typeof error === 'object' && 'code' in error
+      ? (error as { code?: unknown }).code
+      : undefined
+  const codeName =
+    error && typeof error === 'object' && 'codeName' in error
+      ? (error as { codeName?: unknown }).codeName
+      : undefined
+
+  if (code === 27 || codeName === 'IndexNotFound') {
+    return true
+  }
+
+  const message =
+    error instanceof Error ? error.message : String(error ?? '')
+
+  return /text index required for \$text query/i.test(message)
 }

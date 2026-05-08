@@ -165,6 +165,39 @@ describe('Aggregate Functions', () => {
     })
   })
 
+  describe('Empty result behavior', () => {
+    it.each([['max'], ['min'], ['sum'], ['average']] as const)(
+      '%s returns 0 when no records match.',
+      async (method) => {
+        const result = await (
+          ResponseTime.where('statusCode', 999) as any
+        )[method]('value')
+
+        expect(result).toEqual(0)
+      }
+    )
+
+    it('percentile returns 0 when no records match.', async () => {
+      const result = await ResponseTime.where('statusCode', 999).percentile(
+        'value',
+        50
+      )
+
+      expect(result).toEqual(0)
+    })
+  })
+
+  describe('Percentile validation', () => {
+    it.each([[-1], [101], [Number.NaN], [Number.POSITIVE_INFINITY]])(
+      'throws when n is %p.',
+      async (n) => {
+        await expect(
+          ResponseTime.where('statusCode', 200).percentile('value', n)
+        ).rejects.toThrow(/Percentile/)
+      }
+    )
+  })
+
   describe('Percentile', () => {
     it('works without values.', async () => {
       const median = await ResponseTime.where('statusCode', 200).percentile(

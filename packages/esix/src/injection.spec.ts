@@ -39,4 +39,17 @@ describe('Injections', () => {
 
     expect(user).toBeNull()
   })
+
+  it('neutralizes deeply nested injection passed as where value.', async () => {
+    await User.create({
+      password: 'secretstuff',
+      username: 'Tim'
+    })
+
+    const users = await User.where('username', {
+      nested: { $gt: '' }
+    }).get()
+
+    expect(users).toEqual([])
+  })
 })
