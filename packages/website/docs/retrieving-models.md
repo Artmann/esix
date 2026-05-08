@@ -202,8 +202,7 @@ const products = await Product.where('category', 'electronics')
 ```
 
 You can find out more about the different methods available by consulting the
-API documentation for [BaseModel](/api/classes/basemodel.html) and
-[QueryBuilder](/api/classes/querybuilder.html).
+[Esix source on GitHub](https://github.com/artmann/esix/tree/main/packages/esix/src).
 
 ## Aggregate Functions
 

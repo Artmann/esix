@@ -67,5 +67,5 @@ const getBlogPosts = async (page: number = 1, perPage: number = 10) => {
 ```
 
 This guide covers the pagination capabilities available in Esix. For more
-information about query methods, see the [Retrieving Models](/retrieving-models)
+information about query methods, see the [Retrieving Models](/docs/retrieving-models)
 guide.
