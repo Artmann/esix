@@ -16,7 +16,6 @@
           {
             "group": "Getting Started",
             "pages": [
-              "index",
               "docs/introduction",
               "docs/getting-started",
               "docs/configuration"
