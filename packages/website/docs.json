@@ -1,0 +1,55 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Esix",
+  "colors": {
+    "primary": "#EC4899",
+    "light": "#F472B6",
+    "dark": "#BE185D"
+  },
+  "favicon": "/favicon.ico",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "index",
+              "docs/introduction",
+              "docs/getting-started",
+              "docs/configuration"
+            ]
+          },
+          {
+            "group": "Models",
+            "pages": [
+              "docs/defining-models",
+              "docs/retrieving-models",
+              "docs/inserting-and-updating-models",
+              "docs/deleting-models",
+              "docs/relationships"
+            ]
+          },
+          {
+            "group": "Querying",
+            "pages": ["docs/pagination"]
+          },
+          {
+            "group": "Guides",
+            "pages": ["docs/testing"]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      { "label": "GitHub", "href": "https://github.com/artmann/esix" }
+    ]
+  },
+  "footer": {
+    "socials": { "github": "https://github.com/artmann/esix" }
+  }
+}

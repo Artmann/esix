@@ -10,15 +10,8 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
+# mintlify
+.mintlify/
 
 # misc
 .DS_Store
@@ -35,9 +28,3 @@ yarn-error.log*
 
 # vercel
 .vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-public/api/

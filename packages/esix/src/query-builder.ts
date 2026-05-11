@@ -299,12 +299,9 @@ export default class QueryBuilder<T extends BaseModel> {
    */
   async increment<K extends keyof T>(key: K, by: number = 1): Promise<number> {
     return this.useCollection(async (collection) => {
-      const { modifiedCount } = await collection.updateMany(
-        this.query as any,
-        {
-          $inc: { [key as string]: by }
-        }
-      )
+      const { modifiedCount } = await collection.updateMany(this.query as any, {
+        $inc: { [key as string]: by }
+      })
       return modifiedCount
     })
   }
@@ -765,8 +762,7 @@ export function isTextIndexMissingError(
     return true
   }
 
-  const message =
-    error instanceof Error ? error.message : String(error ?? '')
+  const message = error instanceof Error ? error.message : String(error ?? '')
 
   return /text index required for \$text query/i.test(message)
 }
