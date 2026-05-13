@@ -13,8 +13,13 @@ When you need to find a specific document by its ID, use the `find` method:
 
 ```ts
 const book = await Book.find(22)
+```
 
-console.log(book.title)
+```ts
+{
+  id: '5f5a474b32fa462a5724ff7d',
+  title: 'Effective TypeScript'
+}
 ```
 
 `find` accepts both ObjectId hex strings and plain string ids. If the value is
@@ -26,8 +31,14 @@ You can also find a model by a specific field using the `findBy` method:
 
 ```ts
 const user = await User.findBy('email', 'john@example.com')
+```
 
-console.log(user.name)
+```ts
+{
+  id: '5f5a4c36493d53b6caa8410e',
+  name: 'John Doe',
+  email: 'john@example.com'
+}
 ```
 
 To get the first model that matches your query conditions, use the `first`
@@ -37,19 +48,28 @@ method:
 const latestPost = await BlogPost.where('status', 'published')
   .orderBy('createdAt', 'desc')
   .first()
+```
 
-console.log(latestPost.title)
+```ts
+{
+  id: '6011a52b9f1b2c4d8e7f3a21',
+  title: 'Introducing Aggregate Functions',
+  status: 'published',
+  createdAt: 1736380800000
+}
 ```
 
 You can also get all the models in the collection.
 
 ```ts
 const flights = await Flight.all()
-
-flights.forEach((flight) => {
-  console.log(flight.name)
-})
 ```
+
+| id                         | name           |
+|----------------------------|----------------|
+| `5f5a474b32fa462a5724ff7d` | `AA 100 → JFK` |
+| `5f5a474b32fa462a5724ff7e` | `BA 286 → LHR` |
+| `5f5a474b32fa462a5724ff7f` | `UA 245 → SFO` |
 
 When you are working with multiple models, you can use methods like `where`
 which returns an instance of a `QueryBuilder`. The Query Builder can be used to
@@ -61,9 +81,13 @@ const blogPosts = await BlogPost.where('status', 'published')
   .orderBy('publishedAt', 'desc')
   .limit(12)
   .get()
-
-blogPosts.forEach((post) => console.log(post.title))
 ```
+
+| id                         | title                                | status      | categoryId | publishedAt     |
+|----------------------------|--------------------------------------|-------------|------------|-----------------|
+| `6011a52b9f1b2c4d8e7f3a21` | `Introducing Aggregate Functions`    | `published` | `4`        | `1736380800000` |
+| `60119e8a9f1b2c4d8e7f3a14` | `Querying With Comparison Operators` | `published` | `4`        | `1735862400000` |
+| `601198119f1b2c4d8e7f3a09` | `Pagination Patterns in Esix`        | `published` | `4`        | `1734998400000` |
 
 ## Comparison Operators
 
@@ -90,6 +114,14 @@ const activeUsers = await User.where('status', '!=', 'banned').get()
 const alsActive = await User.where('status', '<>', 'banned').get() // alternative syntax
 ```
 
+Each call above returns an array of matching records. For example, `adults` looks like:
+
+| id                         | name      | age | status   |
+|----------------------------|-----------|-----|----------|
+| `5f5a474b32fa462a5724ff7d` | `Alice`   | 32  | `active` |
+| `5f5a474b32fa462a5724ff7e` | `Bob`     | 45  | `active` |
+| `5f5a474b32fa462a5724ff7f` | `Carol`   | 28  | `active` |
+
 You can chain multiple comparison operators together:
 
 ```ts
@@ -114,6 +146,30 @@ const popularPosts = await BlogPost
   .get()
 ```
 
+**workingAgeUsers**
+
+| id                         | name      | age | status   |
+|----------------------------|-----------|-----|----------|
+| `5f5a474b32fa462a5724ff7d` | `Alice`   | 32  | `active` |
+| `5f5a474b32fa462a5724ff7e` | `Bob`     | 45  | `active` |
+| `5f5a474b32fa462a5724ff80` | `Dimitri` | 64  | `active` |
+
+**affordableProducts**
+
+| id                         | name           | price | inStock |
+|----------------------------|----------------|-------|---------|
+| `60119e8a9f1b2c4d8e7f3a14` | `Desk Lamp`    | 24.99 | `true`  |
+| `60119e8a9f1b2c4d8e7f3a15` | `Floor Lamp`   | 79.00 | `true`  |
+| `60119e8a9f1b2c4d8e7f3a16` | `Reading Lamp` | 39.50 | `true`  |
+
+**popularPosts**
+
+| id                         | title                             | views  | status      |
+|----------------------------|-----------------------------------|--------|-------------|
+| `6011a52b9f1b2c4d8e7f3a21` | `Introducing Aggregate Functions` | 12_840 | `published` |
+| `60119e8a9f1b2c4d8e7f3a14` | `Comparison Operators Are Here`   |  6_120 | `published` |
+| `601198119f1b2c4d8e7f3a09` | `Pagination Patterns in Esix`     |  3_402 | `published` |
+
 ### Supported Operators
 
 | Operator | Description           | Example                         |
@@ -137,6 +193,12 @@ given array:
 const users = await User.whereIn('id', [1, 2, 3]).get()
 ```
 
+| id  | name    | age | status     |
+|-----|---------|-----|------------|
+| `1` | `Alice` | 32  | `active`   |
+| `2` | `Bob`   | 45  | `active`   |
+| `3` | `Carol` | 28  | `inactive` |
+
 Conversely, you can use `whereNotIn` to retrieve models where a column's value
 is not within a given array:
 
@@ -144,13 +206,21 @@ is not within a given array:
 const users = await User.whereNotIn('id', [1, 2, 3]).get()
 ```
 
+| id  | name      | age | status   |
+|-----|-----------|-----|----------|
+| `4` | `Dimitri` | 64  | `active` |
+| `5` | `Eli`     | 19  | `active` |
+| `6` | `Farah`   | 37  | `active` |
+
 If you are only interested in a single attribute of a model, you can use the
 `pluck` method to get an array of values for that attribute.
 
 ```ts
 const productNames = await Product.where('category', 'lamps').pluck('name')
+```
 
-productNames.forEach((name) => console.log(name))
+```ts
+['Desk Lamp', 'Floor Lamp', 'Reading Lamp']
 ```
 
 ## Distinct Values
@@ -159,6 +229,10 @@ Use `distinct` to get the unique values of a field across the current query:
 
 ```ts
 const tags = await Post.where('published', true).distinct('tag')
+```
+
+```ts
+['mongodb', 'pagination', 'typescript']
 ```
 
 The result is a deduplicated array of values for the field, respecting any
@@ -172,6 +246,12 @@ use `search` to run full-text queries:
 ```ts
 const results = await Post.search('mongodb typescript').get()
 ```
+
+| id                         | title                              | published | tag          |
+|----------------------------|------------------------------------|-----------|--------------|
+| `6011a52b9f1b2c4d8e7f3a21` | `Querying MongoDB With TypeScript` | `true`    | `typescript` |
+| `60119e8a9f1b2c4d8e7f3a14` | `Why MongoDB Aggregations Matter`  | `true`    | `mongodb`    |
+| `601198119f1b2c4d8e7f3a09` | `Typed Schemas for MongoDB`        | `true`    | `mongodb`    |
 
 If the collection has no text index, Esix surfaces a descriptive error
 explaining how to create one.
@@ -187,6 +267,16 @@ const { data, total, page, perPage, lastPage } = await Post
   .paginate(1, 20)
 ```
 
+```ts
+{
+  data: [/* 20 Post records */],
+  total: 137,
+  page: 1,
+  perPage: 20,
+  lastPage: 7
+}
+```
+
 For more control, you can fall back to manual offset pagination using `skip`
 and `limit`:
 
@@ -200,6 +290,12 @@ const products = await Product.where('category', 'electronics')
   .limit(perPage)
   .get()
 ```
+
+| id                         | name              | category      | price  |
+|----------------------------|-------------------|---------------|--------|
+| `60119e8a9f1b2c4d8e7f3a21` | `Bluetooth Speaker` | `electronics` |  59.00 |
+| `60119e8a9f1b2c4d8e7f3a22` | `Smart Bulb`      | `electronics` |  14.99 |
+| `60119e8a9f1b2c4d8e7f3a23` | `USB-C Hub`       | `electronics` |  34.50 |
 
 You can find out more about the different methods available by consulting the
 [Esix source on GitHub](https://github.com/artmann/esix/tree/main/packages/esix/src).
@@ -222,6 +318,15 @@ await Product.where('category', 'lamps').min('price')
 await Product.where('category', 'lamps').percentile('price', 50)
 
 await Product.where('category', 'lamps').sum('price')
+```
+
+```text
+45.99
+12
+199.99
+9.99
+39.50
+551.88
 ```
 
 When the query matches no documents, the numeric aggregates (`average`,

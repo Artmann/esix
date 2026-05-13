@@ -18,18 +18,30 @@ the metadata you need to render a paginator. Pages are 1-indexed.
 const result = await Post.where('published', true)
   .orderBy('publishedAt', 'desc')
   .paginate(1, 20)
+```
 
-console.log(result.data) // Post[] (up to 20 items)
-console.log(result.total) // total number of matching documents
-console.log(result.page) // 1
-console.log(result.perPage) // 20
-console.log(result.lastPage) // ceil(total / perPage), or 1 when total is 0
+```ts
+{
+  data: [/* 20 Post records */],
+  total: 137,
+  page: 1,
+  perPage: 20,
+  lastPage: 7
+}
 ```
 
 The same method is available as a static helper on the model:
 
 ```ts
 const { data, total, lastPage } = await Post.paginate(1, 20)
+```
+
+```ts
+{
+  data: [/* 20 Post records */],
+  total: 137,
+  lastPage: 7
+}
 ```
 
 `paginate` validates its arguments and throws if `page` or `perPage` is not a
@@ -49,9 +61,13 @@ const products = await Product.where('category', 'electronics')
   .skip(offset)
   .limit(perPage)
   .get()
-
-console.log(`Showing page ${page} with ${products.length} items`)
 ```
+
+| id                         | name                | category      | price |
+|----------------------------|---------------------|---------------|-------|
+| `60119e8a9f1b2c4d8e7f3a21` | `Bluetooth Speaker` | `electronics` | 59.00 |
+| `60119e8a9f1b2c4d8e7f3a22` | `Smart Bulb`        | `electronics` | 14.99 |
+| `60119e8a9f1b2c4d8e7f3a23` | `USB-C Hub`         | `electronics` | 34.50 |
 
 ## Pagination with Sorting
 

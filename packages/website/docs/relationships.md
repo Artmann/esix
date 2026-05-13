@@ -47,6 +47,30 @@ const recentPosts = await author
   .get()
 ```
 
+**author**
+
+```ts
+{
+  id: '5f5a474b32fa462a5724ff7d',
+  name: 'Ada Lovelace'
+}
+```
+
+**allPosts**
+
+| id                         | title                              | authorId                   | publishedAt     |
+|----------------------------|------------------------------------|----------------------------|-----------------|
+| `6011a52b9f1b2c4d8e7f3a21` | `Notes on the Analytical Engine`   | `5f5a474b32fa462a5724ff7d` | `1736380800000` |
+| `60119e8a9f1b2c4d8e7f3a14` | `Bernoulli Numbers by Algorithm`   | `5f5a474b32fa462a5724ff7d` | `1735862400000` |
+| `601198119f1b2c4d8e7f3a09` | `Loose Sketches and Stray Ideas`   | `5f5a474b32fa462a5724ff7d` | `null`          |
+
+**recentPosts**
+
+| id                         | title                              | authorId                   | publishedAt     |
+|----------------------------|------------------------------------|----------------------------|-----------------|
+| `6011a52b9f1b2c4d8e7f3a21` | `Notes on the Analytical Engine`   | `5f5a474b32fa462a5724ff7d` | `1736380800000` |
+| `60119e8a9f1b2c4d8e7f3a14` | `Bernoulli Numbers by Algorithm`   | `5f5a474b32fa462a5724ff7d` | `1735862400000` |
+
 You can pass a custom foreign key, local key, or both:
 
 ```ts
@@ -78,6 +102,25 @@ const user = await User.find('user-123')
 const profile = await user.profile() // Profile | null
 ```
 
+**user**
+
+```ts
+{
+  id: 'user-123',
+  name: 'Grace Hopper'
+}
+```
+
+**profile**
+
+```ts
+{
+  id: '6011a52b9f1b2c4d8e7f3a09',
+  bio: 'Compiler pioneer. Loves COBOL and nanoseconds.',
+  userId: 'user-123'
+}
+```
+
 Like `hasMany`, you can override the foreign and local keys:
 
 ```ts
@@ -101,6 +144,25 @@ class Post extends BaseModel {
 
 const post = await Post.find('post-1')
 const author = await post.author() // Author | null
+```
+
+**post**
+
+```ts
+{
+  id: 'post-1',
+  title: 'Notes on the Analytical Engine',
+  authorId: '5f5a474b32fa462a5724ff7d'
+}
+```
+
+**author**
+
+```ts
+{
+  id: '5f5a474b32fa462a5724ff7d',
+  name: 'Ada Lovelace'
+}
 ```
 
 By default `belongsTo` uses the parent's `id` as the owner key and looks up the
