@@ -3,8 +3,6 @@ title: Getting Started
 description: Install and set up Esix in your TypeScript project. Learn how to create your first model and start working with MongoDB using a slick ORM interface.
 ---
 
-# Getting Started with Esix
-
 Esix is a slick ORM for MongoDB that makes working with your database in TypeScript a breeze! 🥧
 
 Inspired by ActiveRecord and Eloquent, Esix uses a [Convention over Configuration](https://en.wikipedia.org/wiki/Convention_over_configuration) approach. This means you can define your models as normal TypeScript classes with minimal boilerplate.

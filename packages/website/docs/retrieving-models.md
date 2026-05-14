@@ -3,8 +3,6 @@ title: Retrieving Models
 description: Master querying and fetching data with Esix. Learn about where clauses, ordering, aggregations, and advanced query methods for MongoDB.
 ---
 
-# Retrieving Models
-
 Once you have your models defined, querying your database becomes incredibly straightforward! Each Esix model acts as a powerful query builder, allowing you to fluently search and retrieve documents from your MongoDB collection.
 
 ## Finding a Single Record

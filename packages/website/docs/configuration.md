@@ -3,8 +3,6 @@ title: Configuration
 description: Learn how to configure Esix for your MongoDB database, including connection settings, environment variables, and advanced configuration options.
 ---
 
-# Configuration
-
 Esix makes it easy to configure your database connection for different environments (local, test, and production) using environment variables. This approach helps keep your configuration flexible and secure.
 
 ## Database Connection Options

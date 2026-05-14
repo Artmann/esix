@@ -3,8 +3,6 @@ title: Deleting Models
 description: Understand how to safely remove records from your MongoDB database using Esix's deletion methods, including soft deletes and bulk operations.
 ---
 
-# Deleting Models
-
 Once your data is no longer needed, Esix provides two ways of removing models
 from the database. You can either use an instance of a model to delete that
 model or you can create a query to remove multiple models.

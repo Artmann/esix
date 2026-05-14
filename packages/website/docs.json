@@ -40,6 +40,30 @@
             "pages": ["docs/testing"]
           }
         ]
+      },
+      {
+        "tab": "Cookbook",
+        "groups": [
+          {
+            "group": "Express",
+            "pages": [
+              "docs/cookbook/express/rest-api",
+              "docs/cookbook/express/authentication",
+              "docs/cookbook/express/search-and-filtering",
+              "docs/cookbook/express/aggregation-dashboard",
+              "docs/cookbook/express/atomic-counters"
+            ]
+          },
+          {
+            "group": "Next.js",
+            "pages": [
+              "docs/cookbook/nextjs/server-components",
+              "docs/cookbook/nextjs/server-actions",
+              "docs/cookbook/nextjs/filter-and-paginate",
+              "docs/cookbook/nextjs/streaming-aggregations"
+            ]
+          }
+        ]
       }
     ]
   },

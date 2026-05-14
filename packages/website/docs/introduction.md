@@ -3,8 +3,6 @@ title: Introduction
 description: Welcome to Esix, a TypeScript database library for MongoDB inspired by Laravel's Eloquent. Learn about its features and get started with your first project.
 ---
 
-# Welcome to Esix Documentation
-
 Esix is a TypeScript database library for MongoDB, heavily inspired by Laravel's Eloquent. Models map to documents in the database, and the QueryBuilder is used to select which documents to retrieve.
 
 ## Features

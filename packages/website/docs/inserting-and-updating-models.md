@@ -3,8 +3,6 @@ title: Inserting & Updating Models
 description: Learn how to create, update, and modify records in your MongoDB database using Esix's intuitive model methods and mass assignment features.
 ---
 
-# Inserting & Updating Models
-
 When it comes to adding new models to the database, there are two different ways to go about it. You can either use the `create` method and pass it the attributes you want the model to have, or you can create a new instance of the model and call its `save` method.
 
 ```ts

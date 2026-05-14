@@ -3,8 +3,6 @@ title: Relationships
 description: Define and traverse relationships between Esix models with hasMany, hasOne, and belongsTo helpers.
 ---
 
-# Relationships
-
 Models in your application are rarely isolated. Esix ships with three
 ActiveRecord-style helpers that make it easy to traverse relationships between
 collections: `hasMany`, `hasOne`, and `belongsTo`.

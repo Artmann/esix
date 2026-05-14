@@ -3,8 +3,6 @@ title: Pagination
 description: Handle large datasets efficiently with Esix's pagination features. Learn about the built-in paginate helper, skip, limit, and cursor-based pagination strategies.
 ---
 
-# Pagination
-
 When working with large datasets, pagination is essential for performance and
 user experience. Esix provides a built-in `paginate` helper as well as the
 lower-level `skip` and `limit` methods.

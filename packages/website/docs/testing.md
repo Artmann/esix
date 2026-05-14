@@ -5,8 +5,6 @@ description:
   integration tests, and database mocking strategies.
 ---
 
-# Testing
-
 Testing is crucial for maintaining reliable applications. Esix provides
 excellent testing capabilities through its mock adapter, allowing you to test
 your models and queries without requiring a real MongoDB connection.

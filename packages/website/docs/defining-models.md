@@ -3,8 +3,6 @@ title: Defining Models
 description: Learn how to create and structure your Esix models with TypeScript classes, including property definitions, relationships, and model conventions.
 ---
 
-# Defining Models
-
 Models are the heart of Esix! They provide a beautiful, simple ActiveRecord-style implementation for working with your MongoDB collections. Each collection in your database has a corresponding model class that makes it easy to query, create, and update your data.
 
 Think of models as the bridge between your TypeScript code and your MongoDB collections. Let's create your first model and see how simple it is!
