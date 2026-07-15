@@ -124,6 +124,47 @@ describe('chunk', () => {
     expect(seenTitles.sort()).toEqual(['Post 0', 'Post 2', 'Post 4'])
   })
 
+  it('processes the union of conditions exactly once each with orWhere.', async () => {
+    const expectedIds: string[] = []
+
+    for (let i = 0; i < 5; i++) {
+      const post = await Post.create({
+        title: `Published ${i}`,
+        published: true,
+        views: 0
+      })
+
+      expectedIds.push(post.id)
+    }
+
+    for (let i = 0; i < 5; i++) {
+      const post = await Post.create({
+        title: `Popular ${i}`,
+        published: false,
+        views: 200
+      })
+
+      expectedIds.push(post.id)
+    }
+
+    for (let i = 0; i < 5; i++) {
+      await Post.create({ title: `Ignored ${i}`, published: false, views: 1 })
+    }
+
+    const seenIds: string[] = []
+
+    await Post.where('published', true)
+      .orWhere('views', '>', 100)
+      .chunk(3, (posts) => {
+        for (const post of posts) {
+          seenIds.push(post.id)
+        }
+      })
+
+    expect(seenIds.sort()).toEqual([...expectedIds].sort())
+    expect(new Set(seenIds).size).toEqual(10)
+  })
+
   it('stops early when the callback returns false.', async () => {
     for (let i = 0; i < 25; i++) {
       await Post.create({ title: `Post ${i}` })
@@ -264,6 +305,45 @@ describe('cursor', () => {
     }
 
     expect(seenTitles.sort()).toEqual(['Post 0', 'Post 2', 'Post 4'])
+  })
+
+  it('yields the union of conditions exactly once each with orWhere.', async () => {
+    const expectedIds: string[] = []
+
+    for (let i = 0; i < 4; i++) {
+      const post = await Post.create({
+        title: `Published ${i}`,
+        published: true,
+        views: 0
+      })
+
+      expectedIds.push(post.id)
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const post = await Post.create({
+        title: `Popular ${i}`,
+        published: false,
+        views: 200
+      })
+
+      expectedIds.push(post.id)
+    }
+
+    for (let i = 0; i < 4; i++) {
+      await Post.create({ title: `Ignored ${i}`, published: false, views: 1 })
+    }
+
+    const seenIds: string[] = []
+
+    for await (const post of Post.where('published', true)
+      .orWhere('views', '>', 100)
+      .cursor(3)) {
+      seenIds.push(post.id)
+    }
+
+    expect(seenIds.sort()).toEqual([...expectedIds].sort())
+    expect(new Set(seenIds).size).toEqual(8)
   })
 
   it('supports iterating the query builder directly.', async () => {

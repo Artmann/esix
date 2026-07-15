@@ -989,18 +989,21 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Fetches the next batch of raw documents for keyset pagination. The
    * batch is sorted by `_id` ascending and, when `lastId` is set, only
-   * contains documents with an id greater than `lastId`. The base query is
-   * combined with the id constraint using `$and` so existing `_id`
-   * conditions (e.g. from `whereIn('id', ...)`) are preserved.
+   * contains documents with an id greater than `lastId`. The base query,
+   * including any OR groups added through `orWhere`, is combined with the
+   * id constraint using `$and` so existing `_id` conditions (e.g. from
+   * `whereIn('id', ...)`) are preserved.
    */
   private async fetchBatch(lastId: unknown, size: number): Promise<Document[]> {
+    const baseQuery = this.buildQuery()
+
     return this.useCollection(async (collection) => {
       let query: Query
 
       if (lastId === undefined) {
-        query = this.query
-      } else if (Object.keys(this.query).length > 0) {
-        query = { $and: [this.query, { _id: { $gt: lastId } }] }
+        query = baseQuery
+      } else if (Object.keys(baseQuery).length > 0) {
+        query = { $and: [baseQuery, { _id: { $gt: lastId } }] }
       } else {
         query = { _id: { $gt: lastId } }
       }
@@ -1014,7 +1017,7 @@ export default class QueryBuilder<T extends BaseModel> {
 
         return documents.filter((document) => document)
       } catch (error) {
-        if (isTextIndexMissingError(error, this.query)) {
+        if (isTextIndexMissingError(error, baseQuery)) {
           throw new Error(
             `search() requires a text index on the "${collection.collectionName}" collection. ` +
               `Create one with db["${collection.collectionName}"].createIndex({ "<field>": "text" }).`,
