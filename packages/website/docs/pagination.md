@@ -67,6 +67,10 @@ const products = await Product.where('category', 'electronics')
 | `60119e8a9f1b2c4d8e7f3a22` | `Smart Bulb`        | `electronics` | 14.99 |
 | `60119e8a9f1b2c4d8e7f3a23` | `USB-C Hub`         | `electronics` | 34.50 |
 
+If you are looping over `skip`/`limit` pages to process a whole collection,
+use [batch processing](/docs/batch-processing) with `chunk` or `cursor`
+instead. Offset loops can skip documents when the loop body modifies them.
+
 ## Pagination with Sorting
 
 When paginating, it's important to use consistent sorting to ensure stable

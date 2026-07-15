@@ -100,6 +100,74 @@ export default class QueryBuilder<T extends BaseModel> {
   }
 
   /**
+   * Processes all models matching the current query in batches of `size`.
+   *
+   * Batches are fetched with keyset pagination on `_id` in ascending order,
+   * so it is safe to update or delete the models handed to the callback
+   * while iterating. Any `orderBy()`, `limit()`, or `skip()` set on the
+   * builder is ignored: resumable keyset pagination requires a unique total
+   * order, so iteration is always by id ascending.
+   *
+   * Return `false` from the callback to stop processing early.
+   *
+   * Example
+   * ```
+   * await Post.where('published', false).chunk(500, async (posts, page) => {
+   *   for (const post of posts) {
+   *     post.published = true;
+   *
+   *     await post.save();
+   *   }
+   * });
+   * ```
+   *
+   * @param size The number of models per batch.
+   * @param callback Called with each batch of models and the page number,
+   *   starting at 1.
+   * @returns `false` if the callback stopped the iteration early, `true`
+   *   otherwise.
+   */
+  async chunk(
+    size: number,
+    callback: (models: T[], page: number) => unknown | Promise<unknown>
+  ): Promise<boolean> {
+    if (!Number.isInteger(size) || size < 1) {
+      throw new Error(`chunk() size must be an integer >= 1, received: ${size}`)
+    }
+
+    let lastId: unknown = undefined
+    let page = 1
+
+    while (true) {
+      const documents = await this.fetchBatch(lastId, size)
+
+      if (documents.length === 0) {
+        break
+      }
+
+      lastId = documents[documents.length - 1]._id
+
+      const models = documents.map(
+        (document): T => this.createInstance(document)
+      )
+
+      const result = await callback(models, page)
+
+      if (result === false) {
+        return false
+      }
+
+      if (documents.length < size) {
+        break
+      }
+
+      page += 1
+    }
+
+    return true
+  }
+
+  /**
    * Returns the number of documents matching the given query.
    *
    * Example
@@ -131,6 +199,50 @@ export default class QueryBuilder<T extends BaseModel> {
 
       return insertedId
     })
+  }
+
+  /**
+   * Returns an async iterator over all models matching the current query,
+   * fetching documents in batches of `batchSize` behind the scenes.
+   *
+   * Batches are fetched with keyset pagination on `_id` in ascending order,
+   * so it is safe to update or delete models while iterating. Any
+   * `orderBy()`, `limit()`, or `skip()` set on the builder is ignored:
+   * resumable keyset pagination requires a unique total order, so iteration
+   * is always by id ascending.
+   *
+   * Example
+   * ```
+   * for await (const post of Post.where('published', true).cursor()) {
+   *   console.log(post.title);
+   * }
+   * ```
+   *
+   * @param batchSize The number of documents fetched per batch.
+   */
+  cursor(batchSize = 1000): AsyncGenerator<T, void, undefined> {
+    if (!Number.isInteger(batchSize) || batchSize < 1) {
+      throw new Error(
+        `cursor() batchSize must be an integer >= 1, received: ${batchSize}`
+      )
+    }
+
+    return this.iterate(batchSize)
+  }
+
+  /**
+   * Makes the QueryBuilder itself async iterable, so it can be used
+   * directly in a `for await` loop. Equivalent to iterating `cursor()`.
+   *
+   * Example
+   * ```
+   * for await (const post of Post.where('published', true)) {
+   *   console.log(post.title);
+   * }
+   * ```
+   */
+  [Symbol.asyncIterator](): AsyncIterator<T> {
+    return this.cursor()
   }
 
   /**
@@ -720,6 +832,63 @@ export default class QueryBuilder<T extends BaseModel> {
         throw error
       }
     })
+  }
+
+  /**
+   * Fetches the next batch of raw documents for keyset pagination. The
+   * batch is sorted by `_id` ascending and, when `lastId` is set, only
+   * contains documents with an id greater than `lastId`. The base query is
+   * combined with the id constraint using `$and` so existing `_id`
+   * conditions (e.g. from `whereIn('id', ...)`) are preserved.
+   */
+  private async fetchBatch(lastId: unknown, size: number): Promise<Document[]> {
+    return this.useCollection(async (collection) => {
+      let query: Query
+
+      if (lastId === undefined) {
+        query = this.query
+      } else if (Object.keys(this.query).length > 0) {
+        query = { $and: [this.query, { _id: { $gt: lastId } }] }
+      } else {
+        query = { _id: { $gt: lastId } }
+      }
+
+      const documents = await collection
+        .find(query)
+        .sort({ _id: 1 })
+        .limit(size)
+        .toArray()
+
+      return documents.filter((document) => document)
+    })
+  }
+
+  /**
+   * Yields models matching the current query one at a time, fetching the
+   * underlying documents in batches of `batchSize` via keyset pagination.
+   */
+  private async *iterate(
+    batchSize: number
+  ): AsyncGenerator<T, void, undefined> {
+    let lastId: unknown = undefined
+
+    while (true) {
+      const documents = await this.fetchBatch(lastId, batchSize)
+
+      if (documents.length === 0) {
+        return
+      }
+
+      lastId = documents[documents.length - 1]._id
+
+      for (const document of documents) {
+        yield this.createInstance(document)
+      }
+
+      if (documents.length < batchSize) {
+        return
+      }
+    }
   }
 
   private async useCollection<K>(
