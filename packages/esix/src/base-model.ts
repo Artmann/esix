@@ -452,6 +452,47 @@ export default class BaseModel {
   }
 
   /**
+   * Returns models where `key` is present and not `null`. Documents where
+   * the field is `null` or missing entirely are excluded.
+   *
+   * Example
+   * ```
+   * const enrichedBooks = await Book.whereNotNull('openLibraryEnrichedVersion').get();
+   * ```
+   *
+   * @param key - A property of the model
+   */
+  static whereNotNull<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): QueryBuilder<T> {
+    const queryBuilder = new QueryBuilder(this)
+
+    return queryBuilder.whereNotNull(key)
+  }
+
+  /**
+   * Returns models where `key` is `null`. Following MongoDB's null-equality
+   * semantics, this matches documents where the field is `null` OR missing
+   * entirely.
+   *
+   * Example
+   * ```
+   * const unenrichedBooks = await Book.whereNull('openLibraryEnrichedVersion').get();
+   * ```
+   *
+   * @param key - A property of the model
+   */
+  static whereNull<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): QueryBuilder<T> {
+    const queryBuilder = new QueryBuilder(this)
+
+    return queryBuilder.whereNull(key)
+  }
+
+  /**
    * Returns the parent record this model belongs to. The foreign key
    * defaults to the camelCase of the parent class name suffixed with
    * `Id` (e.g. `Author` -> `authorId`); the owner key defaults to
