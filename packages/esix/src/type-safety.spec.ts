@@ -6,6 +6,7 @@
  * produce type errors - if they don't, the test file won't compile.
  *
  * Related to: https://github.com/Artmann/esix/issues/60
+ * Related to: https://github.com/Artmann/esix/issues/68
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import BaseModel from './base-model'
@@ -53,6 +54,13 @@ class User extends BaseModel {
  */
 class Article extends BaseModel {
   public publishedAt: Date | null = null
+}
+
+/**
+ * Test model with an array-typed field
+ */
+class Post extends BaseModel {
+  public tags: string[] = []
 }
 
 describe('Type Safety for Model Fields', () => {
@@ -251,6 +259,16 @@ describe('Type Safety for Query Values', () => {
 
       expect(true).toBe(true)
     })
+
+    it('accepts the element type for array fields', () => {
+      Post.where('tags', 'news')
+      Post.where('tags', ['news'])
+
+      // @ts-expect-error - 'tags' is a string array field, not a number field
+      Post.where('tags', 5)
+
+      expect(true).toBe(true)
+    })
   })
 
   describe('whereIn method', () => {
@@ -259,6 +277,15 @@ describe('Type Safety for Query Values', () => {
 
       // @ts-expect-error - 'price' is a number field, not a string field
       MenuItem.whereIn('price', ['1'])
+
+      expect(true).toBe(true)
+    })
+
+    it('accepts the element type for array fields', () => {
+      Post.whereIn('tags', ['a', 'b'])
+
+      // @ts-expect-error - 'tags' is a string array field, not a number field
+      Post.whereIn('tags', [5])
 
       expect(true).toBe(true)
     })

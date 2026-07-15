@@ -4,10 +4,11 @@ import { getCollectionName } from './naming'
 import QueryBuilder, { type Query } from './query-builder'
 import {
   type ComparisonOperator,
-  type ObjectType,
   type Dictionary,
   type Document,
-  type Paginated
+  type ObjectType,
+  type Paginated,
+  type QueryValue
 } from './types'
 
 export {
@@ -19,9 +20,10 @@ export {
 }
 export type {
   ComparisonOperator,
-  Query,
-  ObjectType,
   Dictionary,
   Document,
-  Paginated
+  ObjectType,
+  Paginated,
+  Query,
+  QueryValue
 }

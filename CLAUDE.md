@@ -137,7 +137,7 @@ const results = await User.aggregate([
 ])
 
 // Chaining with query methods
-const avgAgeForAdults = await User.where('age', { $gte: 18 }).average('age')
+const avgAgeForAdults = await User.where('age', '>=', 18).average('age')
 ```
 
 ## Documentation
