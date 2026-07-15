@@ -954,6 +954,115 @@ describe('FirstOrCreate', () => {
     const allFlights = await Flight.where('name', 'New York to London').get()
     expect(allFlights).toHaveLength(1)
   })
+
+  it('sets wasRecentlyCreated to false and leaves existing attributes untouched when found', async () => {
+    const existingFlight = await Flight.create({
+      name: 'Oslo to Berlin',
+      delayed: 0,
+      arrival_time: '09:15'
+    })
+
+    const flight = await Flight.firstOrCreate(
+      { name: 'Oslo to Berlin' },
+      { delayed: 1, arrival_time: '12:45' }
+    )
+
+    expect(flight.wasRecentlyCreated).toBe(false)
+    expect(flight.id).toBe(existingFlight.id)
+
+    // The attributes argument should not be applied to the existing document
+    expect(flight.delayed).toBe(0)
+    expect(flight.arrival_time).toBe('09:15')
+  })
+
+  it('sets wasRecentlyCreated to true when a new flight is created', async () => {
+    const flight = await Flight.firstOrCreate(
+      { name: 'Stockholm to Madrid' },
+      { delayed: 2 }
+    )
+
+    expect(flight.wasRecentlyCreated).toBe(true)
+
+    // Filter, attributes, and class defaults should all be present
+    expect(flight.name).toBe('Stockholm to Madrid')
+    expect(flight.delayed).toBe(2)
+    expect(flight.arrival_time).toBe('')
+    expect(flight.createdAt).toBeGreaterThan(0)
+    expect(flight.updatedAt).toBe(null)
+  })
+
+  it('reports created then found for sequential calls with the same filter', async () => {
+    const firstCall = await Flight.firstOrCreate({ name: 'Lisbon to Rome' })
+    const secondCall = await Flight.firstOrCreate({ name: 'Lisbon to Rome' })
+
+    expect(firstCall.wasRecentlyCreated).toBe(true)
+    expect(secondCall.wasRecentlyCreated).toBe(false)
+    expect(secondCall.id).toBe(firstCall.id)
+
+    const numberOfFlights = await Flight.count()
+    expect(numberOfFlights).toBe(1)
+  })
+})
+
+describe('wasRecentlyCreated', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      DB_ADAPTER: 'mock',
+      DB_DATABASE: `test-${createUuid()}`
+    })
+  })
+
+  it('is true for created models and false when they are retrieved again', async () => {
+    const flight = await Flight.create({ name: 'Tokyo to Seoul' })
+
+    expect(flight.wasRecentlyCreated).toBe(true)
+
+    const foundFlight = await Flight.find(flight.id)
+
+    expect(foundFlight?.wasRecentlyCreated).toBe(false)
+  })
+
+  it('is never persisted to the database', async () => {
+    const flight = await Flight.create({ name: 'Dublin to Vienna' })
+
+    const reloadedFlight = await Flight.find(flight.id)
+
+    expect(JSON.stringify(reloadedFlight)).not.toContain('wasRecentlyCreated')
+
+    const savedFlight = new Flight()
+
+    savedFlight.name = 'Vienna to Dublin'
+
+    await savedFlight.save()
+
+    const reloadedSavedFlight = await Flight.find(savedFlight.id)
+
+    expect(JSON.stringify(reloadedSavedFlight)).not.toContain(
+      'wasRecentlyCreated'
+    )
+  })
+
+  it('is true after saving a new instance and stays false for existing models', async () => {
+    const flight = new Flight()
+
+    flight.name = 'Helsinki to Warsaw'
+
+    await flight.save()
+
+    expect(flight.wasRecentlyCreated).toBe(true)
+
+    const existingFlight = await Flight.find(flight.id)
+
+    if (!existingFlight) {
+      throw new Error('Expected to find the saved flight.')
+    }
+
+    existingFlight.delayed = 1
+
+    await existingFlight.save()
+
+    expect(existingFlight.wasRecentlyCreated).toBe(false)
+  })
 })
 
 describe('Documentation', () => {

@@ -69,6 +69,42 @@ want to search for. The second argument contains the additional attributes to
 add to the model if it doesn't exist. If the second argument is not provided,
 the attributes from the first argument will be used when creating the model.
 
+The lookup and the insert happen in a single atomic `findOneAndUpdate`
+operation, and the returned model tells you what happened through its
+`wasRecentlyCreated` property. It's `true` when the model was just created and
+`false` when an existing model was found, which makes it easy to keep track of
+created and skipped records in a seed script.
+
+```ts
+const results = { created: 0, skipped: 0 }
+
+for (const { isbn13, title } of books) {
+  const book = await Book.firstOrCreate({ isbn13 }, { title })
+
+  if (book.wasRecentlyCreated) {
+    results.created += 1
+  } else {
+    results.skipped += 1
+  }
+}
+
+console.log(`Created ${results.created} books, skipped ${results.skipped}.`)
+```
+
+```text
+Created 12 books, skipped 38.
+```
+
+`wasRecentlyCreated` is runtime metadata and is never stored in the database.
+Models retrieved from the database always have it set to `false`. It's also set
+to `true` on models returned from `create` and on new instances after their
+first `save`.
+
+To be fully safe against duplicate inserts from concurrent callers, add a
+[unique index](https://www.mongodb.com/docs/manual/core/index-unique/) on the
+filter fields. When two concurrent calls race, the losing call detects the
+duplicate key error and returns the model the winning call inserted.
+
 ## Increment & Decrement
 
 When you only need to bump a numeric field, use `increment` and `decrement`

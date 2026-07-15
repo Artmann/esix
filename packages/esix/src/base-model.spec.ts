@@ -20,6 +20,7 @@ const collection = {
   deleteMany: vi.fn(),
   find: vi.fn(),
   findOne: vi.fn(),
+  findOneAndUpdate: vi.fn(),
   insertOne: vi.fn(),
   updateOne: vi.fn(),
   count: vi.fn(),
@@ -197,6 +198,8 @@ describe('BaseModel', () => {
         title: 'Wuthering Heights',
         updatedAt: null
       })
+
+      expect(book.wasRecentlyCreated).toBe(true)
     })
 
     it('creates a new Model with the given id.', async () => {
@@ -251,6 +254,8 @@ describe('BaseModel', () => {
         title: 'Wuthering Heights',
         updatedAt: null
       })
+
+      expect(book.wasRecentlyCreated).toBe(true)
     })
 
     it('includes the default values for the model.', async () => {
@@ -1058,15 +1063,26 @@ describe('BaseModel', () => {
 
   describe('firstOrCreate', () => {
     it('returns existing model if found', async () => {
-      collection.findOne.mockResolvedValue({
-        _id: '5f0aeaeacff57e3ec676b340',
-        authorId: 'author-1',
-        createdAt: 1594552340652,
-        isAvailable: true,
-        isbn: '9780486284736',
-        pages: 279,
-        title: 'Pride and Prejudice',
-        updatedAt: null
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
+
+      vi.mocked(ObjectId.prototype.toHexString).mockReturnValueOnce(
+        '5f0aefba348289a81889a955'
+      )
+
+      collection.findOneAndUpdate.mockResolvedValue({
+        lastErrorObject: { updatedExisting: true },
+        ok: 1,
+        value: {
+          _id: '5f0aeaeacff57e3ec676b340',
+          authorId: 'author-1',
+          createdAt: 1594552340652,
+          isAvailable: true,
+          isbn: '9780486284736',
+          pages: 279,
+          title: 'Pride and Prejudice',
+          updatedAt: null
+        }
       })
 
       const book = await Book.firstOrCreate(
@@ -1079,9 +1095,26 @@ describe('BaseModel', () => {
         }
       )
 
-      expect(collection.findOne).toHaveBeenCalledWith({
-        isbn: '9780486284736'
-      })
+      expect(collection.findOneAndUpdate).toHaveBeenCalledWith(
+        { isbn: '9780486284736' },
+        {
+          $setOnInsert: {
+            _id: '5f0aefba348289a81889a955',
+            authorId: 'author-2',
+            createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
+            isAvailable: true,
+            isbn: '9780486284736',
+            pages: 279,
+            title: 'Pride and Prejudice',
+            updatedAt: null
+          }
+        },
+        {
+          includeResultMetadata: true,
+          returnDocument: 'after',
+          upsert: true
+        }
+      )
 
       expect(book).toEqual({
         authorId: 'author-1',
@@ -1093,6 +1126,8 @@ describe('BaseModel', () => {
         title: 'Pride and Prejudice',
         updatedAt: null
       })
+
+      expect(book.wasRecentlyCreated).toBe(false)
     })
 
     it('creates new model if not found', async () => {
@@ -1103,19 +1138,22 @@ describe('BaseModel', () => {
         '5f0aefba348289a81889a955'
       )
 
-      collection.findOne.mockResolvedValueOnce(null)
-      collection.insertOne.mockResolvedValue({
-        insertedId: '5f0aefba348289a81889a955'
-      })
-      collection.findOne.mockResolvedValueOnce({
-        _id: '5f0aefba348289a81889a955',
-        authorId: 'author-2',
-        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
-        isAvailable: true,
-        isbn: '9780140449266',
-        pages: 688,
-        title: 'Crime and Punishment',
-        updatedAt: null
+      collection.findOneAndUpdate.mockResolvedValue({
+        lastErrorObject: {
+          updatedExisting: false,
+          upserted: '5f0aefba348289a81889a955'
+        },
+        ok: 1,
+        value: {
+          _id: '5f0aefba348289a81889a955',
+          authorId: 'author-2',
+          createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
+          isAvailable: true,
+          isbn: '9780140449266',
+          pages: 688,
+          title: 'Crime and Punishment',
+          updatedAt: null
+        }
       })
 
       const book = await Book.firstOrCreate(
@@ -1128,20 +1166,26 @@ describe('BaseModel', () => {
         }
       )
 
-      expect(collection.findOne).toHaveBeenCalledWith({
-        isbn: '9780140449266'
-      })
-
-      expect(collection.insertOne).toHaveBeenCalledWith({
-        _id: '5f0aefba348289a81889a955',
-        authorId: 'author-2',
-        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
-        isAvailable: true,
-        isbn: '9780140449266',
-        pages: 688,
-        title: 'Crime and Punishment',
-        updatedAt: null
-      })
+      expect(collection.findOneAndUpdate).toHaveBeenCalledWith(
+        { isbn: '9780140449266' },
+        {
+          $setOnInsert: {
+            _id: '5f0aefba348289a81889a955',
+            authorId: 'author-2',
+            createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
+            isAvailable: true,
+            isbn: '9780140449266',
+            pages: 688,
+            title: 'Crime and Punishment',
+            updatedAt: null
+          }
+        },
+        {
+          includeResultMetadata: true,
+          returnDocument: 'after',
+          upsert: true
+        }
+      )
 
       expect(book).toEqual({
         authorId: 'author-2',
@@ -1153,6 +1197,8 @@ describe('BaseModel', () => {
         title: 'Crime and Punishment',
         updatedAt: null
       })
+
+      expect(book.wasRecentlyCreated).toBe(true)
     })
 
     it('creates new model using filter as attributes when attributes not provided', async () => {
@@ -1163,19 +1209,22 @@ describe('BaseModel', () => {
         '5f0aefba348289a81889a956'
       )
 
-      collection.findOne.mockResolvedValueOnce(null)
-      collection.insertOne.mockResolvedValue({
-        insertedId: '5f0aefba348289a81889a956'
-      })
-      collection.findOne.mockResolvedValueOnce({
-        _id: '5f0aefba348289a81889a956',
-        authorId: 'author-3',
-        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
-        isAvailable: true,
-        isbn: '9780486282114',
-        pages: 320,
-        title: 'The Great Gatsby',
-        updatedAt: null
+      collection.findOneAndUpdate.mockResolvedValue({
+        lastErrorObject: {
+          updatedExisting: false,
+          upserted: '5f0aefba348289a81889a956'
+        },
+        ok: 1,
+        value: {
+          _id: '5f0aefba348289a81889a956',
+          authorId: 'author-3',
+          createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
+          isAvailable: true,
+          isbn: '9780486282114',
+          pages: 320,
+          title: 'The Great Gatsby',
+          updatedAt: null
+        }
       })
 
       const book = await Book.firstOrCreate({
@@ -1185,23 +1234,31 @@ describe('BaseModel', () => {
         authorId: 'author-3'
       })
 
-      expect(collection.findOne).toHaveBeenCalledWith({
-        title: 'The Great Gatsby',
-        isbn: '9780486282114',
-        pages: 320,
-        authorId: 'author-3'
-      })
-
-      expect(collection.insertOne).toHaveBeenCalledWith({
-        _id: '5f0aefba348289a81889a956',
-        authorId: 'author-3',
-        createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
-        isAvailable: true,
-        isbn: '9780486282114',
-        pages: 320,
-        title: 'The Great Gatsby',
-        updatedAt: null
-      })
+      expect(collection.findOneAndUpdate).toHaveBeenCalledWith(
+        {
+          title: 'The Great Gatsby',
+          isbn: '9780486282114',
+          pages: 320,
+          authorId: 'author-3'
+        },
+        {
+          $setOnInsert: {
+            _id: '5f0aefba348289a81889a956',
+            authorId: 'author-3',
+            createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
+            isAvailable: true,
+            isbn: '9780486282114',
+            pages: 320,
+            title: 'The Great Gatsby',
+            updatedAt: null
+          }
+        },
+        {
+          includeResultMetadata: true,
+          returnDocument: 'after',
+          upsert: true
+        }
+      )
 
       expect(book).toEqual({
         authorId: 'author-3',
@@ -1213,6 +1270,8 @@ describe('BaseModel', () => {
         title: 'The Great Gatsby',
         updatedAt: null
       })
+
+      expect(book.wasRecentlyCreated).toBe(true)
     })
   })
 

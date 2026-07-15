@@ -15,6 +15,24 @@ export default class BaseModel {
   public updatedAt: number | null = null
 
   /**
+   * True when this instance was inserted into the database by the current
+   * process, either through `create()`, an inserting `save()`, or the create
+   * path of `firstOrCreate()`. Models retrieved from the database always have
+   * this set to `false`.
+   *
+   * This is runtime metadata and is never persisted to the database.
+   */
+  declare wasRecentlyCreated: boolean
+
+  constructor() {
+    Object.defineProperty(this, 'wasRecentlyCreated', {
+      enumerable: false,
+      value: false,
+      writable: true
+    })
+  }
+
+  /**
    * Direct access to Mongo's aggregation functions.
    *
    * Example
@@ -94,18 +112,8 @@ export default class BaseModel {
   ): Promise<T> {
     const queryBuilder = new QueryBuilder(this)
 
-    const instance = new this()
-    const defaultValues = Object.getOwnPropertyNames(instance).reduce(
-      (acc: Record<string, any>, key) => {
-        acc[key] = instance[key as keyof T]
-
-        return acc
-      },
-      {}
-    )
-
     const attributesWithDefaults = {
-      ...defaultValues,
+      ...getDefaultValues(this),
       ...attributes
     }
 
@@ -120,6 +128,8 @@ export default class BaseModel {
           `The document was inserted but could not be retrieved afterwards.`
       )
     }
+
+    model.wasRecentlyCreated = true
 
     return model
   }
@@ -166,6 +176,12 @@ export default class BaseModel {
    * Find a model matching the filter, or create a new one with the given attributes.
    * If attributes are not provided, the filter will be used as the attributes.
    *
+   * The lookup and the insert happen in a single atomic `findOneAndUpdate`
+   * operation. The returned model's `wasRecentlyCreated` property tells you
+   * whether the model was created (`true`) or an existing one was found
+   * (`false`). Note that guarding against duplicate inserts from concurrent
+   * callers requires a unique index on the filter fields.
+   *
    * Example
    * ```
    * // Retrieve flight by name or create it if it doesn't exist...
@@ -178,10 +194,15 @@ export default class BaseModel {
    *   { name: 'London to Paris' },
    *   { delayed: 1, arrival_time: '11:30' }
    * );
+   *
+   * if (flight.wasRecentlyCreated) {
+   *   console.log('Created a new flight.');
+   * }
    * ```
    *
    * @param filter - Object to search for existing model
    * @param attributes - Attributes to use when creating new model (optional, defaults to filter)
+   * @returns The found or created model, with `wasRecentlyCreated` set accordingly
    */
   static async firstOrCreate<T extends BaseModel>(
     this: ObjectType<T>,
@@ -190,13 +211,13 @@ export default class BaseModel {
   ): Promise<T> {
     const queryBuilder = new QueryBuilder(this)
 
-    const existingModel = await queryBuilder.findOne(filter)
+    const { model } = await queryBuilder.firstOrCreate(filter, {
+      ...getDefaultValues(this),
+      ...filter,
+      ...attributes
+    })
 
-    if (existingModel) {
-      return existingModel
-    }
-
-    return (this as any).create({ ...filter, ...attributes })
+    return model
   }
 
   /**
@@ -547,6 +568,7 @@ export default class BaseModel {
       this.updatedAt = Date.now()
     } else {
       this.createdAt = Date.now()
+      this.wasRecentlyCreated = true
     }
 
     const attributes = { ...this }
@@ -557,4 +579,16 @@ export default class BaseModel {
       this.id = id
     }
   }
+}
+
+function getDefaultValues<T extends BaseModel>(
+  ctor: ObjectType<T>
+): Record<string, any> {
+  const instance = new ctor()
+
+  return Object.keys(instance).reduce((acc: Record<string, any>, key) => {
+    acc[key] = instance[key as keyof T]
+
+    return acc
+  }, {})
 }
