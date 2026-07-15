@@ -182,6 +182,72 @@ const popularPosts = await BlogPost
 
 Note: The two-parameter syntax `where('status', 'published')` is still supported for equality comparisons and remains the recommended approach for simple equality checks.
 
+## Null Checks
+
+Use `whereNull` to retrieve models where a field is `null`. Following
+MongoDB's null-equality semantics, this also matches documents where the field
+is missing entirely:
+
+```ts
+const unenrichedBooks = await Book.whereNull('openLibraryEnrichedVersion').get()
+```
+
+| id                         | title             | openLibraryEnrichedVersion |
+|----------------------------|-------------------|----------------------------|
+| `5f5a474b32fa462a5724ff7d` | `Never Enriched`  | `null`                     |
+| `5f5a474b32fa462a5724ff7e` | `Imported Legacy` | *(missing)*                |
+
+Conversely, `whereNotNull` retrieves models where a field is present and not
+`null`. Documents where the field is `null` or missing are excluded:
+
+```ts
+const enrichedBooks = await Book.whereNotNull('openLibraryEnrichedVersion').get()
+```
+
+| id                         | title                  | openLibraryEnrichedVersion |
+|----------------------------|------------------------|----------------------------|
+| `5f5a474b32fa462a5724ff7f` | `Effective TypeScript` | `2`                        |
+| `5f5a474b32fa462a5724ff80` | `Domain-Driven Design` | `3`                        |
+
+## Or Conditions
+
+By default, chained conditions are combined with a logical AND. Use `orWhere`
+to combine conditions with a logical OR instead. It accepts the same arguments
+as `where`, including comparison operators, so you can express selections like
+"null or below a version" without loading the whole collection:
+
+```ts
+const staleBooks = await Book.whereNull('openLibraryEnrichedVersion')
+  .orWhere('openLibraryEnrichedVersion', '<', 3)
+  .get()
+```
+
+| id                         | title                  | openLibraryEnrichedVersion |
+|----------------------------|------------------------|----------------------------|
+| `5f5a474b32fa462a5724ff7d` | `Never Enriched`       | `null`                     |
+| `5f5a474b32fa462a5724ff7f` | `Effective TypeScript` | `2`                        |
+
+AND binds tighter than OR, just like in SQL. Any `where` calls following an
+`orWhere` are ANDed into the most recent OR group, so
+`where(a).orWhere(b).where(c)` selects documents matching `a OR (b AND c)`:
+
+```ts
+// status is 'draft', OR (status is 'published' AND views > 1000)
+const posts = await BlogPost.where('status', 'draft')
+  .orWhere('status', 'published')
+  .where('views', '>', 1000)
+  .get()
+```
+
+| id                         | title                             | status      | views  |
+|----------------------------|-----------------------------------|-------------|--------|
+| `601198119f1b2c4d8e7f3a09` | `Unfinished Ideas`                | `draft`     |      0 |
+| `6011a52b9f1b2c4d8e7f3a21` | `Introducing Aggregate Functions` | `published` | 12_840 |
+
+`orWhere` is only available on the Query Builder, so start your chain with
+`where`, `whereNull`, or another query method. Note that `orWhere` cannot be
+combined with `search()`.
+
 ## Array Queries
 
 You can use `whereIn` to retrieve models where a column's value is within a
