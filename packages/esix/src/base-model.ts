@@ -65,6 +65,39 @@ export default class BaseModel {
   }
 
   /**
+   * Processes all models in batches of `size`. Batches are fetched with
+   * keyset pagination on the id in ascending order, so it is safe to update
+   * or delete the models handed to the callback while iterating. The
+   * collection's `_id`s must all be the same BSON type (esix itself always
+   * creates string ids); mixed-type collections will only iterate the first
+   * type bracket.
+   *
+   * Return `false` from the callback to stop processing early.
+   *
+   * Example
+   * ```
+   * await Book.chunk(500, async (books) => {
+   *   for (const book of books) {
+   *     await enrich(book);
+   *   }
+   * });
+   * ```
+   *
+   * @param size The number of models per batch.
+   * @param callback Called with each batch of models and the page number,
+   *   starting at 1.
+   * @returns `false` if the callback stopped the iteration early, `true`
+   *   otherwise.
+   */
+  static async chunk<T extends BaseModel>(
+    this: ObjectType<T>,
+    size: number,
+    callback: (models: T[], page: number) => unknown
+  ): Promise<boolean> {
+    return new QueryBuilder(this).chunk(size, callback)
+  }
+
+  /**
    * Returns the number of documents for this model.
    *
    * Example
@@ -123,6 +156,30 @@ export default class BaseModel {
     }
 
     return model
+  }
+
+  /**
+   * Returns an async iterator over all models, fetching documents in
+   * batches of `batchSize` behind the scenes. Iteration uses keyset
+   * pagination on the id in ascending order, so it is safe to update or
+   * delete models while iterating. The collection's `_id`s must all be the
+   * same BSON type (esix itself always creates string ids); mixed-type
+   * collections will only iterate the first type bracket.
+   *
+   * Example
+   * ```
+   * for await (const book of Book.cursor()) {
+   *   await enrich(book);
+   * }
+   * ```
+   *
+   * @param batchSize The number of documents fetched per batch.
+   */
+  static cursor<T extends BaseModel>(
+    this: ObjectType<T>,
+    batchSize?: number
+  ): AsyncGenerator<T, void, undefined> {
+    return new QueryBuilder(this).cursor(batchSize)
   }
 
   /**

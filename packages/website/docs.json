@@ -33,7 +33,7 @@
           },
           {
             "group": "Querying",
-            "pages": ["docs/pagination"]
+            "pages": ["docs/pagination", "docs/batch-processing"]
           },
           {
             "group": "Guides",
