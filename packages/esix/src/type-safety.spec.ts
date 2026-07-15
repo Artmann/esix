@@ -48,6 +48,13 @@ class User extends BaseModel {
   public isActive = true
 }
 
+/**
+ * Test model with a union-typed field
+ */
+class Article extends BaseModel {
+  public publishedAt: Date | null = null
+}
+
 describe('Type Safety for Model Fields', () => {
   beforeEach(() => {
     Object.assign(process.env, {
@@ -185,6 +192,84 @@ describe('Type Safety for Model Fields', () => {
 
       // @ts-expect-error - 'sortOrder' is not a valid field
       MenuItem.orderBy('sortOrder', 'desc')
+
+      expect(true).toBe(true)
+    })
+  })
+})
+
+describe('Type Safety for Query Values', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      DB_ADAPTER: 'mock',
+      DB_DATABASE: 'test'
+    })
+  })
+
+  describe('where method', () => {
+    it('accepts values matching the field type', () => {
+      MenuItem.where('price', 9.99)
+      MenuItem.where('price', '>', 10)
+
+      expect(true).toBe(true)
+    })
+
+    it('rejects values that do not match the field type', () => {
+      // @ts-expect-error - 'price' is a number field, not a string field
+      MenuItem.where('price', 'ten')
+
+      // @ts-expect-error - 'available' is a boolean field, not a string field
+      MenuItem.where('available', 'yes')
+
+      // @ts-expect-error - 'price' is a number field, not a string field
+      MenuItem.where('price', '>', '10')
+
+      expect(true).toBe(true)
+    })
+
+    it('type-checks values in chained where calls', () => {
+      MenuItem.where('available', true).where('price', '>', 5)
+
+      // @ts-expect-error - 'price' is a number field, not a string field
+      MenuItem.where('available', true).where('price', 'ten')
+
+      expect(true).toBe(true)
+    })
+
+    it('accepts every member of a union-typed field', () => {
+      Article.where('publishedAt', null)
+      Article.where('publishedAt', '>', new Date())
+
+      // @ts-expect-error - 'publishedAt' is a Date | null field, not a number field
+      Article.where('publishedAt', 123)
+
+      expect(true).toBe(true)
+    })
+
+    it('still accepts raw query objects', () => {
+      MenuItem.limit(1).where({ price: { $gt: 5 } })
+
+      expect(true).toBe(true)
+    })
+  })
+
+  describe('whereIn method', () => {
+    it('accepts values matching the field type', () => {
+      MenuItem.whereIn('price', [5, 10])
+
+      // @ts-expect-error - 'price' is a number field, not a string field
+      MenuItem.whereIn('price', ['1'])
+
+      expect(true).toBe(true)
+    })
+  })
+
+  describe('whereNotIn method', () => {
+    it('accepts values matching the field type', () => {
+      MenuItem.whereNotIn('name', ['x'])
+
+      // @ts-expect-error - 'name' is a string field, not a number field
+      MenuItem.whereNotIn('name', [1])
 
       expect(true).toBe(true)
     })

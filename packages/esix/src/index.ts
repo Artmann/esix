@@ -3,6 +3,7 @@ import { ConnectionHandler, connectionHandler } from './connection-handler'
 import { getCollectionName } from './naming'
 import QueryBuilder, { type Query } from './query-builder'
 import {
+  type ComparisonOperator,
   type ObjectType,
   type Dictionary,
   type Document,
@@ -16,4 +17,11 @@ export {
   connectionHandler,
   getCollectionName
 }
-export type { Query, ObjectType, Dictionary, Document, Paginated }
+export type {
+  ComparisonOperator,
+  Query,
+  ObjectType,
+  Dictionary,
+  Document,
+  Paginated
+}

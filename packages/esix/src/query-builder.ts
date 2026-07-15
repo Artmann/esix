@@ -609,14 +609,14 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param query - A query object to filter by
    * @param key - Property name to filter by (must be a valid model field)
    * @param operatorOrValue - Comparison operator or value when using 2-param syntax
-   * @param value - The value to filter by when using 3-param syntax with operator
+   * @param value - The value to filter by, type-checked against the model's property type
    */
   where(query: Query): QueryBuilder<T>
-  where<K extends keyof T>(key: K, value: any): QueryBuilder<T>
+  where<K extends keyof T>(key: K, value: T[K]): QueryBuilder<T>
   where<K extends keyof T>(
     key: K,
     operator: ComparisonOperator,
-    value: any
+    value: T[K]
   ): QueryBuilder<T>
   where(
     queryOrKey: Query | string,
@@ -668,9 +668,9 @@ export default class QueryBuilder<T extends BaseModel> {
    * Returns all the models with `key` in the array of `values`.
    *
    * @param key - A property of the model
-   * @param values
+   * @param values - The values to match, type-checked against the model's property type
    */
-  whereIn<K extends keyof T>(key: K, values: any[]): QueryBuilder<T>
+  whereIn<K extends keyof T>(key: K, values: T[K][]): QueryBuilder<T>
   whereIn(key: string, values: any[]): QueryBuilder<T> {
     const keyStr = key === 'id' ? '_id' : key
 
@@ -687,9 +687,9 @@ export default class QueryBuilder<T extends BaseModel> {
    * Returns all the models with `key` not in the array of `values`.
    *
    * @param key - A property of the model
-   * @param values
+   * @param values - The values to exclude, type-checked against the model's property type
    */
-  whereNotIn<K extends keyof T>(key: K, values: any[]): QueryBuilder<T>
+  whereNotIn<K extends keyof T>(key: K, values: T[K][]): QueryBuilder<T>
   whereNotIn(key: string, values: any[]): QueryBuilder<T> {
     const keyStr = key === 'id' ? '_id' : key
 

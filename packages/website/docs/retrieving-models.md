@@ -182,6 +182,8 @@ const popularPosts = await BlogPost
 
 Note: The two-parameter syntax `where('status', 'published')` is still supported for equality comparisons and remains the recommended approach for simple equality checks.
 
+The values you pass to `where`, `whereIn`, and `whereNotIn` are type-checked against the model's property types, so passing a string to a numeric field like `where('age', '>', '18')` is caught at compile time.
+
 ## Null Checks
 
 Use `whereNull` to retrieve models where a field is `null`. Following

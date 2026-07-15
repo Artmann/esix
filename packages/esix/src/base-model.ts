@@ -380,18 +380,18 @@ export default class BaseModel {
    *
    * @param key - A property of the model
    * @param operatorOrValue - Comparison operator or value when using 2-param syntax
-   * @param value - The value when using 3-param syntax with operator
+   * @param value - The value to filter by, type-checked against the model's property type
    */
   static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
     key: K,
-    value: any
+    value: T[K]
   ): QueryBuilder<T>
   static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
     key: K,
     operator: ComparisonOperator,
-    value: any
+    value: T[K]
   ): QueryBuilder<T>
   static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
@@ -418,12 +418,12 @@ export default class BaseModel {
    * ```
    *
    * @param key - A property of the model
-   * @param values
+   * @param values - The values to match, type-checked against the model's property type
    */
   static whereIn<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
     key: K,
-    values: any[]
+    values: T[K][]
   ): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(this)
 
@@ -439,12 +439,12 @@ export default class BaseModel {
    * ```
    *
    * @param key - A property of the model
-   * @param values
+   * @param values - The values to exclude, type-checked against the model's property type
    */
   static whereNotIn<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
     key: K,
-    values: any[]
+    values: T[K][]
   ): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(this)
 

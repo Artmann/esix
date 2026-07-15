@@ -34,7 +34,7 @@ describe('Injections', () => {
     })
 
     const user = await User.where('username', username)
-      .where('password', password)
+      .where('password', password as any)
       .first()
 
     expect(user).toBeNull()
@@ -48,7 +48,7 @@ describe('Injections', () => {
 
     const users = await User.where('username', {
       nested: { $gt: '' }
-    }).get()
+    } as any).get()
 
     expect(users).toEqual([])
   })
