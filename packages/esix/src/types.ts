@@ -23,6 +23,13 @@ export type Document = { [index: string]: any }
 export type ComparisonOperator = '=' | '!=' | '<>' | '>' | '>=' | '<' | '<='
 
 /**
+ * The values accepted when querying a field of type `V`. Scalar fields
+ * accept `V` itself. Array fields also accept their element type, since
+ * MongoDB matches documents where the array contains the given value.
+ */
+export type QueryValue<V> = V | (V extends readonly (infer E)[] ? E : never)
+
+/**
  * Result of QueryBuilder.paginate() / BaseModel.paginate(). Bundles the
  * page of models with the metadata needed to render pagination UIs.
  */

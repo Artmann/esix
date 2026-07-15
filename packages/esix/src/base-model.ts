@@ -5,7 +5,8 @@ import type {
   ComparisonOperator,
   Dictionary,
   ObjectType,
-  Paginated
+  Paginated,
+  QueryValue
 } from './types'
 import { camelCase } from 'change-case'
 
@@ -403,18 +404,19 @@ export default class BaseModel {
    *
    * @param key - A property of the model
    * @param operatorOrValue - Comparison operator or value when using 2-param syntax
-   * @param value - The value when using 3-param syntax with operator
+   * @param value - The value to filter by, type-checked against the model's
+   *   property type. Array fields also accept their element type.
    */
   static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
     key: K,
-    value: any
+    value: QueryValue<T[K]>
   ): QueryBuilder<T>
   static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
     key: K,
     operator: ComparisonOperator,
-    value: any
+    value: QueryValue<T[K]>
   ): QueryBuilder<T>
   static where<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
@@ -441,12 +443,13 @@ export default class BaseModel {
    * ```
    *
    * @param key - A property of the model
-   * @param values
+   * @param values - The values to match, type-checked against the model's
+   *   property type. Array fields also accept their element type.
    */
   static whereIn<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
     key: K,
-    values: any[]
+    values: QueryValue<T[K]>[]
   ): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(this)
 
@@ -458,20 +461,62 @@ export default class BaseModel {
    *
    * Example
    * ```
-   * const users = await User.whereNotIn('id', [1, 2, 3]).get();
+   * const users = await User.whereNotIn('id', ['1', '2', '3']).get();
    * ```
    *
    * @param key - A property of the model
-   * @param values
+   * @param values - The values to exclude, type-checked against the model's
+   *   property type. Array fields also accept their element type.
    */
   static whereNotIn<T extends BaseModel, K extends keyof T>(
     this: ObjectType<T>,
     key: K,
-    values: any[]
+    values: QueryValue<T[K]>[]
   ): QueryBuilder<T> {
     const queryBuilder = new QueryBuilder(this)
 
     return queryBuilder.whereNotIn(key, values)
+  }
+
+  /**
+   * Returns models where `key` is present and not `null`. Documents where
+   * the field is `null` or missing entirely are excluded.
+   *
+   * Example
+   * ```
+   * const enrichedBooks = await Book.whereNotNull('openLibraryEnrichedVersion').get();
+   * ```
+   *
+   * @param key - A property of the model
+   */
+  static whereNotNull<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): QueryBuilder<T> {
+    const queryBuilder = new QueryBuilder(this)
+
+    return queryBuilder.whereNotNull(key)
+  }
+
+  /**
+   * Returns models where `key` is `null`. Following MongoDB's null-equality
+   * semantics, this matches documents where the field is `null` OR missing
+   * entirely.
+   *
+   * Example
+   * ```
+   * const unenrichedBooks = await Book.whereNull('openLibraryEnrichedVersion').get();
+   * ```
+   *
+   * @param key - A property of the model
+   */
+  static whereNull<T extends BaseModel, K extends keyof T>(
+    this: ObjectType<T>,
+    key: K
+  ): QueryBuilder<T> {
+    const queryBuilder = new QueryBuilder(this)
+
+    return queryBuilder.whereNull(key)
   }
 
   /**
