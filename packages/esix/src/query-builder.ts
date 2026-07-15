@@ -30,6 +30,8 @@ function isString(x: any): x is string {
 function normalizeAttributes(originalAttributes: Dictionary): Dictionary {
   const attributes = { ...originalAttributes }
 
+  delete attributes.wasRecentlyCreated
+
   if (!attributes.id) {
     attributes.id = new ObjectId().toHexString()
   }
@@ -402,6 +404,82 @@ export default class QueryBuilder<T extends BaseModel> {
     }
 
     return models[0]
+  }
+
+  /**
+   * Atomically returns the first document matching the filter, or inserts a
+   * new document with the given attributes using a single upsert. The
+   * returned model has `wasRecentlyCreated` set to whether it was created.
+   *
+   * @param filter
+   * @param attributes
+   * @internal
+   */
+  async firstOrCreate(
+    filter: Query,
+    attributes: Record<string, any>
+  ): Promise<{ created: boolean; model: T }> {
+    const sanitized = sanitize(filter) as Query
+    const sanitizedFilter: Query = {}
+
+    for (const [key, value] of Object.entries(sanitized)) {
+      // MongoDB copies filter equality fields into upsert-inserted
+      // documents, and wasRecentlyCreated must never be persisted.
+      if (key === 'wasRecentlyCreated') {
+        continue
+      }
+
+      sanitizedFilter[key === 'id' ? '_id' : key] = value
+    }
+
+    const insertAttributes = normalizeAttributes(sanitize(attributes))
+
+    return this.useCollection(async (collection) => {
+      let created: boolean
+      let document: Document | null
+
+      try {
+        const result = await collection.findOneAndUpdate(
+          sanitizedFilter,
+          { $setOnInsert: insertAttributes },
+          {
+            includeResultMetadata: true,
+            returnDocument: 'after',
+            upsert: true
+          }
+        )
+
+        created = !result?.lastErrorObject?.updatedExisting
+        document = result?.value ?? null
+      } catch (error) {
+        // Two concurrent upserts on a unique index can race; one of them
+        // fails with a duplicate key error. Fall back to reading the
+        // document the other writer inserted.
+        if (!isDuplicateKeyError(error)) {
+          throw error
+        }
+
+        created = false
+        document = await collection.findOne(sanitizedFilter)
+
+        if (!document) {
+          throw error
+        }
+      }
+
+      if (!document) {
+        throw new Error(
+          `Failed to create ${this.ctor.name} (id: ${String(insertAttributes._id)}). ` +
+            `The document was upserted but could not be retrieved afterwards.`
+        )
+      }
+
+      const model = this.createInstance<T>(document)
+
+      model.wasRecentlyCreated = created
+
+      return { created, model }
+    })
   }
 
   /**
@@ -1106,6 +1184,14 @@ export default class QueryBuilder<T extends BaseModel> {
 
     return result
   }
+}
+
+function isDuplicateKeyError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false
+  }
+
+  return 'code' in error && (error as { code?: unknown }).code === 11000
 }
 
 function isNumberArray(array: any[]): array is number[] {
