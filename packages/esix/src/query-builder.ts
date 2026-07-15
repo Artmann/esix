@@ -52,6 +52,7 @@ function normalizeAttributes(originalAttributes: Dictionary): Dictionary {
 export default class QueryBuilder<T extends BaseModel> {
   private readonly ctor: ObjectType<T>
 
+  private orQueries: Query[] = []
   private query: Query = {}
 
   private queryLimit?: number
@@ -181,9 +182,11 @@ export default class QueryBuilder<T extends BaseModel> {
    * ```
    */
   async count(): Promise<number> {
+    const query = this.buildQuery()
+
     const count = await this.useCollection<number>(
       (collection): Promise<number> => {
-        return collection.count(this.query)
+        return collection.count(query)
       }
     )
 
@@ -312,10 +315,12 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async distinct<K extends keyof T>(key: K): Promise<T[K][]> {
+    const query = this.buildQuery()
+
     return this.useCollection(async (collection) => {
       const keyStr = (key as string) === 'id' ? '_id' : (key as string)
       const documents = await collection
-        .find(this.query, { projection: { [keyStr]: 1 } })
+        .find(query, { projection: { [keyStr]: 1 } })
         .toArray()
 
       const seen = new Set<unknown>()
@@ -418,8 +423,10 @@ export default class QueryBuilder<T extends BaseModel> {
    * @returns The number of documents that were modified.
    */
   async increment<K extends keyof T>(key: K, by: number = 1): Promise<number> {
+    const query = this.buildQuery()
+
     return this.useCollection(async (collection) => {
-      const { modifiedCount } = await collection.updateMany(this.query as any, {
+      const { modifiedCount } = await collection.updateMany(query as any, {
         $inc: { [key as string]: by }
       })
       return modifiedCount
@@ -492,6 +499,70 @@ export default class QueryBuilder<T extends BaseModel> {
     }
 
     this.queryOrder[key] = order === 'asc' ? 1 : -1
+
+    return this
+  }
+
+  /**
+   * Adds a constraint that is combined with the previous constraints using
+   * a logical OR. Mirrors `where`'s call forms; values are typed against
+   * the model's properties.
+   *
+   * Subsequent `where` calls are ANDed into the most recent OR group, so
+   * AND binds tighter than OR: `where(a).orWhere(b).where(c)` selects
+   * documents matching `a OR (b AND c)`.
+   *
+   * When called without any previous constraints, `orWhere` behaves exactly
+   * like `where`. Conditions that are empty after sanitization (for example
+   * `{ $where: ... }`, which is stripped to `{}`) are ignored rather than
+   * added as an OR branch, matching the no-op semantics of `where({})`.
+   * There is no static `orWhere` on `BaseModel` since an OR condition is
+   * meaningless without a preceding constraint — start the chain with
+   * `where`, `whereNull`, or one of the other query methods.
+   *
+   * Note: `orWhere` cannot be combined with `search()`.
+   *
+   * Example
+   * ```
+   * const books = await Book.whereNull('openLibraryEnrichedVersion')
+   *   .orWhere('openLibraryEnrichedVersion', '<', 3)
+   *   .get();
+   * ```
+   *
+   * @param query - A query object to filter by
+   * @param key - Property name to filter by (must be a valid model field)
+   * @param operatorOrValue - Comparison operator or value when using 2-param syntax
+   * @param value - The value to filter by when using 3-param syntax with operator
+   */
+  orWhere(query: Query): QueryBuilder<T>
+  orWhere<K extends keyof T>(key: K, value: T[K]): QueryBuilder<T>
+  orWhere<K extends keyof T>(
+    key: K,
+    operator: ComparisonOperator,
+    value: T[K]
+  ): QueryBuilder<T>
+  orWhere(
+    queryOrKey: Query | string,
+    operatorOrValue?: ComparisonOperator | any,
+    value?: any
+  ): QueryBuilder<T> {
+    const condition = this.buildConditionQuery(
+      queryOrKey,
+      operatorOrValue,
+      value
+    )
+
+    if (Object.keys(condition).length === 0) {
+      return this
+    }
+
+    if (Object.keys(this.query).length === 0 && this.orQueries.length === 0) {
+      this.query = condition
+
+      return this
+    }
+
+    this.orQueries.push(condition)
 
     return this
   }
@@ -672,35 +743,13 @@ export default class QueryBuilder<T extends BaseModel> {
     operatorOrValue?: ComparisonOperator | any,
     value?: any
   ): QueryBuilder<T> {
-    let query: Query
+    const condition = this.buildConditionQuery(
+      queryOrKey,
+      operatorOrValue,
+      value
+    )
 
-    if (isString(queryOrKey)) {
-      const keyStr = queryOrKey === 'id' ? '_id' : queryOrKey
-
-      // Three-parameter syntax: where('age', '>', 18)
-      if (value !== undefined) {
-        const operator = operatorOrValue as ComparisonOperator
-        const sanitizedValue = sanitize(value)
-        query = { [keyStr]: this.buildOperatorQuery(operator, sanitizedValue) }
-      }
-      // Two-parameter syntax: where('status', 'active')
-      else {
-        query = { [keyStr]: sanitize(operatorOrValue) }
-      }
-    }
-    // Object syntax: where({ status: 'active' })
-    else {
-      const sanitized = sanitize(queryOrKey) as Query
-      query = {}
-      for (const [k, v] of Object.entries(sanitized)) {
-        query[k === 'id' ? '_id' : k] = v
-      }
-    }
-
-    this.query = {
-      ...this.query,
-      ...query
-    }
+    this.mergeCondition(condition)
 
     return this
   }
@@ -745,16 +794,11 @@ export default class QueryBuilder<T extends BaseModel> {
   whereIn(key: string, values: any[]): QueryBuilder<T> {
     const keyStr = key === 'id' ? '_id' : key
 
-    const query = {
+    this.mergeCondition({
       [keyStr]: {
         $in: sanitize(values)
       }
-    }
-
-    this.query = {
-      ...this.query,
-      ...query
-    }
+    })
 
     return this
   }
@@ -769,18 +813,116 @@ export default class QueryBuilder<T extends BaseModel> {
   whereNotIn(key: string, values: any[]): QueryBuilder<T> {
     const keyStr = key === 'id' ? '_id' : key
 
-    const query = {
+    this.mergeCondition({
       [keyStr]: {
         $nin: sanitize(values)
       }
-    }
-
-    this.query = {
-      ...this.query,
-      ...query
-    }
+    })
 
     return this
+  }
+
+  /**
+   * Returns all the models where `key` is present and not `null`.
+   * Translates to MongoDB's `$ne` operator, so documents where the field
+   * is `null` or missing entirely are excluded.
+   *
+   * Example
+   * ```
+   * const enrichedBooks = await Book.whereNotNull('openLibraryEnrichedVersion').get();
+   * ```
+   *
+   * @param key - A property of the model
+   */
+  whereNotNull<K extends keyof T>(key: K): QueryBuilder<T> {
+    const keyStr = (key as string) === 'id' ? '_id' : (key as string)
+
+    this.mergeCondition({
+      [keyStr]: {
+        $ne: null
+      }
+    })
+
+    return this
+  }
+
+  /**
+   * Returns all the models where `key` is `null`. Following MongoDB's
+   * null-equality semantics, this matches documents where the field is
+   * `null` OR missing entirely.
+   *
+   * Example
+   * ```
+   * const unenrichedBooks = await Book.whereNull('openLibraryEnrichedVersion').get();
+   * ```
+   *
+   * @param key - A property of the model
+   */
+  whereNull<K extends keyof T>(key: K): QueryBuilder<T> {
+    const keyStr = (key as string) === 'id' ? '_id' : (key as string)
+
+    this.mergeCondition({
+      [keyStr]: null
+    })
+
+    return this
+  }
+
+  /**
+   * Builds a single condition object from the arguments accepted by
+   * `where` and `orWhere`, remapping `id` to `_id` and sanitizing values.
+   *
+   * @param queryOrKey - A query object or a property name
+   * @param operatorOrValue - Comparison operator or value when using 2-param syntax
+   * @param value - The value to filter by when using 3-param syntax with operator
+   */
+  private buildConditionQuery(
+    queryOrKey: Query | string,
+    operatorOrValue?: ComparisonOperator | any,
+    value?: any
+  ): Query {
+    let query: Query
+
+    if (isString(queryOrKey)) {
+      const keyStr = queryOrKey === 'id' ? '_id' : queryOrKey
+
+      // Three-parameter syntax: where('age', '>', 18)
+      if (value !== undefined) {
+        const operator = operatorOrValue as ComparisonOperator
+        const sanitizedValue = sanitize(value)
+        query = { [keyStr]: this.buildOperatorQuery(operator, sanitizedValue) }
+      }
+      // Two-parameter syntax: where('status', 'active')
+      else {
+        query = { [keyStr]: sanitize(operatorOrValue) }
+      }
+    }
+    // Object syntax: where({ status: 'active' })
+    else {
+      const sanitized = sanitize(queryOrKey) as Query
+      query = {}
+      for (const [k, v] of Object.entries(sanitized)) {
+        query[k === 'id' ? '_id' : k] = v
+      }
+    }
+
+    return query
+  }
+
+  /**
+   * Builds the final query object, combining the base query with any OR
+   * groups added through `orWhere`.
+   */
+  private buildQuery(): Query {
+    if (this.orQueries.length === 0) {
+      return this.query
+    }
+
+    if ('$text' in this.query) {
+      throw new Error('search() cannot be combined with orWhere().')
+    }
+
+    return { $or: [this.query, ...this.orQueries] }
   }
 
   private createInstance<T>(document: Document): T {
@@ -804,11 +946,13 @@ export default class QueryBuilder<T extends BaseModel> {
   }
 
   private execute(fields?: Fields): Promise<T[]> {
+    const query = this.buildQuery()
+
     return this.useCollection(async (collection) => {
       try {
         let cursor = fields
-          ? collection.find(this.query, fields)
-          : collection.find(this.query)
+          ? collection.find(query, fields)
+          : collection.find(query)
 
         if (this.queryOrder) {
           cursor = cursor.sort(this.queryOrder)
@@ -830,7 +974,7 @@ export default class QueryBuilder<T extends BaseModel> {
 
         return records
       } catch (error) {
-        if (isTextIndexMissingError(error, this.query)) {
+        if (isTextIndexMissingError(error, query)) {
           throw new Error(
             `search() requires a text index on the "${collection.collectionName}" collection. ` +
               `Create one with db["${collection.collectionName}"].createIndex({ "<field>": "text" }).`,
@@ -907,6 +1051,31 @@ export default class QueryBuilder<T extends BaseModel> {
       if (documents.length < batchSize) {
         return
       }
+    }
+  }
+
+  /**
+   * Merges a condition into the current query group. Conditions are ANDed
+   * into the most recent OR group when one exists, so AND binds tighter
+   * than OR.
+   *
+   * @param condition
+   */
+  private mergeCondition(condition: Query): void {
+    if (this.orQueries.length > 0) {
+      const lastIndex = this.orQueries.length - 1
+
+      this.orQueries[lastIndex] = {
+        ...this.orQueries[lastIndex],
+        ...condition
+      }
+
+      return
+    }
+
+    this.query = {
+      ...this.query,
+      ...condition
     }
   }
 
