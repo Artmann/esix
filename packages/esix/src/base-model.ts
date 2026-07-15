@@ -66,7 +66,10 @@ export default class BaseModel {
   /**
    * Processes all models in batches of `size`. Batches are fetched with
    * keyset pagination on the id in ascending order, so it is safe to update
-   * or delete the models handed to the callback while iterating.
+   * or delete the models handed to the callback while iterating. The
+   * collection's `_id`s must all be the same BSON type (esix itself always
+   * creates string ids); mixed-type collections will only iterate the first
+   * type bracket.
    *
    * Return `false` from the callback to stop processing early.
    *
@@ -88,7 +91,7 @@ export default class BaseModel {
   static async chunk<T extends BaseModel>(
     this: ObjectType<T>,
     size: number,
-    callback: (models: T[], page: number) => unknown | Promise<unknown>
+    callback: (models: T[], page: number) => unknown
   ): Promise<boolean> {
     return new QueryBuilder(this).chunk(size, callback)
   }
@@ -158,7 +161,9 @@ export default class BaseModel {
    * Returns an async iterator over all models, fetching documents in
    * batches of `batchSize` behind the scenes. Iteration uses keyset
    * pagination on the id in ascending order, so it is safe to update or
-   * delete models while iterating.
+   * delete models while iterating. The collection's `_id`s must all be the
+   * same BSON type (esix itself always creates string ids); mixed-type
+   * collections will only iterate the first type bracket.
    *
    * Example
    * ```

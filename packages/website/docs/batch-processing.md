@@ -124,5 +124,11 @@ consequences:
   query is ignored by `chunk` and `cursor`. Resumable keyset pagination
   requires a unique total order, so iteration is always by id ascending.
 
+One limitation to be aware of: the collection's `_id`s must all be the same
+BSON type. Documents created through Esix always use string ids, and
+collections created by other tools usually use `ObjectId`s throughout —
+both work fine. But a mixed-type collection will only iterate the first
+type bracket, because MongoDB's `$gt` never matches across BSON types.
+
 If you need results in a custom order or a single bounded page, use
 [pagination](/docs/pagination) instead.

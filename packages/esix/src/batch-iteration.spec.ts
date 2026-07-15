@@ -54,6 +54,60 @@ describe('chunk', () => {
     expect(new Set(seenIds).size).toEqual(25)
   })
 
+  it('does not invoke an empty extra callback when the count is a multiple of the size.', async () => {
+    for (let i = 0; i < 20; i++) {
+      await Post.create({ title: `Post ${i}` })
+    }
+
+    const batchSizes: number[] = []
+    const pages: number[] = []
+
+    const result = await Post.chunk(10, (posts, page) => {
+      batchSizes.push(posts.length)
+      pages.push(page)
+    })
+
+    expect(result).toEqual(true)
+    expect(batchSizes).toEqual([10, 10])
+    expect(pages).toEqual([1, 2])
+  })
+
+  it('processes a single partial batch when the size exceeds the total.', async () => {
+    for (let i = 0; i < 5; i++) {
+      await Post.create({ title: `Post ${i}` })
+    }
+
+    const batchSizes: number[] = []
+
+    await Post.chunk(10, (posts) => {
+      batchSizes.push(posts.length)
+    })
+
+    expect(batchSizes).toEqual([5])
+  })
+
+  it('preserves an existing id condition from whereIn.', async () => {
+    const createdIds: string[] = []
+
+    for (let i = 0; i < 8; i++) {
+      const post = await Post.create({ title: `Post ${i}` })
+
+      createdIds.push(post.id)
+    }
+
+    const subset = createdIds.slice(0, 5)
+    const seenIds: string[] = []
+
+    await Post.whereIn('id', subset).chunk(2, (posts) => {
+      for (const post of posts) {
+        seenIds.push(post.id)
+      }
+    })
+
+    expect(seenIds.sort()).toEqual([...subset].sort())
+    expect(new Set(seenIds).size).toEqual(5)
+  })
+
   it('only processes documents matching the current query.', async () => {
     for (let i = 0; i < 6; i++) {
       await Post.create({ title: `Post ${i}`, published: i % 2 === 0 })

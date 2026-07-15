@@ -108,6 +108,10 @@ export default class QueryBuilder<T extends BaseModel> {
    * builder is ignored: resumable keyset pagination requires a unique total
    * order, so iteration is always by id ascending.
    *
+   * The collection's `_id`s must all be the same BSON type (esix itself
+   * always creates string ids); mixed-type collections will only iterate
+   * the first type bracket.
+   *
    * Return `false` from the callback to stop processing early.
    *
    * Example
@@ -129,7 +133,7 @@ export default class QueryBuilder<T extends BaseModel> {
    */
   async chunk(
     size: number,
-    callback: (models: T[], page: number) => unknown | Promise<unknown>
+    callback: (models: T[], page: number) => unknown
   ): Promise<boolean> {
     if (!Number.isInteger(size) || size < 1) {
       throw new Error(`chunk() size must be an integer >= 1, received: ${size}`)
@@ -210,6 +214,10 @@ export default class QueryBuilder<T extends BaseModel> {
    * `orderBy()`, `limit()`, or `skip()` set on the builder is ignored:
    * resumable keyset pagination requires a unique total order, so iteration
    * is always by id ascending.
+   *
+   * The collection's `_id`s must all be the same BSON type (esix itself
+   * always creates string ids); mixed-type collections will only iterate
+   * the first type bracket.
    *
    * Example
    * ```
@@ -853,13 +861,24 @@ export default class QueryBuilder<T extends BaseModel> {
         query = { _id: { $gt: lastId } }
       }
 
-      const documents = await collection
-        .find(query)
-        .sort({ _id: 1 })
-        .limit(size)
-        .toArray()
+      try {
+        const documents = await collection
+          .find(query)
+          .sort({ _id: 1 })
+          .limit(size)
+          .toArray()
 
-      return documents.filter((document) => document)
+        return documents.filter((document) => document)
+      } catch (error) {
+        if (isTextIndexMissingError(error, this.query)) {
+          throw new Error(
+            `search() requires a text index on the "${collection.collectionName}" collection. ` +
+              `Create one with db["${collection.collectionName}"].createIndex({ "<field>": "text" }).`,
+            { cause: error }
+          )
+        }
+        throw error
+      }
     })
   }
 
