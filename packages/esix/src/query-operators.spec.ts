@@ -193,6 +193,86 @@ describe('orWhere', () => {
     expect(books).toEqual([])
   })
 
+  it('ignores object conditions that sanitize down to nothing.', async () => {
+    await Book.create({ title: 'A' })
+    await Book.create({ title: 'B' })
+
+    const books = await Book.where('title', 'A')
+      .orWhere({ $where: 'sleep(100) || true' } as any)
+      .get()
+
+    expect(books.map((book) => book.title)).toEqual(['A'])
+  })
+
+  it('ignores an empty object condition in the middle of a chain.', async () => {
+    await Book.create({ title: 'A' })
+    await Book.create({ title: 'B' })
+    await Book.create({ title: 'C' })
+
+    const books = await Book.where('title', 'A')
+      .orWhere('title', 'B')
+      .orWhere({})
+      .get()
+
+    expect(books.map((book) => book.title).sort()).toEqual(['A', 'B'])
+  })
+
+  it('ignores an empty object condition as the first call.', async () => {
+    await Book.create({ title: 'A' })
+    await Book.create({ title: 'B' })
+
+    const books = await new QueryBuilder(Book).orWhere({}).get()
+
+    expect(books.map((book) => book.title).sort()).toEqual(['A', 'B'])
+  })
+
+  it('supports paginate with an orWhere chain.', async () => {
+    await Book.create({
+      title: 'Never Enriched',
+      openLibraryEnrichedVersion: null
+    })
+    await Book.create({ title: 'Stale 1', openLibraryEnrichedVersion: 1 })
+    await Book.create({ title: 'Stale 2', openLibraryEnrichedVersion: 2 })
+    await Book.create({ title: 'Current 1', openLibraryEnrichedVersion: 9 })
+    await Book.create({ title: 'Current 2', openLibraryEnrichedVersion: 9 })
+
+    const result = await Book.whereNull('openLibraryEnrichedVersion')
+      .orWhere('openLibraryEnrichedVersion', '<', 3)
+      .paginate(1, 2)
+
+    expect(result.data).toHaveLength(2)
+    expect(result.total).toEqual(3)
+    expect(result.page).toEqual(1)
+    expect(result.lastPage).toEqual(2)
+  })
+
+  it('supports first with orderBy and an orWhere chain.', async () => {
+    await Book.create({ title: 'A', openLibraryEnrichedVersion: 1 })
+    await Book.create({ title: 'B', openLibraryEnrichedVersion: 2 })
+    await Book.create({ title: 'C', openLibraryEnrichedVersion: 9 })
+
+    const book = await Book.where('openLibraryEnrichedVersion', 1)
+      .orWhere('openLibraryEnrichedVersion', 2)
+      .orderBy('openLibraryEnrichedVersion', 'desc')
+      .first()
+
+    expect(book?.title).toEqual('B')
+  })
+
+  it('merges whereIn into the most recent OR group.', async () => {
+    await Book.create({ title: 'A', openLibraryEnrichedVersion: 1 })
+    await Book.create({ title: 'B', openLibraryEnrichedVersion: 5 })
+    await Book.create({ title: 'D', openLibraryEnrichedVersion: 5 })
+
+    // a OR (b AND in)
+    const books = await Book.where('title', 'A')
+      .orWhere('openLibraryEnrichedVersion', 5)
+      .whereIn('title', ['B', 'C'])
+      .get()
+
+    expect(books.map((book) => book.title).sort()).toEqual(['A', 'B'])
+  })
+
   it('rejects when combined with search().', async () => {
     await Book.create({ title: 'Searchable' })
 
@@ -200,6 +280,18 @@ describe('orWhere', () => {
       new QueryBuilder(Book)
         .search('Searchable')
         .orWhere('title', 'Searchable')
+        .get()
+    ).rejects.toThrow('search() cannot be combined with orWhere().')
+  })
+
+  it('rejects when search() is called after orWhere().', async () => {
+    await Book.create({ title: 'Searchable' })
+
+    await expect(
+      new QueryBuilder(Book)
+        .where('title', 'A')
+        .orWhere('title', 'B')
+        .search('Searchable')
         .get()
     ).rejects.toThrow('search() cannot be combined with orWhere().')
   })

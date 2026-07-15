@@ -385,16 +385,20 @@ export default class QueryBuilder<T extends BaseModel> {
 
   /**
    * Adds a constraint that is combined with the previous constraints using
-   * a logical OR. Accepts the same arguments as `where`.
+   * a logical OR. Mirrors `where`'s call forms; values are typed against
+   * the model's properties.
    *
    * Subsequent `where` calls are ANDed into the most recent OR group, so
    * AND binds tighter than OR: `where(a).orWhere(b).where(c)` selects
    * documents matching `a OR (b AND c)`.
    *
    * When called without any previous constraints, `orWhere` behaves exactly
-   * like `where`. There is no static `orWhere` on `BaseModel` since an OR
-   * condition is meaningless without a preceding constraint — start the
-   * chain with `where`, `whereNull`, or one of the other query methods.
+   * like `where`. Conditions that are empty after sanitization (for example
+   * `{ $where: ... }`, which is stripped to `{}`) are ignored rather than
+   * added as an OR branch, matching the no-op semantics of `where({})`.
+   * There is no static `orWhere` on `BaseModel` since an OR condition is
+   * meaningless without a preceding constraint — start the chain with
+   * `where`, `whereNull`, or one of the other query methods.
    *
    * Note: `orWhere` cannot be combined with `search()`.
    *
@@ -427,6 +431,10 @@ export default class QueryBuilder<T extends BaseModel> {
       operatorOrValue,
       value
     )
+
+    if (Object.keys(condition).length === 0) {
+      return this
+    }
 
     if (Object.keys(this.query).length === 0 && this.orQueries.length === 0) {
       this.query = condition
