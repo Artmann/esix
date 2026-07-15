@@ -244,6 +244,15 @@ describe('Type Safety for Query Values', () => {
       expect(true).toBe(true)
     })
 
+    it('type-checks values in orWhere calls', () => {
+      MenuItem.where('price', 5).orWhere('price', '>', 10)
+
+      // @ts-expect-error - 'price' is a number field, not a string field
+      MenuItem.where('price', 5).orWhere('price', 'ten')
+
+      expect(true).toBe(true)
+    })
+
     it('accepts every member of a union-typed field', () => {
       Article.where('publishedAt', null)
       Article.where('publishedAt', '>', new Date())

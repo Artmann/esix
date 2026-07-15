@@ -413,14 +413,15 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param query - A query object to filter by
    * @param key - Property name to filter by (must be a valid model field)
    * @param operatorOrValue - Comparison operator or value when using 2-param syntax
-   * @param value - The value to filter by when using 3-param syntax with operator
+   * @param value - The value to filter by, type-checked against the model's
+   *   property type. Array fields also accept their element type.
    */
   orWhere(query: Query): QueryBuilder<T>
-  orWhere<K extends keyof T>(key: K, value: T[K]): QueryBuilder<T>
+  orWhere<K extends keyof T>(key: K, value: QueryValue<T[K]>): QueryBuilder<T>
   orWhere<K extends keyof T>(
     key: K,
     operator: ComparisonOperator,
-    value: T[K]
+    value: QueryValue<T[K]>
   ): QueryBuilder<T>
   orWhere(
     queryOrKey: Query | string,
