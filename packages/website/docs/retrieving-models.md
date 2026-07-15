@@ -182,6 +182,12 @@ const popularPosts = await BlogPost
 
 Note: The two-parameter syntax `where('status', 'published')` is still supported for equality comparisons and remains the recommended approach for simple equality checks.
 
+The values you pass to `where`, `orWhere`, `whereIn`, and `whereNotIn` are
+type-checked against the model's property types, so passing a string to a
+numeric field like `where('age', '>', '18')` is caught at compile time. For
+array fields, the element type is also accepted, so `where('tags', 'news')`
+compiles when `tags` is a `string[]`.
+
 ## Null Checks
 
 Use `whereNull` to retrieve models where a field is `null`. Following
@@ -254,7 +260,7 @@ You can use `whereIn` to retrieve models where a column's value is within a
 given array:
 
 ```ts
-const users = await User.whereIn('id', [1, 2, 3]).get()
+const users = await User.whereIn('id', ['1', '2', '3']).get()
 ```
 
 | id  | name    | age | status     |
@@ -267,7 +273,7 @@ Conversely, you can use `whereNotIn` to retrieve models where a column's value
 is not within a given array:
 
 ```ts
-const users = await User.whereNotIn('id', [1, 2, 3]).get()
+const users = await User.whereNotIn('id', ['1', '2', '3']).get()
 ```
 
 | id  | name      | age | status   |
