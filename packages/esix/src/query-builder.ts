@@ -297,6 +297,12 @@ export default class QueryBuilder<T extends BaseModel> {
     const sanitizedFilter: Query = {}
 
     for (const [key, value] of Object.entries(sanitized)) {
+      // MongoDB copies filter equality fields into upsert-inserted
+      // documents, and wasRecentlyCreated must never be persisted.
+      if (key === 'wasRecentlyCreated') {
+        continue
+      }
+
       sanitizedFilter[key === 'id' ? '_id' : key] = value
     }
 

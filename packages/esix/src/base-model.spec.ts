@@ -1273,6 +1273,68 @@ describe('BaseModel', () => {
 
       expect(book.wasRecentlyCreated).toBe(true)
     })
+
+    it('falls back to findOne when a concurrent upsert wins the duplicate key race', async () => {
+      collection.findOneAndUpdate.mockRejectedValue(
+        Object.assign(new Error('E11000 duplicate key'), { code: 11000 })
+      )
+      collection.findOne.mockResolvedValue({
+        _id: '5f0aeaeacff57e3ec676b340',
+        authorId: 'author-1',
+        createdAt: 1594552340652,
+        isAvailable: true,
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
+        updatedAt: null
+      })
+
+      const book = await Book.firstOrCreate({ isbn: '9780486284736' })
+
+      expect(collection.findOne).toHaveBeenCalledWith({
+        isbn: '9780486284736'
+      })
+
+      expect(book).toEqual({
+        authorId: 'author-1',
+        createdAt: 1594552340652,
+        id: '5f0aeaeacff57e3ec676b340',
+        isAvailable: true,
+        isbn: '9780486284736',
+        pages: 279,
+        title: 'Pride and Prejudice',
+        updatedAt: null
+      })
+
+      expect(book.wasRecentlyCreated).toBe(false)
+    })
+
+    it('rethrows the duplicate key error when the fallback findOne finds nothing', async () => {
+      collection.findOneAndUpdate.mockRejectedValue(
+        Object.assign(new Error('E11000 duplicate key'), { code: 11000 })
+      )
+      collection.findOne.mockResolvedValue(null)
+
+      await expect(
+        Book.firstOrCreate({ isbn: '9780486284736' })
+      ).rejects.toThrow('E11000 duplicate key')
+
+      expect(collection.findOne).toHaveBeenCalledWith({
+        isbn: '9780486284736'
+      })
+    })
+
+    it('rethrows non duplicate key errors without falling back to findOne', async () => {
+      collection.findOneAndUpdate.mockRejectedValue(
+        new Error('connection lost')
+      )
+
+      await expect(
+        Book.firstOrCreate({ isbn: '9780486284736' })
+      ).rejects.toThrow('connection lost')
+
+      expect(collection.findOne).not.toHaveBeenCalled()
+    })
   })
 
   describe('Static Aggregation Functions', () => {

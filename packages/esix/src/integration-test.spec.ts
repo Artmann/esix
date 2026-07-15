@@ -1002,6 +1002,25 @@ describe('FirstOrCreate', () => {
     const numberOfFlights = await Flight.count()
     expect(numberOfFlights).toBe(1)
   })
+
+  it('does not persist wasRecentlyCreated when it is included in the filter', async () => {
+    const flight = await Flight.firstOrCreate({
+      name: 'Evil Filter Airways',
+      wasRecentlyCreated: true
+    })
+
+    expect(flight.wasRecentlyCreated).toBe(true)
+    expect(flight.name).toBe('Evil Filter Airways')
+
+    // MongoDB copies filter equality fields into upsert-inserted documents,
+    // so assert on the raw stored document to catch any leak.
+    const connection = await connectionHandler.getConnection()
+    const collection = await connection.collection('flights')
+    const document = await collection.findOne({ name: 'Evil Filter Airways' })
+
+    expect(document).not.toBeNull()
+    expect(document).not.toHaveProperty('wasRecentlyCreated')
+  })
 })
 
 describe('wasRecentlyCreated', () => {
@@ -1025,21 +1044,32 @@ describe('wasRecentlyCreated', () => {
   it('is never persisted to the database', async () => {
     const flight = await Flight.create({ name: 'Dublin to Vienna' })
 
-    const reloadedFlight = await Flight.find(flight.id)
-
-    expect(JSON.stringify(reloadedFlight)).not.toContain('wasRecentlyCreated')
-
     const savedFlight = new Flight()
 
     savedFlight.name = 'Vienna to Dublin'
 
     await savedFlight.save()
 
-    const reloadedSavedFlight = await Flight.find(savedFlight.id)
+    // Assert on the raw stored documents rather than reloaded models, as
+    // model hydration would absorb a leaked field into the non-enumerable
+    // property and hide it from serialization.
+    const connection = await connectionHandler.getConnection()
+    const collection = await connection.collection('flights')
 
-    expect(JSON.stringify(reloadedSavedFlight)).not.toContain(
-      'wasRecentlyCreated'
-    )
+    const createdDocument = await collection.findOne({ _id: flight.id as any })
+    const savedDocument = await collection.findOne({
+      _id: savedFlight.id as any
+    })
+
+    expect(createdDocument).not.toBeNull()
+    expect(createdDocument).not.toHaveProperty('wasRecentlyCreated')
+
+    expect(savedDocument).not.toBeNull()
+    expect(savedDocument).not.toHaveProperty('wasRecentlyCreated')
+
+    const reloadedFlight = await Flight.find(flight.id)
+
+    expect(JSON.stringify(reloadedFlight)).not.toContain('wasRecentlyCreated')
   })
 
   it('is true after saving a new instance and stays false for existing models', async () => {

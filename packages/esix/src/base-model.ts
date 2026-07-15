@@ -20,7 +20,9 @@ export default class BaseModel {
    * path of `firstOrCreate()`. Models retrieved from the database always have
    * this set to `false`.
    *
-   * This is runtime metadata and is never persisted to the database.
+   * This is runtime metadata and is never persisted to the database. Models
+   * must not redeclare this field: doing so throws a `TypeError` at
+   * construction because the property is defined as non-configurable.
    */
   declare wasRecentlyCreated: boolean
 
