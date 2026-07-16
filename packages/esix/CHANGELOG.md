@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.5.1](https://github.com/Artmann/esix/compare/v5.5.0...v5.5.1) (2026-07-16)
+
+
+### Miscellaneous Chores
+
+* release 5.5.1 ([6f6df02](https://github.com/Artmann/esix/commit/6f6df028e454fa8b8d9fe90d68ee112464d95bb8))
+
 ## [5.5.0](https://github.com/Artmann/esix/compare/v5.4.0...v5.5.0) (2026-07-16)
 
 
