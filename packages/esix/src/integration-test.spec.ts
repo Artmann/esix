@@ -36,6 +36,12 @@ class Flight extends BaseModel {
   public arrival_time = ''
 }
 
+class LegacyOrder extends BaseModel {
+  static collectionName = 'legacy_orders'
+
+  public reference = ''
+}
+
 class Product extends BaseModel {
   public name = ''
   public price = 0
@@ -1092,6 +1098,41 @@ describe('wasRecentlyCreated', () => {
     await existingFlight.save()
 
     expect(existingFlight.wasRecentlyCreated).toBe(false)
+  })
+})
+
+describe('Custom Collection Names', () => {
+  beforeEach(() => {
+    Object.assign(process.env, {
+      DB_ADAPTER: 'mock',
+      DB_DATABASE: `test-${createUuid()}`
+    })
+  })
+
+  it('stores and retrieves models using the custom collection name', async () => {
+    const order = await LegacyOrder.create({ reference: 'ORDER-1' })
+
+    const foundOrder = await LegacyOrder.find(order.id)
+
+    expect(foundOrder).toEqual({
+      createdAt: expect.any(Number),
+      id: order.id,
+      reference: 'ORDER-1',
+      updatedAt: null
+    })
+
+    const orders = await LegacyOrder.all()
+
+    expect(orders).toHaveLength(1)
+
+    // Assert on the raw collection to prove the documents live in the
+    // custom collection rather than the inferred `legacy-orders`.
+    const connection = await connectionHandler.getConnection()
+    const collection = await connection.collection('legacy_orders')
+    const document = await collection.findOne({ _id: order.id as any })
+
+    expect(document).not.toBeNull()
+    expect(document).toHaveProperty('reference', 'ORDER-1')
   })
 })
 

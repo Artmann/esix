@@ -27,7 +27,7 @@ const collection = {
   aggregate: vi.fn()
 }
 const database = {
-  collection: () => Promise.resolve(collection)
+  collection: vi.fn(() => Promise.resolve(collection))
 }
 const client = {
   db: () => database
@@ -142,6 +142,75 @@ describe('BaseModel', () => {
       expect(collection.find).toHaveBeenCalledWith({})
 
       expect(books).toEqual([])
+    })
+  })
+
+  describe('collectionName', () => {
+    class Invoice extends BaseModel {
+      static collectionName = 'billing_invoices'
+
+      public amount = 0
+    }
+
+    it('uses the custom collection name when reading.', async () => {
+      const cursor = createCursor([])
+
+      collection.find.mockReturnValue(cursor)
+
+      await Invoice.all()
+
+      expect(database.collection).toHaveBeenCalledWith('billing_invoices')
+    })
+
+    it('uses the custom collection name when writing.', async () => {
+      collection.insertOne.mockResolvedValue({
+        insertedId: '5f3568f2a0cdd1c9ba411c43'
+      })
+      collection.findOne.mockResolvedValue({
+        _id: '5f3568f2a0cdd1c9ba411c43',
+        amount: 100,
+        createdAt: 1594552340652,
+        updatedAt: null
+      })
+
+      await Invoice.create({ amount: 100 })
+
+      expect(database.collection).toHaveBeenCalledWith('billing_invoices')
+    })
+
+    it('uses the custom collection name when deleting.', async () => {
+      collection.deleteOne.mockReturnValue({
+        deletedCount: 1
+      })
+
+      const invoice = new Invoice()
+      invoice.id = '5f3568f2a0cdd1c9ba411c43'
+
+      await invoice.delete()
+
+      expect(database.collection).toHaveBeenCalledWith('billing_invoices')
+    })
+
+    it('falls back to the inferred collection name.', async () => {
+      const cursor = createCursor([])
+
+      collection.find.mockReturnValue(cursor)
+
+      await Book.all()
+
+      expect(database.collection).toHaveBeenCalledWith('books')
+    })
+
+    it('inherits the custom collection name in subclasses.', async () => {
+      class PaidInvoice extends Invoice {}
+
+      const cursor = createCursor([])
+
+      collection.find.mockReturnValue(cursor)
+
+      await PaidInvoice.all()
+
+      expect(database.collection).toHaveBeenCalledWith('billing_invoices')
     })
   })
 

@@ -1,6 +1,6 @@
 import BaseModel from './base-model'
 import { ConnectionHandler, connectionHandler } from './connection-handler'
-import { getCollectionName } from './naming'
+import { getCollectionName, resolveCollectionName } from './naming'
 import QueryBuilder, { type Query } from './query-builder'
 import {
   type ComparisonOperator,
@@ -16,7 +16,8 @@ export {
   ConnectionHandler,
   QueryBuilder,
   connectionHandler,
-  getCollectionName
+  getCollectionName,
+  resolveCollectionName
 }
 export type {
   ComparisonOperator,
