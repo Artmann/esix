@@ -4,7 +4,10 @@
   "description": "A really slick ORM for MongoDB.",
   "author": "Christoffer Artmann",
   "license": "MIT",
-  "repository": "https://github.com/Artmann/esix",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Artmann/esix.git"
+  },
   "homepage": "https://esix.netlify.app/",
   "keywords": [
     "mongodb",
@@ -18,7 +21,7 @@
     "apidocs:build": "typedoc --options typedoc.json --out ../../docs/dist/api src/",
     "format": "prettier --write .",
     "lint": "eslint ./src --ext .ts",
-    "prepublish": "yarn build",
+    "prepublishOnly": "yarn build",
     "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
