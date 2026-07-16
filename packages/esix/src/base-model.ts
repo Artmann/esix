@@ -11,6 +11,20 @@ import type {
 import { camelCase } from 'change-case'
 
 export default class BaseModel {
+  /**
+   * Overrides the MongoDB collection name for this model. When unset, the
+   * name is inferred from the class name (`BlogPost` → `blog-posts`).
+   * Subclasses share the parent's custom name unless they set their own.
+   *
+   * Example
+   * ```
+   * class User extends BaseModel {
+   *   static collectionName = 'app_users'
+   * }
+   * ```
+   */
+  declare static collectionName?: string
+
   public createdAt = 0
   public id = ''
   public updatedAt: number | null = null

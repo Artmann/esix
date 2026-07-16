@@ -3,7 +3,7 @@ import percentile from 'percentile'
 
 import type BaseModel from './base-model'
 import { connectionHandler } from './connection-handler'
-import { getCollectionName } from './naming'
+import { resolveCollectionName } from './naming'
 import { sanitize } from './sanitize'
 import type {
   ComparisonOperator,
@@ -1174,7 +1174,7 @@ export default class QueryBuilder<T extends BaseModel> {
   private async useCollection<K>(
     block: (collection: Collection) => Promise<any>
   ): Promise<K> {
-    const collectionName = getCollectionName(this.ctor.name)
+    const collectionName = resolveCollectionName(this.ctor)
 
     const connection = await connectionHandler.getConnection()
 

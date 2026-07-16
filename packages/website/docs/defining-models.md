@@ -54,7 +54,19 @@ The class name is transformed by:
 1. Converting from PascalCase to kebab-case (dashes)
 2. Making it plural
 
-This means you don't need to configure collection names manually - just name your model classes descriptively and Esix handles the rest!
+This means you don't need to configure collection names manually - just name your model classes descriptively and Esix handles the rest! And when the convention doesn't fit, there's an escape hatch.
+
+### Custom Collection Names
+
+Sometimes the conventional name doesn't work - you're pointing Esix at an existing collection, sharing a database with another app, or your build tool minifies class names. Set the static `collectionName` property to override the convention:
+
+```typescript
+class User extends BaseModel {
+  static collectionName = 'app_users'
+}
+```
+
+All queries, writes, and relationships for the model now use the `app_users` collection. Subclasses inherit the custom name unless they define their own.
 
 ## Relationships
 

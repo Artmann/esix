@@ -1,8 +1,11 @@
 /**
  * Represents a constructor type for a given model class.
  * Used internally for type-safe model instantiation.
+ *
+ * The optional `collectionName` static lets a model override the
+ * collection name inferred from its class name.
  */
-export type ObjectType<T> = { new (): T }
+export type ObjectType<T> = { new (): T; collectionName?: string }
 
 /**
  * Represents a generic key-value dictionary object.
