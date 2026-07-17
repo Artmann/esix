@@ -4,6 +4,7 @@ import percentile from 'percentile'
 import type BaseModel from './base-model'
 import { connectionHandler } from './connection-handler'
 import { resolveCollectionName } from './naming'
+import { resolveQueryLogger, withQueryLogging } from './query-logger'
 import { sanitize } from './sanitize'
 import type {
   ComparisonOperator,
@@ -1180,7 +1181,11 @@ export default class QueryBuilder<T extends BaseModel> {
 
     const collection = await connection.collection(collectionName)
 
-    const result = await block(collection)
+    const logger = resolveQueryLogger()
+
+    const result = await block(
+      logger ? withQueryLogging(collection, collectionName, logger) : collection
+    )
 
     return result
   }
