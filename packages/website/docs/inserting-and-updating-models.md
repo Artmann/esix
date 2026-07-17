@@ -1,9 +1,14 @@
 ---
 title: Inserting & Updating Models
-description: Learn how to create, update, and modify records in your MongoDB database using Esix's intuitive model methods and mass assignment features.
+description:
+  Learn how to create, update, and modify records in your MongoDB database using
+  Esix's intuitive model methods and mass assignment features.
 ---
 
-When it comes to adding new models to the database, there are two different ways to go about it. You can either use the `create` method and pass it the attributes you want the model to have, or you can create a new instance of the model and call its `save` method.
+When it comes to adding new models to the database, there are two different ways
+to go about it. You can either use the `create` method and pass it the
+attributes you want the model to have, or you can create a new instance of the
+model and call its `save` method.
 
 ```ts
 // Using the create method.
@@ -37,6 +42,28 @@ await product.save()
 
 When you call `save` on an already existing model, the `updatedAt` field will be
 filled with the current timestamp.
+
+## Updating multiple attributes
+
+Instead of assigning each attribute individually and calling `save`, you can
+pass all the changes to the `update` method in one go.
+
+```ts
+const product = await Product.find('5f5a474b32fa462a5724ff7d')
+
+// Instead of this...
+product.name = 'Chair 1'
+product.price = 42.0
+
+await product.save()
+
+// ...you can do this.
+await product.update({ name: 'Chair 1', price: 42.0 })
+```
+
+The `update` method assigns the given attributes to the model and saves it, so
+the `updatedAt` field is filled with the current timestamp just like when you
+call `save` yourself.
 
 Both the timestamp properties contain the current time in milliseconds since
 January 1st, 1970, using JavaScript's
