@@ -683,6 +683,89 @@ describe('BaseModel', () => {
     })
   })
 
+  describe('update', () => {
+    it('updates an existing model', async () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
+
+      const book = new Book()
+
+      book.id = '5f347707fdec6e388b5c1d33'
+      book.title = 'Emma'
+      book.isbn = '9780141439600'
+      book.pages = 448
+      book.authorId = 'author-1'
+      book.createdAt = new Date('2022-12-01T10:00:00Z').getTime()
+
+      await book.update({
+        pages: 512,
+        title: 'Emma (Second Edition)'
+      })
+
+      expect(book.pages).toEqual(512)
+      expect(book.title).toEqual('Emma (Second Edition)')
+
+      expect(collection.updateOne).toHaveBeenCalledWith(
+        {
+          _id: '5f347707fdec6e388b5c1d33'
+        },
+        {
+          $set: {
+            _id: '5f347707fdec6e388b5c1d33',
+            authorId: 'author-1',
+            createdAt: new Date('2022-12-01T10:00:00Z').getTime(),
+            isAvailable: true,
+            isbn: '9780141439600',
+            pages: 512,
+            title: 'Emma (Second Edition)',
+            updatedAt: new Date('2023-01-01T10:00:00Z').getTime()
+          }
+        },
+        {
+          upsert: true
+        }
+      )
+    })
+
+    it('inserts a new model when it has no id', async () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
+
+      vi.mocked(ObjectId.prototype.toHexString).mockReturnValue(
+        '5f347707fdec6e388b5c1d33'
+      )
+
+      const book = new Book()
+
+      await book.update({
+        isbn: '9780141439600',
+        title: 'Emma'
+      })
+
+      expect(book.wasRecentlyCreated).toEqual(true)
+
+      expect(collection.updateOne).toHaveBeenCalledWith(
+        {
+          _id: '5f347707fdec6e388b5c1d33'
+        },
+        {
+          $set: {
+            _id: '5f347707fdec6e388b5c1d33',
+            createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
+            isAvailable: true,
+            isbn: '9780141439600',
+            pages: 0,
+            title: 'Emma',
+            updatedAt: null
+          }
+        },
+        {
+          upsert: true
+        }
+      )
+    })
+  })
+
   describe('where', () => {
     it('finds all documets that matches a query', async () => {
       const cursor = createCursor([

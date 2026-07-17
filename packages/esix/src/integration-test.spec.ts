@@ -199,6 +199,41 @@ describe('Integration', () => {
     })
   })
 
+  it('updates multiple attributes at once', async () => {
+    const dateSpy = vi.spyOn(Date, 'now')
+    dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())
+
+    const product = await Product.create({
+      name: 'Chair',
+      price: 20.0
+    })
+
+    dateSpy.mockReturnValue(new Date('2023-01-01T10:30:00Z').getTime())
+
+    const existingProduct = await Product.find(product.id)
+
+    expect(existingProduct).not.toBeNull()
+
+    if (!existingProduct) {
+      return
+    }
+
+    await existingProduct.update({
+      name: 'Chair 1',
+      price: 42.0
+    })
+
+    const updatedProduct = await Product.find(product.id)
+
+    expect(updatedProduct).toEqual({
+      createdAt: new Date('2023-01-01T10:00:00Z').getTime(),
+      id: product.id,
+      name: 'Chair 1',
+      price: 42.0,
+      updatedAt: new Date('2023-01-01T10:30:00Z').getTime()
+    })
+  })
+
   it('persists a new model', async () => {
     const dateSpy = vi.spyOn(Date, 'now')
     dateSpy.mockReturnValue(new Date('2023-01-01T10:00:00Z').getTime())

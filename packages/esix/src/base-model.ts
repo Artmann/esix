@@ -697,6 +697,28 @@ export default class BaseModel {
       this.id = id
     }
   }
+
+  /**
+   * Assigns the given attributes to the model and persists it to the
+   * database. It's equivalent to assigning each attribute individually and
+   * then calling `save()`, so `updatedAt` is stamped automatically on
+   * existing models. Note that assigning a new `id` upserts a new document
+   * rather than renaming the existing one.
+   *
+   * Example
+   * ```
+   * const product = await Product.find(id);
+   *
+   * await product.update({ name: 'Chair 1', price: 42.0 });
+   * ```
+   *
+   * @param attributes
+   */
+  async update(attributes: Partial<this>): Promise<void> {
+    Object.assign(this, attributes)
+
+    await this.save()
+  }
 }
 
 function getDefaultValues<T extends BaseModel>(
