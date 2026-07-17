@@ -33,7 +33,8 @@ export interface QueryLogEntry {
 
 /**
  * A function that receives a `QueryLogEntry` for every MongoDB operation
- * esix runs.
+ * esix runs. Errors thrown by the logger are ignored, so a faulty logger
+ * never changes the outcome of the operation it observes.
  */
 export type QueryLogger = (entry: QueryLogEntry) => void
 
@@ -192,7 +193,7 @@ function createPromiseOperation(
 
     return result.then(
       (value) => {
-        logger({
+        safeLog(logger, {
           args,
           collectionName,
           durationMs: performance.now() - startedAt,
@@ -202,7 +203,7 @@ function createPromiseOperation(
         return value
       },
       (error: unknown) => {
-        logger({
+        safeLog(logger, {
           args,
           collectionName,
           durationMs: performance.now() - startedAt,
@@ -213,6 +214,14 @@ function createPromiseOperation(
         throw error
       }
     )
+  }
+}
+
+function safeLog(logger: QueryLogger, entry: QueryLogEntry): void {
+  try {
+    logger(entry)
+  } catch {
+    // A faulty logger must never change the outcome of the operation.
   }
 }
 
@@ -243,7 +252,7 @@ function wrapCursor(cursor: object, context: CursorLogContext): object {
 
           return result.then(
             (documents) => {
-              logger({
+              safeLog(logger, {
                 args,
                 collectionName,
                 durationMs: performance.now() - startedAt,
@@ -253,7 +262,7 @@ function wrapCursor(cursor: object, context: CursorLogContext): object {
               return documents
             },
             (error: unknown) => {
-              logger({
+              safeLog(logger, {
                 args,
                 collectionName,
                 durationMs: performance.now() - startedAt,

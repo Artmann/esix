@@ -220,6 +220,56 @@ describe('withQueryLogging', () => {
     expect(entries[0].durationMs).toBeGreaterThanOrEqual(0)
   })
 
+  it('does not reject a successful operation when the logger throws', async () => {
+    const fakeCollection = {
+      insertOne: (): Promise<{ insertedId: string }> => {
+        return Promise.resolve({ insertedId: 'book-1' })
+      }
+    }
+
+    const collection = withQueryLogging(fakeCollection, 'books', () => {
+      throw new Error('logger blew up')
+    })
+
+    await expect(collection.insertOne()).resolves.toEqual({
+      insertedId: 'book-1'
+    })
+  })
+
+  it('rejects with the original error when the logger throws', async () => {
+    const failure = new Error('write failed')
+
+    const fakeCollection = {
+      updateOne: (): Promise<never> => Promise.reject(failure)
+    }
+
+    const collection = withQueryLogging(fakeCollection, 'books', () => {
+      throw new Error('logger blew up')
+    })
+
+    await expect(collection.updateOne()).rejects.toBe(failure)
+  })
+
+  it('does not break cursor consumption when the logger throws', async () => {
+    const documents = [{ title: 'Dune' }]
+
+    const fakeCursor = {
+      toArray: (): Promise<Record<string, string>[]> => {
+        return Promise.resolve(documents)
+      }
+    }
+
+    const fakeCollection = {
+      find: () => fakeCursor
+    }
+
+    const collection = withQueryLogging(fakeCollection, 'books', () => {
+      throw new Error('logger blew up')
+    })
+
+    await expect(collection.find().toArray()).resolves.toEqual(documents)
+  })
+
   it('logs a chained find exactly once with the original arguments', async () => {
     const documents = [{ title: 'Dune' }]
 
