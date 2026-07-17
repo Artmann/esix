@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.6.0](https://github.com/Artmann/esix/compare/v5.5.1...v5.6.0) (2026-07-17)
+
+
+### Features
+
+* add update() for bulk attribute updates ([#78](https://github.com/Artmann/esix/issues/78)) ([f90df2e](https://github.com/Artmann/esix/commit/f90df2e0b8fe5f1f7d4d882b87814321d3144bec)), closes [#44](https://github.com/Artmann/esix/issues/44)
+
 ## [5.5.1](https://github.com/Artmann/esix/compare/v5.5.0...v5.5.1) (2026-07-16)
 
 
