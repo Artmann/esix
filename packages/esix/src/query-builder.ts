@@ -1,4 +1,4 @@
-import { Collection, ObjectId } from 'mongodb'
+import { BSON, Collection, ObjectId } from 'mongodb'
 import percentile from 'percentile'
 
 import type BaseModel from './base-model'
@@ -217,6 +217,19 @@ export default class QueryBuilder<T extends BaseModel> {
     })
   }
 
+  /** @internal Inserts and hydrates the exact BSON snapshot without a second query. */
+  async createModel(attributes: Dictionary): Promise<T> {
+    const document = BSON.deserialize(
+      BSON.serialize(normalizeAttributes(attributes))
+    )
+    return this.useCollection(async (collection) => {
+      await collection.insertOne(document)
+      const model = this.createInstance<T>(document)
+      model.wasRecentlyCreated = true
+      return model
+    })
+  }
+
   /**
    * Returns an async iterator over all models matching the current query,
    * fetching documents in batches of `batchSize` behind the scenes.
@@ -323,7 +336,18 @@ export default class QueryBuilder<T extends BaseModel> {
    */
   async distinct<K extends keyof T>(key: K): Promise<T[K][]> {
     const query = this.buildQuery()
-
+    const field = key === 'id' ? '_id' : String(key)
+    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+      const documents = await this.aggregate([
+        { $match: andQueries(query, { [field]: { $ne: null } }) },
+        { $group: { _id: `$${field}` } }
+      ])
+      return documents.map((document) =>
+        key === 'id' && typeof document._id !== 'string'
+          ? document._id.toHexString()
+          : document._id
+      )
+    }
     return this.useCollection(async (collection) => {
       const keyStr = (key as string) === 'id' ? '_id' : (key as string)
       const documents = await collection
@@ -338,8 +362,7 @@ export default class QueryBuilder<T extends BaseModel> {
         if (value === null || value === undefined) {
           continue
         }
-        const dedupeKey =
-          typeof value === 'object' ? JSON.stringify(value) : value
+        const dedupeKey = BSON.EJSON.stringify(value, { relaxed: false })
         if (seen.has(dedupeKey)) {
           continue
         }
@@ -401,9 +424,7 @@ export default class QueryBuilder<T extends BaseModel> {
    * Returns the first model matching the query options.
    */
   async first(): Promise<T | null> {
-    this.queryLimit = 1
-
-    const models = await this.execute()
+    const models = await this.copy().limit(1).execute()
 
     if (models.length === 0) {
       return null
@@ -689,12 +710,10 @@ export default class QueryBuilder<T extends BaseModel> {
       )
     }
 
-    const total = await this.count()
-
-    this.queryOffset = (page - 1) * perPage
-    this.queryLimit = perPage
-
-    const data = await this.execute()
+    const query = this.copy()
+      .skip((page - 1) * perPage)
+      .limit(perPage)
+    const [total, data] = await Promise.all([query.count(), query.execute()])
     const lastPage = total === 0 ? 1 : Math.ceil(total / perPage)
 
     return { data, total, page, perPage, lastPage }
@@ -1070,6 +1089,16 @@ export default class QueryBuilder<T extends BaseModel> {
     return instance
   }
 
+  private copy(): QueryBuilder<T> {
+    const copy = new QueryBuilder(this.ctor)
+    copy.query = this.query
+    copy.orQueries = [...this.orQueries]
+    copy.queryOrder = this.queryOrder && { ...this.queryOrder }
+    copy.queryOffset = this.queryOffset
+    copy.queryLimit = this.queryLimit
+    return copy
+  }
+
   private async execute(): Promise<T[]> {
     return (await this.readDocuments()).map((document) =>
       this.createInstance<T>(document)
@@ -1078,6 +1107,9 @@ export default class QueryBuilder<T extends BaseModel> {
 
   private readDocuments(fields?: Fields): Promise<Document[]> {
     const query = this.buildQuery()
+    const order = this.queryOrder && { ...this.queryOrder }
+    const offset = this.queryOffset
+    const limit = this.queryLimit
 
     return this.useCollection(async (collection) => {
       try {
@@ -1085,16 +1117,16 @@ export default class QueryBuilder<T extends BaseModel> {
           ? collection.find(query, { projection: fields })
           : collection.find(query)
 
-        if (this.queryOrder) {
-          cursor = cursor.sort(this.queryOrder)
+        if (order) {
+          cursor = cursor.sort(order)
         }
 
-        if (this.queryOffset) {
-          cursor = cursor.skip(this.queryOffset)
+        if (offset) {
+          cursor = cursor.skip(offset)
         }
 
-        if (this.queryLimit) {
-          cursor = cursor.limit(this.queryLimit)
+        if (limit) {
+          cursor = cursor.limit(limit)
         }
 
         const documents = await cursor.toArray()
