@@ -138,3 +138,6 @@ Pass `null` to clear the custom logger again:
 ```ts
 setQueryLogger(null)
 ```
+
+For Effect-managed connections and Config integration, see
+[Effect configuration](/docs/effect#configuration-and-connection-lifetime).

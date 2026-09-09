@@ -22,7 +22,8 @@
             "pages": [
               "docs/introduction",
               "docs/getting-started",
-              "docs/configuration"
+              "docs/configuration",
+              "docs/effect-quickstart"
             ]
           },
           {
@@ -41,7 +42,7 @@
           },
           {
             "group": "Guides",
-            "pages": ["docs/testing"]
+            "pages": ["docs/testing", "docs/effect"]
           }
         ]
       },
@@ -73,10 +74,15 @@
   },
   "navbar": {
     "links": [
-      { "label": "GitHub", "href": "https://github.com/artmann/esix" }
+      {
+        "label": "GitHub",
+        "href": "https://github.com/artmann/esix"
+      }
     ]
   },
   "footer": {
-    "socials": { "github": "https://github.com/artmann/esix" }
+    "socials": {
+      "github": "https://github.com/artmann/esix"
+    }
   }
 }

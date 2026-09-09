@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "paths": { "esix": ["./src/index.ts"] },
+    "plugins": [{ "name": "@effect/language-service" }],
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
     /* Basic Options */

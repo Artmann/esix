@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import { ObjectId } from 'mongodb'
 
 import QueryBuilder from './query-builder'
+import { connectionFor } from './model-connection'
 import { modelIdentity, rememberIdentity } from './model-identity'
 import type {
   ComparisonOperator,
@@ -598,7 +599,7 @@ export default class BaseModel {
       return null
     }
 
-    const queryBuilder = new QueryBuilder(ctor)
+    const queryBuilder = new QueryBuilder(ctor, connectionFor(this))
 
     if (ok === 'id') {
       return value instanceof ObjectId
@@ -619,7 +620,8 @@ export default class BaseModel {
    */
   async delete(): Promise<number> {
     const queryBuilder = new QueryBuilder(
-      this.constructor as ObjectType<BaseModel>
+      this.constructor as ObjectType<BaseModel>,
+      connectionFor(this)
     )
 
     return queryBuilder
@@ -635,7 +637,7 @@ export default class BaseModel {
     foreignKey?: string,
     localKey?: string
   ): QueryBuilder<T> {
-    const queryBuilder = new QueryBuilder(ctor)
+    const queryBuilder = new QueryBuilder(ctor, connectionFor(this))
 
     const fk = foreignKey || camelCase(`${this.constructor.name}Id`)
     const lk = localKey || 'id'
@@ -679,7 +681,8 @@ export default class BaseModel {
    */
   async save(): Promise<void> {
     const queryBuilder = new QueryBuilder(
-      this.constructor as ObjectType<BaseModel>
+      this.constructor as ObjectType<BaseModel>,
+      connectionFor(this)
     )
 
     const attributes = { ...this }
@@ -723,7 +726,7 @@ export default class BaseModel {
   }
 }
 
-function getDefaultValues<T extends BaseModel>(
+export function getDefaultValues<T extends BaseModel>(
   ctor: ObjectType<T>
 ): Record<string, any> {
   const instance = new ctor()
