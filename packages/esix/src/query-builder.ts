@@ -2,11 +2,12 @@ import { Collection, ObjectId } from 'mongodb'
 import percentile from 'percentile'
 
 import type BaseModel from './base-model'
-import { modelIdentity, rememberIdentity } from './model-identity'
+import { rememberIdentity } from './model-identity'
 import { connectionHandler } from './connection-handler'
 import { resolveCollectionName } from './naming'
 import { resolveQueryLogger, withQueryLogging } from './query-logger'
 import { sanitize } from './sanitize'
+import { env } from './env'
 import type {
   ComparisonOperator,
   Dictionary,
@@ -23,7 +24,7 @@ import type {
 export type Query = { [index: string]: unknown }
 
 type Order = { [index: string]: 1 | -1 }
-type Fields = { [index: string]: 1 }
+type Fields = { [index: string]: 0 | 1 }
 
 function isString(x: any): x is string {
   return typeof x === 'string'
@@ -74,7 +75,7 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param stages
    * @returns The result of the aggregations
    */
-  async aggregate(stages: Record<string, unknown>[]) {
+  async aggregate(stages: Record<string, unknown>[]): Promise<Document[]> {
     return this.useCollection(async (collection) => {
       const cursor = await collection.aggregate(stages)
 
@@ -88,6 +89,9 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async average<K extends keyof T>(key: K): Promise<number> {
+    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+      return this.numericAggregate(key, 'avg')
+    }
     const values = await this.pluck(key)
 
     if (values.length === 0) {
@@ -267,29 +271,27 @@ export default class QueryBuilder<T extends BaseModel> {
    * @returns Returns the number of models deleted.
    */
   async delete(): Promise<number> {
-    const ids = (await this.execute({ _id: 1 })).map(modelIdentity)
-
+    if (!this.queryLimit && !this.queryOffset) {
+      return this.useCollection(
+        async (collection) =>
+          (await collection.deleteMany(this.buildQuery())).deletedCount
+      )
+    }
+    const documents = await this.readDocuments({ _id: 1 })
     return this.useCollection(async (collection) => {
-      if (ids.length === 0) {
-        return 0
+      if (documents.length === 1) {
+        return (await collection.deleteOne({ _id: documents[0]._id }))
+          .deletedCount
       }
-
-      if (ids.length === 1) {
-        const [id] = ids
-        const { deletedCount } = await collection.deleteOne({
-          _id: id as any
-        })
-
-        return deletedCount
+      let deleted = 0
+      for (let offset = 0; offset < documents.length; offset += 1000) {
+        const ids = documents
+          .slice(offset, offset + 1000)
+          .map((document) => document._id)
+        deleted += (await collection.deleteMany({ _id: { $in: ids } }))
+          .deletedCount
       }
-
-      const { deletedCount } = await collection.deleteMany({
-        _id: {
-          $in: ids as any[]
-        }
-      })
-
-      return deletedCount
+      return deleted
     })
   }
 
@@ -533,6 +535,9 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async max<K extends keyof T>(key: K): Promise<number> {
+    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+      return this.numericAggregate(key, 'max')
+    }
     const values = await this.pluck(key)
 
     if (values.length === 0) {
@@ -545,7 +550,10 @@ export default class QueryBuilder<T extends BaseModel> {
       )
     }
 
-    return Math.max(...values)
+    return (values as number[]).reduce(
+      (maximum, value) => Math.max(maximum, value),
+      -Infinity
+    )
   }
 
   /**
@@ -554,6 +562,9 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async min<K extends keyof T>(key: K): Promise<number> {
+    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+      return this.numericAggregate(key, 'min')
+    }
     const values = await this.pluck(key)
 
     if (values.length === 0) {
@@ -566,7 +577,10 @@ export default class QueryBuilder<T extends BaseModel> {
       )
     }
 
-    return Math.min(...values)
+    return (values as number[]).reduce(
+      (minimum, value) => Math.min(minimum, value),
+      Infinity
+    )
   }
 
   /**
@@ -727,11 +741,16 @@ export default class QueryBuilder<T extends BaseModel> {
    * // => [ '1', '2', '3' ]
    */
   async pluck<K extends keyof T>(key: K): Promise<T[K][]> {
-    const records = await this.execute({ [key as string]: 1 })
-
-    const values = records.map((record) => record[key])
-
-    return values
+    const field = key === 'id' ? '_id' : String(key)
+    const documents = await this.readDocuments(
+      field === '_id' ? { _id: 1 } : { [field]: 1, _id: 0 }
+    )
+    return documents.map((document) => {
+      const value = document[field]
+      return key === 'id' && typeof value !== 'string'
+        ? value.toHexString()
+        : value
+    })
   }
 
   /**
@@ -804,6 +823,9 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async sum<K extends keyof T>(key: K): Promise<number> {
+    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+      return this.numericAggregate(key, 'sum')
+    }
     const values = await this.pluck(key)
 
     if (!isNumberArray(values)) {
@@ -1048,13 +1070,19 @@ export default class QueryBuilder<T extends BaseModel> {
     return instance
   }
 
-  private execute(fields?: Fields): Promise<T[]> {
+  private async execute(): Promise<T[]> {
+    return (await this.readDocuments()).map((document) =>
+      this.createInstance<T>(document)
+    )
+  }
+
+  private readDocuments(fields?: Fields): Promise<Document[]> {
     const query = this.buildQuery()
 
     return this.useCollection(async (collection) => {
       try {
         let cursor = fields
-          ? collection.find(query, fields)
+          ? collection.find(query, { projection: fields })
           : collection.find(query)
 
         if (this.queryOrder) {
@@ -1071,11 +1099,7 @@ export default class QueryBuilder<T extends BaseModel> {
 
         const documents = await cursor.toArray()
 
-        const records = documents
-          .filter((document) => document)
-          .map((document): T => this.createInstance(document))
-
-        return records
+        return documents.filter((document) => document)
       } catch (error) {
         if (isTextIndexMissingError(error, query)) {
           throw new Error(
@@ -1180,6 +1204,38 @@ export default class QueryBuilder<T extends BaseModel> {
     }
 
     this.query = andQueries(this.query, condition)
+  }
+
+  private async numericAggregate(
+    key: keyof T,
+    operator: 'sum' | 'avg' | 'min' | 'max'
+  ): Promise<number> {
+    const field = key === 'id' ? '_id' : String(key)
+    const stages: Record<string, unknown>[] = [{ $match: this.buildQuery() }]
+    if (this.queryOrder) stages.push({ $sort: this.queryOrder })
+    if (this.queryOffset) stages.push({ $skip: this.queryOffset })
+    if (this.queryLimit) stages.push({ $limit: Math.abs(this.queryLimit) })
+    stages.push({
+      $group: {
+        _id: null,
+        value: { [`$${operator}`]: `$${field}` },
+        invalid: {
+          $sum: {
+            $cond: [
+              { $in: [{ $type: `$${field}` }, ['int', 'long', 'double']] },
+              0,
+              1
+            ]
+          }
+        }
+      }
+    })
+    const [result] = await this.aggregate(stages)
+    if (result?.invalid)
+      throw new Error(
+        `All values returned for ${String(key)} are not numbers. Please check your data.`
+      )
+    return result?.value ?? 0
   }
 
   private async useCollection<K>(

@@ -2,6 +2,7 @@ import { Binary, Decimal128, MongoClient, ObjectId } from 'mongodb'
 import { randomUUID } from 'node:crypto'
 import {
   afterAll,
+  afterEach,
   beforeAll,
   beforeEach,
   describe,
@@ -26,8 +27,9 @@ describe.skipIf(!uri)('MongoDB driver contracts', () => {
     process.env.DB_ADAPTER = 'default'
     process.env.DB_URL = uri!
     process.env.DB_DATABASE = databaseName
-    client = await MongoClient.connect(uri!)
+    client = await MongoClient.connect(uri!, { monitorCommands: true })
   })
+  afterEach(() => vi.restoreAllMocks())
   beforeEach(async () => {
     await client.db(databaseName).collection('records').deleteMany({})
     await client
@@ -160,5 +162,78 @@ describe.skipIf(!uri)('MongoDB driver contracts', () => {
     await explicit.save()
     expect(explicit.wasRecentlyCreated).toBe(true)
     expect((await RecordModel.find('explicit'))!.wasRecentlyCreated).toBe(false)
+  })
+  it('projects scalar reads without constructing models', async () => {
+    let constructions = 0
+    class Scalar extends RecordModel {
+      constructor() {
+        super()
+        constructions++
+      }
+    }
+    const commands: any[] = []
+    const listener = (event: any) => commands.push(event.command)
+    client.on('commandStarted', listener)
+    vi.spyOn(connectionHandler, 'getConnection').mockResolvedValue(
+      client.db(databaseName)
+    )
+    try {
+      expect(await Scalar.orderBy('id').pluck('value')).toEqual([20, 70, 5])
+      expect(constructions).toBe(0)
+      expect(commands.find((command) => command.find)?.projection).toEqual({
+        value: 1,
+        _id: 0
+      })
+    } finally {
+      client.off('commandStarted', listener)
+    }
+  })
+  it('aggregates on the server with filter, sort and window semantics', async () => {
+    const commands: any[] = []
+    const listener = (event: any) => commands.push(event.command)
+    client.on('commandStarted', listener)
+    vi.spyOn(connectionHandler, 'getConnection').mockResolvedValue(
+      client.db(databaseName)
+    )
+    try {
+      expect(
+        await RecordModel.where('value', '>', 0)
+          .orderBy('value')
+          .skip(1)
+          .limit(1)
+          .sum('value')
+      ).toBe(20)
+      expect(commands.some((command) => command.aggregate)).toBe(true)
+      expect(commands.some((command) => command.find)).toBe(false)
+    } finally {
+      client.off('commandStarted', listener)
+    }
+  })
+  it('keeps scalar aggregation errors and empty results consistent', async () => {
+    const c = client.db(databaseName).collection('records')
+    await c.insertOne({ _id: 'invalid' as any, value: 'bad', group: 'invalid' })
+    for (const method of ['sum', 'average', 'min', 'max'] as const) {
+      await expect(
+        RecordModel.where('group', 'invalid')[method]('value')
+      ).rejects.toThrow(/not numbers/)
+      expect(await RecordModel.where('group', 'missing')[method]('value')).toBe(
+        0
+      )
+    }
+  })
+  it('deletes an unbounded scope with no prefetch', async () => {
+    const commands: any[] = []
+    const listener = (event: any) => commands.push(event.command)
+    client.on('commandStarted', listener)
+    vi.spyOn(connectionHandler, 'getConnection').mockResolvedValue(
+      client.db(databaseName)
+    )
+    try {
+      expect(await RecordModel.where('group', 'one').delete()).toBe(2)
+      expect(commands.some((command) => command.find)).toBe(false)
+      expect(await RecordModel.count()).toBe(1)
+    } finally {
+      client.off('commandStarted', listener)
+    }
   })
 })

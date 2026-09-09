@@ -1520,7 +1520,10 @@ describe('BaseModel', () => {
 
         const sum = await Book.sum('pages')
 
-        expect(collection.find).toHaveBeenCalledWith({}, { pages: 1 })
+        expect(collection.find).toHaveBeenCalledWith(
+          {},
+          { projection: { pages: 1, _id: 0 } }
+        )
         expect(sum).toEqual(1199)
       })
 
@@ -1609,7 +1612,10 @@ describe('BaseModel', () => {
 
         const percentile = await Book.percentile('pages', 50)
 
-        expect(collection.find).toHaveBeenCalledWith({}, { pages: 1 })
+        expect(collection.find).toHaveBeenCalledWith(
+          {},
+          { projection: { pages: 1, _id: 0 } }
+        )
         expect(percentile).toEqual(400)
       })
     })
