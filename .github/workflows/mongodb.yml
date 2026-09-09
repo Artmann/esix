@@ -1,0 +1,31 @@
+name: MongoDB contracts
+
+on: [push, pull_request]
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mongodb: ['6.0', '8.0']
+    services:
+      mongodb:
+        image: mongo:${{ matrix.mongodb }}
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping: 1})'"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      ESIX_TEST_MONGODB_URI: mongodb://127.0.0.1:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn workspace esix test
+      - run: yarn workspace esix typecheck
+      - run: yarn workspace esix lint
+      - run: yarn workspace esix build

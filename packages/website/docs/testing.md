@@ -22,6 +22,7 @@ Set up the mock adapter in your test environment:
 // In your test setup file or individual test files
 import { beforeEach, afterEach } from 'vitest'
 import { v4 } from 'uuid'
+import { connectionHandler } from 'esix'
 
 beforeEach(() => {
   Object.assign(process.env, {
@@ -32,7 +33,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   // Clean up connections
-  await ConnectionHandler.close()
+  await connectionHandler.closeConnections()
 })
 ```
 
@@ -48,17 +49,25 @@ DB_DATABASE=test_database
 
 ## Testing Philosophy: In-Memory Database vs Mocking
 
-We strongly recommend using an in-memory test database (like Esix's mock adapter) instead of mocking the database connection or repository layer. This approach provides several key advantages:
+We strongly recommend using an in-memory test database (like Esix's mock
+adapter) instead of mocking the database connection or repository layer. This
+approach provides several key advantages:
 
 ### Why In-Memory Databases Are Better
 
-**More Realistic Testing**: In-memory databases test your actual application flows, including query logic, data transformations, and business rules, rather than just testing that mocked methods are called correctly.
+**More Realistic Testing**: In-memory databases test your actual application
+flows, including query logic, data transformations, and business rules, rather
+than just testing that mocked methods are called correctly.
 
-**Full Integration Coverage**: You can test complete user workflows from request to response, ensuring that all layers of your application work together properly.
+**Full Integration Coverage**: You can test complete user workflows from request
+to response, ensuring that all layers of your application work together
+properly.
 
-**Easier Maintenance**: No need to maintain complex mock setups that mirror your database schema and behavior. The in-memory database handles this automatically.
+**Easier Maintenance**: No need to maintain complex mock setups that mirror your
+database schema and behavior. The in-memory database handles this automatically.
 
-**Confidence in Refactoring**: When you refactor your data access patterns, your tests continue to work without requiring updates to mock expectations.
+**Confidence in Refactoring**: When you refactor your data access patterns, your
+tests continue to work without requiring updates to mock expectations.
 
 ### Example: Testing User Registration
 
@@ -85,7 +94,7 @@ describe('User Registration', () => {
     // Test the actual database state
     expect(user.email).toBe('test@example.com')
     expect(user.password).not.toBe('password123') // Should be hashed
-    
+
     // Verify user was actually saved
     const savedUser = await User.findBy('email', 'test@example.com')
     expect(savedUser).toBeTruthy()
@@ -97,12 +106,30 @@ describe('User Registration (with mocks)', () => {
   it('should create a new user', async () => {
     const mockUser = { id: '1', email: 'test@example.com' }
     jest.spyOn(User, 'create').mockResolvedValue(mockUser)
-    
+
     const user = await UserService.register(userData)
-    
+
     // This only tests that the mock was called correctly,
     // not that your actual business logic works
     expect(User.create).toHaveBeenCalledWith(userData)
   })
 })
 ```
+
+## Real MongoDB contracts
+
+The mock adapter does not reproduce every BSON, index, or driver behavior. Test
+those contracts with a real MongoDB server as well. In this repository, run:
+
+```sh
+ESIX_TEST_MONGODB_URI=mongodb://127.0.0.1:27017 yarn workspace esix test
+```
+
+This enables the real-server suite alongside the fast tests. It creates and
+drops its own uniquely named test database. CI runs this suite with MongoDB 6
+and 8. Use a disposable test server. Without the URI, the real-server suite is
+skipped.
+
+Scalar reads (`pluck`) return stored values without model defaults. Numeric
+aggregates reject missing, nonnumeric and non-finite values; empty sets return
+zero. Include these boundaries in application tests.

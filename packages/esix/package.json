@@ -22,8 +22,10 @@
     "format": "prettier --write .",
     "lint": "eslint ./src --ext .ts",
     "prepublishOnly": "yarn build",
-    "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "test:watch": "vitest",
+    "benchmark": "node --expose-gc benchmarks/review.mjs"
   },
   "type": "module",
   "main": "dist/index.cjs",
