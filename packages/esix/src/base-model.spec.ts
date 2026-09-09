@@ -728,6 +728,13 @@ describe('BaseModel', () => {
     })
 
     it('inserts a new model when it has no id', async () => {
+      collection.updateOne.mockResolvedValueOnce({
+        acknowledged: true,
+        matchedCount: 0,
+        modifiedCount: 0,
+        upsertedCount: 1,
+        upsertedId: '5f347707fdec6e388b5c1d33'
+      })
       vi.useFakeTimers()
       vi.setSystemTime(new Date('2023-01-01T10:00:00Z'))
 
