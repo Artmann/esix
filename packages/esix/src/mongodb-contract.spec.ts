@@ -299,4 +299,48 @@ describe.skipIf(!uri)('MongoDB driver contracts', () => {
     expect((await first).map((item) => item.id)).toEqual(['a', 'b', 'c'])
     expect((await query.get()).map((item) => item.id)).toEqual(['c'])
   })
+  it('rejects non-finite numeric inputs and stored values', async () => {
+    for (const value of [NaN, Infinity, -Infinity]) {
+      await expect(
+        RecordModel.where('id', 'a').increment('value', value)
+      ).rejects.toThrow(/finite/)
+      await client
+        .db(databaseName)
+        .collection('records')
+        .updateOne({ _id: 'a' as any }, { $set: { value } })
+      for (const method of ['sum', 'average', 'min', 'max'] as const) {
+        await expect(
+          RecordModel.where('id', 'a')[method]('value')
+        ).rejects.toThrow(/numbers/)
+      }
+    }
+  })
+  it('uses BSON foreign keys without crossing a colliding string identity', async () => {
+    const c = client.db(databaseName).collection('records')
+    const id = new ObjectId()
+    await c.insertMany([
+      { _id: id, group: 'parent' },
+      { _id: id.toHexString() as any, group: 'other' },
+      { _id: 'child' as any, parentId: id }
+    ])
+    const child = await RecordModel.find('child')
+    expect((await child!.belongsTo(RecordModel, 'parentId'))!.group).toBe(
+      'parent'
+    )
+    const parent = await RecordModel.where('group', 'parent').first()
+    expect(
+      (await parent!.hasMany(RecordModel, 'parentId').get()).map(
+        (record) => record.id
+      )
+    ).toEqual(['child'])
+  })
+  it('does not return unrelated children for an unsaved parent', async () => {
+    await client
+      .db(databaseName)
+      .collection('records')
+      .insertOne({ parentId: '' })
+    expect(
+      await new RecordModel().hasMany(RecordModel, 'parentId').get()
+    ).toEqual([])
+  })
 })

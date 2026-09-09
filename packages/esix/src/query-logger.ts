@@ -189,7 +189,19 @@ function createPromiseOperation(
   return (...args: unknown[]) => {
     const startedAt = performance.now()
 
-    const result = method.apply(target, args) as Promise<unknown>
+    let result: Promise<unknown>
+    try {
+      result = method.apply(target, args) as Promise<unknown>
+    } catch (error) {
+      safeLog(logger, {
+        args,
+        collectionName,
+        durationMs: performance.now() - startedAt,
+        error,
+        operation
+      })
+      throw error
+    }
 
     return result.then(
       (value) => {
@@ -219,7 +231,7 @@ function createPromiseOperation(
 
 function safeLog(logger: QueryLogger, entry: QueryLogEntry): void {
   try {
-    logger(entry)
+    void Promise.resolve(logger(entry)).catch(() => {})
   } catch {
     // A faulty logger must never change the outcome of the operation.
   }
