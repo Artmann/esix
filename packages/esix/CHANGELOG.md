@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.7.0](https://github.com/Artmann/esix/compare/v5.6.0...v5.7.0) (2026-09-09)
+
+
+### Features
+
+* integrate esix with Effect queries and scoped connections ([2042ec4](https://github.com/Artmann/esix/commit/2042ec4aa16cab5def1e9195aa4d7927cd1d5413))
+* make Effect queries composable through service requirements ([e97adf7](https://github.com/Artmann/esix/commit/e97adf7e89dbd5f1c56e50b129bb681698167c97))
+
+
+### Bug Fixes
+
+* cover real MongoDB lifecycle and BSON boundary contracts ([34bb1cd](https://github.com/Artmann/esix/commit/34bb1cd52ea0a259de08818e3b1bc34dc43f6a46))
+* preserve BSON identity and report creation only after successful writes ([fc766ae](https://github.com/Artmann/esix/commit/fc766aed46bb8b16b49aa8c2b6e07ec84698c3f0))
+* preserve query constraints and normalize public ID lookups ([01cdced](https://github.com/Artmann/esix/commit/01cdcedcb05b6c0d5bc65e4a8d47d02cf9a8936b))
+* share connection initialization and coordinate shutdown ([6738386](https://github.com/Artmann/esix/commit/67383860188eb2e839b52656c8e3043109c4c461))
+* validate numeric operations and isolate logger and relationship failures ([9a2bd21](https://github.com/Artmann/esix/commit/9a2bd21f5240671cd28161d990a607ebd3e6aeea))
+
+
+### Performance Improvements
+
+* avoid create readback and deduplicate on the server without mutating queries ([20e4276](https://github.com/Artmann/esix/commit/20e42765dce4e06497bef3e003aff1cffd856ee5))
+* project scalar reads and aggregate and delete on MongoDB ([35a2b89](https://github.com/Artmann/esix/commit/35a2b8925d0134883da174bbb6be36277190f049))
+
 ## [5.6.0](https://github.com/Artmann/esix/compare/v5.5.1...v5.6.0) (2026-07-17)
 
 
