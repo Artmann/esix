@@ -1,7 +1,6 @@
 # Review fixes and compatibility notes
 
-Implemented September 9, 2026 against the review baseline `fe52bf3`. The
-original findings remain in `CODE_REVIEW.md` as a historical report.
+Implemented September 9, 2026 against the review baseline `fe52bf3`. 
 
 ## Correctness
 
