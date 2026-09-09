@@ -2,6 +2,7 @@ import { Collection, ObjectId } from 'mongodb'
 import percentile from 'percentile'
 
 import type BaseModel from './base-model'
+import { modelIdentity, rememberIdentity } from './model-identity'
 import { connectionHandler } from './connection-handler'
 import { resolveCollectionName } from './naming'
 import { resolveQueryLogger, withQueryLogging } from './query-logger'
@@ -266,7 +267,7 @@ export default class QueryBuilder<T extends BaseModel> {
    * @returns Returns the number of models deleted.
    */
   async delete(): Promise<number> {
-    const ids = await this.pluck('id')
+    const ids = (await this.execute({ _id: 1 })).map(modelIdentity)
 
     return this.useCollection(async (collection) => {
       if (ids.length === 0) {
@@ -740,19 +741,27 @@ export default class QueryBuilder<T extends BaseModel> {
    * @internal
    */
   async save(attributes: Dictionary): Promise<string> {
+    return (await this.persist(attributes)).id
+  }
+
+  /** @internal Persists a model while retaining its original BSON identity. */
+  async persist(
+    attributes: Dictionary,
+    rawId?: string | ObjectId
+  ): Promise<{ id: string; created: boolean }> {
     attributes = normalizeAttributes(sanitize(attributes))
-
+    if (rawId) attributes._id = rawId
     const id = attributes._id
-
     return this.useCollection(async (collection) => {
-      const filter = { _id: id }
-      const options = {
-        upsert: true
+      const result = await collection.updateOne(
+        { _id: id },
+        { $set: attributes },
+        { upsert: true }
+      )
+      return {
+        id: typeof id === 'string' ? id : id.toHexString(),
+        created: (result?.upsertedCount ?? 0) > 0
       }
-
-      await collection.updateOne(filter, { $set: attributes }, options)
-
-      return id
     })
   }
 
@@ -1033,6 +1042,8 @@ export default class QueryBuilder<T extends BaseModel> {
       : (document._id as ObjectId).toHexString()
 
     instance.id = id
+    rememberIdentity(instance, document._id)
+    instance.wasRecentlyCreated = false
 
     return instance
   }

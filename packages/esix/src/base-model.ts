@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 
 import QueryBuilder from './query-builder'
+import { modelIdentity, rememberIdentity } from './model-identity'
 import type {
   ComparisonOperator,
   Dictionary,
@@ -634,7 +635,7 @@ export default class BaseModel {
 
     return queryBuilder
       .where({
-        _id: this.id
+        _id: modelIdentity(this)
       })
       .limit(1)
       .delete()
@@ -682,20 +683,19 @@ export default class BaseModel {
       this.constructor as ObjectType<BaseModel>
     )
 
-    if (this.id) {
-      this.updatedAt = Date.now()
-    } else {
-      this.createdAt = Date.now()
-      this.wasRecentlyCreated = true
-    }
-
     const attributes = { ...this }
-
-    const id = await queryBuilder.save(attributes)
-
-    if (!this.id) {
-      this.id = id
+    if (this.id) {
+      attributes.updatedAt = Date.now()
+    } else {
+      attributes.createdAt = Date.now()
     }
+    const rawId = modelIdentity(this)
+    const { id, created } = await queryBuilder.persist(attributes, rawId)
+    this.id = id
+    this.createdAt = attributes.createdAt
+    this.updatedAt = attributes.updatedAt
+    this.wasRecentlyCreated ||= created
+    rememberIdentity(this, rawId || id)
   }
 
   /**

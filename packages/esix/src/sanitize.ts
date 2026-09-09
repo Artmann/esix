@@ -1,3 +1,5 @@
+import { BSON } from 'mongodb'
+
 // Removes keys from object which starts with '$' to help
 // avoid NoSQL injections.
 const MAX_DEPTH = 32
@@ -21,24 +23,30 @@ function _sanitize<T>(input: T, depth: number): T | T[] {
     return input.map((value) => _sanitize(value, depth + 1))
   }
 
+  if (
+    input instanceof Date ||
+    input instanceof RegExp ||
+    input instanceof Uint8Array ||
+    input instanceof BSON.BSONValue
+  ) {
+    return input
+  }
+
   const keys = Object.keys(input)
 
-  return keys.reduce((carry, key) => {
-    if (isString(key) && key.startsWith('$')) {
-      return carry
-    }
-
-    return {
-      ...carry,
-      [key]: _sanitize((input as Record<string, any>)[key], depth + 1)
-    }
-  }, {} as T)
+  const result: Record<string, unknown> = {}
+  for (const key of keys) {
+    if (key.startsWith('$')) continue
+    Object.defineProperty(result, key, {
+      value: _sanitize(input[key], depth + 1),
+      enumerable: true,
+      configurable: true,
+      writable: true
+    })
+  }
+  return result as T
 }
 
 function isObject(x: any): x is Record<any, any> {
   return typeof x === 'object' && x !== null
-}
-
-function isString(x: any): x is string {
-  return typeof x === 'string' || x instanceof String
 }

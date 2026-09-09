@@ -1,6 +1,14 @@
-import { MongoClient, ObjectId } from 'mongodb'
+import { Binary, Decimal128, MongoClient, ObjectId } from 'mongodb'
 import { randomUUID } from 'node:crypto'
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
 import { BaseModel, connectionHandler } from './index'
 
 class RecordModel extends BaseModel {
@@ -83,5 +91,74 @@ describe.skipIf(!uri)('MongoDB driver contracts', () => {
     expect(
       (await RecordModel.orderBy('id', 'desc').paginate(2, 1)).data[0].id
     ).toBe('b')
+  })
+  it('preserves BSON values through save and query sanitization', async () => {
+    const c = client.db(databaseName).collection('records')
+    const date = new Date('2024-01-02T00:00:00Z')
+    const ref = new ObjectId()
+    await c.insertOne({
+      _id: 'bson' as any,
+      date,
+      ref,
+      nested: [date],
+      decimal: Decimal128.fromString('1.25'),
+      binary: new Binary(Buffer.from([1, 2]))
+    })
+    const model = await RecordModel.find('bson')
+    await model!.save()
+    const stored = await c.findOne({ _id: 'bson' as any })
+    expect(stored!.date).toEqual(date)
+    expect(stored!.ref).toEqual(ref)
+    expect(stored!.nested).toEqual([date])
+    expect(stored!.decimal.toString()).toBe('1.25')
+    expect(stored!.binary.value()).toEqual(Buffer.from([1, 2]))
+    expect(await RecordModel.limit(1).where({ date, ref }).count()).toBe(1)
+    const created = await RecordModel.firstOrCreate({ group: 'new' }, {
+      date,
+      ref
+    } as any)
+    expect((await c.findOne({ _id: created.id as any }))!.date).toEqual(date)
+  })
+  it('updates the exact BSON identity when a matching string ID exists', async () => {
+    const c = client.db(databaseName).collection('records')
+    const id = new ObjectId()
+    await c.insertMany([
+      { _id: id, group: 'native' },
+      { _id: id.toHexString() as any, group: 'string' }
+    ])
+    const model = await RecordModel.where('group', 'native').first()
+    await model!.update({ value: 42 })
+    expect((await c.findOne({ _id: id }))!.value).toBe(42)
+    expect(
+      (await c.findOne({ _id: id.toHexString() as any }))!.value
+    ).toBeUndefined()
+    expect(await model!.delete()).toBe(1)
+    expect(await c.findOne({ _id: id })).toBeNull()
+    expect(await c.findOne({ _id: id.toHexString() as any })).not.toBeNull()
+  })
+  it('deletes selected ObjectId records in bulk', async () => {
+    const c = client.db(databaseName).collection('records')
+    await c.insertMany([
+      { _id: new ObjectId(), group: 'native' },
+      { _id: new ObjectId(), group: 'native' }
+    ])
+    expect(await RecordModel.where('group', 'native').limit(2).delete()).toBe(2)
+    expect(await c.countDocuments({ group: 'native' })).toBe(0)
+  })
+  it('sets creation metadata only after successful persistence', async () => {
+    const model = new RecordModel()
+    const spy = vi
+      .spyOn(connectionHandler, 'getConnection')
+      .mockRejectedValueOnce(new Error('offline'))
+    await expect(model.save()).rejects.toThrow('offline')
+    expect(model.wasRecentlyCreated).toBe(false)
+    spy.mockRestore()
+    await model.save()
+    expect(model.wasRecentlyCreated).toBe(true)
+    const explicit = new RecordModel()
+    explicit.id = 'explicit'
+    await explicit.save()
+    expect(explicit.wasRecentlyCreated).toBe(true)
+    expect((await RecordModel.find('explicit'))!.wasRecentlyCreated).toBe(false)
   })
 })

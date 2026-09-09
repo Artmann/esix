@@ -82,3 +82,19 @@ describe('sanitize', () => {
     expect(() => sanitize(root)).toThrow(/maximum depth/)
   })
 })
+
+describe('special values', () => {
+  it('preserves Date, RegExp and binary values', () => {
+    const date = new Date()
+    const regex = /hello/i
+    const binary = Buffer.from([1, 2])
+    expect(sanitize({ date, regex, binary })).toEqual({ date, regex, binary })
+  })
+  it('keeps special property names without changing the output prototype', () => {
+    const input = JSON.parse('{"__proto__":{"safe":1},"constructor":2,"$ne":3}')
+    const output = sanitize(input)
+    expect(Object.getPrototypeOf(output)).toBe(Object.prototype)
+    expect(Object.hasOwn(output, '__proto__')).toBe(true)
+    expect(output).not.toHaveProperty('$ne')
+  })
+})
