@@ -1,6 +1,6 @@
 # Review fixes and compatibility notes
 
-Implemented September 9, 2026 against the review baseline `fe52bf3`. 
+Implemented September 9, 2026 against the review baseline `fe52bf3`.
 
 ## Correctness
 
