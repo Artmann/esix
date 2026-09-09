@@ -648,13 +648,9 @@ export default class BaseModel {
     ) {
       return queryBuilder.whereIn(fk as keyof T, [])
     }
-    if (lk === 'id' && modelIdentity(this) !== value) {
-      return queryBuilder.whereIn(
-        fk as keyof T,
-        [value, modelIdentity(this)] as any
-      )
-    }
-    return queryBuilder.where({ [fk]: value })
+    return queryBuilder.where({
+      [fk]: lk === 'id' ? modelIdentity(this) : value
+    })
   }
 
   /**
@@ -693,10 +689,13 @@ export default class BaseModel {
       attributes.createdAt = Date.now()
     }
     const rawId = modelIdentity(this)
-    const { id, created } = await queryBuilder.persist(attributes, rawId)
+    const { id, created, createdAt, updatedAt } = await queryBuilder.persist(
+      attributes,
+      rawId
+    )
     this.id = id
-    this.createdAt = attributes.createdAt
-    this.updatedAt = attributes.updatedAt
+    this.createdAt = createdAt
+    this.updatedAt = updatedAt
     this.wasRecentlyCreated ||= created
     rememberIdentity(this, rawId || id)
   }

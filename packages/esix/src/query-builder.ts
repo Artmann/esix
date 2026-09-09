@@ -220,12 +220,14 @@ export default class QueryBuilder<T extends BaseModel> {
 
   /** @internal Inserts and hydrates the exact BSON snapshot without a second query. */
   async createModel(attributes: Dictionary): Promise<T> {
-    const document = BSON.deserialize(
-      BSON.serialize(normalizeAttributes(attributes))
-    )
+    const snapshot = BSON.serialize(normalizeAttributes(attributes))
+    // The real server accepts BSON wrappers; mongo-mock compares JS primitives.
+    const document = BSON.deserialize(snapshot, {
+      promoteValues: env('DB_ADAPTER', 'default').toLowerCase() === 'mock'
+    })
     return this.useCollection(async (collection) => {
       await collection.insertOne(document)
-      const model = this.createInstance<T>(document)
+      const model = this.createInstance<T>(BSON.deserialize(snapshot))
       model.wasRecentlyCreated = true
       return model
     })
@@ -312,6 +314,8 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Decrements the given numeric key by `by` for every document matching
    * the current query. Translates to MongoDB's `$inc` operator.
+   * Sort, skip and limit do not restrict this bulk update. Timestamps are
+   * unchanged, and the amount must be finite.
    *
    * Example
    * ```
@@ -523,6 +527,8 @@ export default class QueryBuilder<T extends BaseModel> {
   /**
    * Increments the given numeric key by `by` for every document matching
    * the current query. Translates to MongoDB's `$inc` operator.
+   * Sort, skip and limit do not restrict this bulk update. Timestamps are
+   * unchanged, and the amount must be finite.
    *
    * Example
    * ```
@@ -759,7 +765,8 @@ export default class QueryBuilder<T extends BaseModel> {
   }
 
   /**
-   * The pluck method retrieves all of the values for a given key.
+   * Retrieves stored values for a key without constructing models. Missing
+   * fields yield undefined; class defaults are not substituted.
    *
    * You may also specify how you wish the resulting collection to be keyed.
    *
@@ -795,7 +802,12 @@ export default class QueryBuilder<T extends BaseModel> {
   async persist(
     attributes: Dictionary,
     rawId?: string | ObjectId
-  ): Promise<{ id: string; created: boolean }> {
+  ): Promise<{
+    id: string
+    created: boolean
+    createdAt: number
+    updatedAt: number | null
+  }> {
     attributes = normalizeAttributes(sanitize(attributes))
     if (rawId) attributes._id = rawId
     const id = attributes._id
@@ -807,7 +819,9 @@ export default class QueryBuilder<T extends BaseModel> {
       )
       return {
         id: typeof id === 'string' ? id : id.toHexString(),
-        created: (result?.upsertedCount ?? 0) > 0
+        created: (result?.upsertedCount ?? 0) > 0,
+        createdAt: attributes.createdAt,
+        updatedAt: attributes.updatedAt
       }
     })
   }
@@ -1267,7 +1281,18 @@ export default class QueryBuilder<T extends BaseModel> {
                 $and: [
                   { $in: [{ $type: `$${field}` }, ['int', 'long', 'double']] },
                   { $gte: [`$${field}`, -Number.MAX_VALUE] },
-                  { $lte: [`$${field}`, Number.MAX_VALUE] }
+                  { $lte: [`$${field}`, Number.MAX_VALUE] },
+                  {
+                    $or: [
+                      { $ne: [{ $type: `$${field}` }, 'long'] },
+                      {
+                        $and: [
+                          { $gte: [`$${field}`, -(2 ** 53)] },
+                          { $lte: [`$${field}`, 2 ** 53] }
+                        ]
+                      }
+                    ]
+                  }
                 ]
               },
               0,
@@ -1278,11 +1303,14 @@ export default class QueryBuilder<T extends BaseModel> {
       }
     })
     const [result] = await this.aggregate(stages)
-    if (result?.invalid || (result && !Number.isFinite(result.value)))
+    const value = BSON.Long.isLong(result?.value)
+      ? result.value.toNumber()
+      : (result?.value ?? 0)
+    if (result?.invalid || !Number.isFinite(value))
       throw new Error(
         `All values returned for ${String(key)} are not numbers. Please check your data.`
       )
-    return result?.value ?? 0
+    return value
   }
 
   private async useCollection<K>(
