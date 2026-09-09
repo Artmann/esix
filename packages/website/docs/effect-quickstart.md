@@ -39,7 +39,7 @@ Save this complete example as `quickstart.ts`:
 ```ts
 import { BaseModel } from 'esix'
 import { Esix } from 'esix/effect'
-import { Console, Effect, Redacted } from 'effect'
+import { Console, Effect } from 'effect'
 
 class User extends BaseModel {
   name = ''
@@ -47,13 +47,13 @@ class User extends BaseModel {
 }
 
 const live = Esix.layer({
-  url: Redacted.make('mongodb://127.0.0.1:27017/esix_effect_quickstart'),
+  url: 'mongodb://127.0.0.1:27017/esix_effect_quickstart',
   database: 'esix_effect_quickstart'
 })
 
+const users = Esix.model(User)
+
 const program = Effect.gen(function* () {
-  const db = yield* Esix
-  const users = db.model(User)
   const alice = yield* users.create({ name: 'Alice', age: 30 })
   const matches = yield* users.where('id', alice.id).get()
   yield* Console.log(matches.map((user) => user.name))
@@ -77,6 +77,14 @@ Expected output:
 Each run inserts a new record into the `users` collection. `create()` supplies
 the model defaults, id, and timestamps. Constructing the program does no
 database work; `Effect.runPromise` executes it.
+
+`Esix.model(User)` can be defined at module scope. Its operations carry the
+`Esix` requirement in their types; providing `live` supplies the connection when
+they execute.
+
+For environment-based configuration, use `Esix.Default` instead of `live`: it
+reads the required `DB_URL` and optional `DB_DATABASE` through Effect Config.
+Use `Esix.layerConfig(...)` to customize configuration keys or defaults.
 
 The Layer opens its own MongoDB client and closes it when the program finishes,
 including on failure. In a server, provide the Layer for the application's

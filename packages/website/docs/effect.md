@@ -12,7 +12,11 @@ Effect.
 
 ## Queries and missing records
 
-Obtain a model facade with `const users = db.model(User)`. Fluent methods return
+Define a reusable model facade with `const users = Esix.model(User)` at module
+scope. Its operations return `Effect<A, EsixOperationError, Esix>` and resolve
+the database from the Layer provided at execution. If you already extracted the
+service with `yield* Esix`, `db.model(User)` remains available and returns
+operations without an additional environment requirement. Fluent methods return
 independent query descriptions: deriving one query never changes another. Every
 execution constructs a fresh query, and mutable query inputs are copied when the
 query is described.
@@ -30,10 +34,11 @@ class User extends BaseModel {
   age = 0
 }
 
+const users = Esix.model(User)
+
 export const findName = (id: string) =>
   Effect.gen(function* () {
-    const db = yield* Esix
-    const found = yield* db.model(User).find(id)
+    const found = yield* users.find(id)
     return Option.match(found, {
       onNone: () => 'Unknown user',
       onSome: (user) => user.name
@@ -48,7 +53,7 @@ export const findName = (id: string) =>
 | `await User.find(id)` → model or null     | `yield* users.find(id)` → Option            |
 | `await user.save()`                       | `yield* users.save(user)`                   |
 | `await user.update({ age: 31 })`          | `yield* users.update(user, { age: 31 })`    |
-| `await user.delete()`                     | `yield* users.deleteModel(user)`            |
+| `await user.delete()`                     | `yield* users.remove(user)`                 |
 | `User.cursor(500)`                        | `users.stream(500)`                         |
 
 Filtering includes `where`, `orWhere`, membership/null checks, sorting,
@@ -62,7 +67,7 @@ rules.
 
 `create` and `firstOrCreate` preserve model defaults and `wasRecentlyCreated`.
 Instance writes execute only when their Effect runs. Query `delete()` deletes
-matching records; `deleteModel(model)` deletes one model.
+matching records; `remove(model)` deletes one model.
 
 ```ts
 import { BaseModel } from 'esix'
@@ -78,12 +83,13 @@ class Post extends BaseModel {
   title = ''
 }
 
+const users = Esix.model(User)
+const posts = Esix.model(Post)
+
 export const createAuthor = Effect.gen(function* () {
-  const db = yield* Esix
-  const users = db.model(User)
   const author = yield* users.create({ name: 'Alice' })
   yield* users.update(author, { age: 31 })
-  yield* db.model(Post).create({ userId: author.id, title: 'Hello' })
+  yield* posts.create({ userId: author.id, title: 'Hello' })
   return yield* users.hasMany(author, Post).get()
 })
 ```
@@ -102,10 +108,22 @@ facade.
 
 ## Typed errors
 
-`EsixConnectionError` describes Layer acquisition failure. `EsixQueryError`
-describes failed terminal operations and carries `operation`, `collection`, and
-the original `cause`. Generated messages omit the connection URL. Treat driver
-causes as potentially sensitive if you log them.
+`EsixConnectionError` describes Layer acquisition failure. Terminal operations
+fail with `EsixOperationError`, a union of:
+
+| Tag                     | Meaning                                                       |
+| ----------------------- | ------------------------------------------------------------- |
+| `EsixDuplicateKeyError` | MongoDB code 11000, such as a unique email constraint         |
+| `EsixTimeoutError`      | A driver network/operation timeout or server time-limit error |
+| `EsixModelBindingError` | The model has a different constructor or connection           |
+| `EsixQueryError`        | Other query failures                                          |
+
+Use `Effect.catchTag` to handle specific outcomes. Errors carry `operation`,
+`collection`, and an optional numeric MongoDB `code`. The original error is
+retained as the non-enumerable native `cause`; it is excluded from Schema
+encoding so arbitrary driver objects do not cross serialization boundaries.
+Generated messages omit driver text, which may contain credentials or document
+values. Treat raw causes as potentially sensitive if you log them.
 
 ```ts
 import { BaseModel } from 'esix'
@@ -116,46 +134,50 @@ class User extends BaseModel {
   name = ''
 }
 
+const users = Esix.model(User)
+
 export const countUsers = Effect.gen(function* () {
-  const db = yield* Esix
-  return yield* db
-    .model(User)
-    .count()
-    .pipe(
-      Effect.catchTag('EsixQueryError', (error) =>
-        Effect.logError('User count failed', {
-          operation: error.operation
-        }).pipe(Effect.zipRight(Effect.fail(error)))
-      )
+  return yield* users.count().pipe(
+    Effect.catchTag('EsixQueryError', (error) =>
+      Effect.logError('User count failed', {
+        operation: error.operation
+      }).pipe(Effect.zipRight(Effect.fail(error)))
     )
+  )
 })
 ```
 
-There are no automatic retries. Apply retry policies deliberately, especially
-for writes that might have reached MongoDB before an error was returned. A
-client-close failure is retained as a finalizer defect.
+A timeout does not prove that a write was unapplied. There are no automatic
+retries. Apply retry policies deliberately, especially for writes that might
+have reached MongoDB before an error was returned. A client-close failure is
+retained as a finalizer defect.
 
 ## Configuration and connection lifetime
 
 `Esix.layer({ url, database?, clientOptions? })` owns a native MongoDB client.
-The URL is a `Redacted<string>`. Options are explicit and do not change
-`DB_URL`, `DB_DATABASE`, or `DB_ADAPTER` used by the Promise API. Native Effect
-connections always use native driver behavior, even if the global adapter is set
-to mock.
+The URL accepts a string or `Redacted<string>` and is held redacted internally.
+Options are explicit and do not change `DB_URL`, `DB_DATABASE`, or `DB_ADAPTER`
+used by the Promise API. Native Effect connections always use native driver
+behavior, even if the global adapter is set to mock.
 
 To read environment configuration with Effect:
 
 ```ts
 import { Esix } from 'esix/effect'
-import { Config, Effect, Layer } from 'effect'
+import { Config } from 'effect'
 
-export const EsixLive = Layer.unwrapEffect(
-  Effect.gen(function* () {
-    const url = yield* Config.redacted('DB_URL')
-    return Esix.layer({ url, clientOptions: { maxPoolSize: 10 } })
-  })
-)
+export const EsixLive = Esix.layerConfig({
+  url: Config.redacted('DB_URL'),
+  clientOptions: Config.succeed({ maxPoolSize: 10 })
+})
+
+// Reads required DB_URL and optional DB_DATABASE.
+export const EsixFromEnvironment = Esix.Default
 ```
+
+`layerConfig` accepts Effect Config values for its options. Configuration
+failures remain typed ConfigErrors; missing DB_URL fails before a client is
+allocated. Plain `layer` continues to accept already-resolved options.
 
 Provide one Layer for the application's lifetime. Owned connections close when
 their scope ends; captured models and queries cannot reopen a closed connection.
@@ -177,10 +199,10 @@ class User extends BaseModel {
   age = 0
 }
 
+const users = Esix.model(User)
+
 export const processAdults = Effect.gen(function* () {
-  const db = yield* Esix
-  return yield* db
-    .model(User)
+  return yield* users
     .where('age', '>=', 18)
     .stream(500)
     .pipe(
@@ -217,8 +239,7 @@ class User extends BaseModel {
 export const countInTestDatabase = (database: Db) =>
   Effect.runPromise(
     Effect.gen(function* () {
-      const db = yield* Esix
-      return yield* db.model(User).count()
+      return yield* Esix.model(User).count()
     }).pipe(Effect.provide(Esix.layerFromDb(database)))
   )
 ```
@@ -227,3 +248,27 @@ The test fixture remains responsible for cleaning its database and closing its
 client. Application services can also replace their repository dependencies with
 test Layers. See [testing](/docs/testing) for the ordinary Promise API's mock
 adapter.
+
+### In-process mock databases
+
+Pass a Db opened by `mongo-mock` with
+`Esix.layerFromDb(mockDb, { adapter: 'mock' })`. The explicit adapter selects
+the existing mock-compatible BSON and aggregation paths; omitting it means a
+native MongoDB Db. The caller closes the mock Db after the test. This provides
+in-process tests without another connection-owning mock factory.
+
+```ts
+import { Esix } from 'esix/effect'
+import type { Db } from 'mongodb'
+
+export const mockLayer = (database: Db) =>
+  Esix.layerFromDb(database, { adapter: 'mock' })
+```
+
+## Runtime validation
+
+Results are hydrated model instances, not Schema-decoded data. TypeScript field
+declarations and class defaults do not validate stored documents at runtime. Use
+`Schema.decodeUnknown` with your application's schema at a boundary when runtime
+validation is required. Query sanitization protects query construction; it does
+not validate result shapes.

@@ -1,4 +1,4 @@
-import { Cause, Effect, Exit, Fiber, Redacted } from 'effect'
+import { Cause, ConfigProvider, Effect, Exit, Fiber, Redacted } from 'effect'
 import { MongoClient } from 'mongodb'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BaseModel } from 'esix'
@@ -45,6 +45,41 @@ describe('Esix Layers', () => {
     )
     expect(error._tag).toBe('EsixConnectionError')
     expect(close).toHaveBeenCalledTimes(1)
+  })
+  it('reads Default configuration at execution and accepts explicit plain URLs', async () => {
+    const urls: string[] = []
+    vi.spyOn(MongoClient.prototype, 'connect').mockImplementation(
+      async function (this: MongoClient) {
+        urls.push(this.options.hosts[0].toString())
+        return this
+      }
+    )
+    vi.spyOn(MongoClient.prototype, 'close').mockResolvedValue()
+    // Inspect the selected database inside its resource lifetime.
+    const name = await Effect.runPromise(
+      Effect.gen(function* () {
+        const service = yield* Esix
+        return (yield* Effect.promise(() => service.connection.getConnection()))
+          .databaseName
+      }).pipe(
+        Effect.provide(Esix.Default),
+        Effect.withConfigProvider(
+          ConfigProvider.fromMap(
+            new Map([
+              ['DB_URL', 'mongodb://127.0.0.1:27028/from-url'],
+              ['DB_DATABASE', 'configured']
+            ])
+          )
+        )
+      )
+    )
+    expect(name).toBe('configured')
+    await Effect.runPromise(
+      Esix.pipe(
+        Effect.provide(Esix.layer({ url: 'mongodb://127.0.0.1:27028/plain' }))
+      )
+    )
+    expect(urls).toEqual(['127.0.0.1:27028', '127.0.0.1:27028'])
   })
   it('borrows Db without connecting or closing it', async () => {
     const client = new MongoClient('mongodb://127.0.0.1:27028')
