@@ -133,3 +133,6 @@ skipped.
 Scalar reads (`pluck`) return stored values without model defaults. Numeric
 aggregates reject missing, nonnumeric and non-finite values; empty sets return
 zero. Include these boundaries in application tests.
+
+For Effect tests, see
+[providing a borrowed database Layer](/docs/effect#testing-with-a-borrowed-database).

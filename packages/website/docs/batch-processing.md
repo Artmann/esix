@@ -1,6 +1,8 @@
 ---
 title: Batch Processing
-description: Process large collections without loading everything into memory. Learn how to iterate over models in batches with Esix's chunk helper and async cursor.
+description:
+  Process large collections without loading everything into memory. Learn how to
+  iterate over models in batches with Esix's chunk helper and async cursor.
 ---
 
 Methods like `all()` and `get()` load every matching document into memory at
@@ -13,8 +15,8 @@ usage stays flat no matter how large the collection is.
 
 ## chunk()
 
-`chunk(size, callback)` fetches models in batches of `size` and hands each
-batch to your callback along with a page number, starting at 1:
+`chunk(size, callback)` fetches models in batches of `size` and hands each batch
+to your callback along with a page number, starting at 1:
 
 ```ts
 await Book.chunk(500, async (books, page) => {
@@ -32,8 +34,7 @@ Processing page 2 with 500 books
 Processing page 3 with 137 books
 ```
 
-`chunk` works on any query, so you can constrain which documents are
-processed:
+`chunk` works on any query, so you can constrain which documents are processed:
 
 ```ts
 await Post.where('published', false).chunk(100, async (posts) => {
@@ -111,24 +112,26 @@ for await (const user of User.cursor()) {
 
 ## Iteration Order and Mutation Safety
 
-Both `chunk` and `cursor` iterate documents by id in ascending order. After
-each batch, the next batch is fetched with an "id greater than the last one
-seen" condition rather than a numeric offset. This has two important
-consequences:
+Both `chunk` and `cursor` iterate documents by id in ascending order. After each
+batch, the next batch is fetched with an "id greater than the last one seen"
+condition rather than a numeric offset. This has two important consequences:
 
 - **Mutation safety.** It is safe to update or delete the models you've been
   handed while iterating. A hand-rolled `skip`/`limit` loop silently skips
-  documents when the loop body changes which documents match the query;
-  keyset pagination does not.
-- **Fixed ordering.** Any `orderBy()`, `limit()`, or `skip()` set on the
-  query is ignored by `chunk` and `cursor`. Resumable keyset pagination
-  requires a unique total order, so iteration is always by id ascending.
+  documents when the loop body changes which documents match the query; keyset
+  pagination does not.
+- **Fixed ordering.** Any `orderBy()`, `limit()`, or `skip()` set on the query
+  is ignored by `chunk` and `cursor`. Resumable keyset pagination requires a
+  unique total order, so iteration is always by id ascending.
 
-One limitation to be aware of: the collection's `_id`s must all be the same
-BSON type. Documents created through Esix always use string ids, and
-collections created by other tools usually use `ObjectId`s throughout —
-both work fine. But a mixed-type collection will only iterate the first
-type bracket, because MongoDB's `$gt` never matches across BSON types.
+One limitation to be aware of: the collection's `_id`s must all be the same BSON
+type. Documents created through Esix always use string ids, and collections
+created by other tools usually use `ObjectId`s throughout — both work fine. But
+a mixed-type collection will only iterate the first type bracket, because
+MongoDB's `$gt` never matches across BSON types.
 
 If you need results in a custom order or a single bounded page, use
 [pagination](/docs/pagination) instead.
+
+Effect applications can consume these batches as
+[Effect Streams](/docs/effect#streaming).

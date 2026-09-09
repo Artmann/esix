@@ -4,6 +4,7 @@ import percentile from 'percentile'
 import type BaseModel from './base-model'
 import { rememberIdentity } from './model-identity'
 import { connectionHandler } from './connection-handler'
+import { bindConnection, type QueryConnection } from './model-connection'
 import { resolveCollectionName } from './naming'
 import { resolveQueryLogger, withQueryLogging } from './query-logger'
 import { sanitize } from './sanitize'
@@ -66,8 +67,20 @@ export default class QueryBuilder<T extends BaseModel> {
   private queryOffset?: number
   private queryOrder?: Order
 
-  constructor(ctor: ObjectType<T>) {
+  constructor(
+    ctor: ObjectType<T>,
+    private readonly connection: QueryConnection = connectionHandler
+  ) {
     this.ctor = ctor
+  }
+
+  /** Associates instance operations with this query's database. */
+  bindModel(model: T): T {
+    return bindConnection(model, this.connection)
+  }
+
+  private get adapter(): string {
+    return this.connection.adapter ?? env('DB_ADAPTER', 'default').toLowerCase()
   }
 
   /**
@@ -90,7 +103,7 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async average<K extends keyof T>(key: K): Promise<number> {
-    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+    if (this.adapter !== 'mock') {
       return this.numericAggregate(key, 'avg')
     }
     const values = await this.pluck(key)
@@ -223,7 +236,7 @@ export default class QueryBuilder<T extends BaseModel> {
     const snapshot = BSON.serialize(normalizeAttributes(attributes))
     // The real server accepts BSON wrappers; mongo-mock compares JS primitives.
     const document = BSON.deserialize(snapshot, {
-      promoteValues: env('DB_ADAPTER', 'default').toLowerCase() === 'mock'
+      promoteValues: this.adapter === 'mock'
     })
     return this.useCollection(async (collection) => {
       await collection.insertOne(document)
@@ -345,7 +358,7 @@ export default class QueryBuilder<T extends BaseModel> {
   async distinct<K extends keyof T>(key: K): Promise<T[K][]> {
     const query = this.buildQuery()
     const field = key === 'id' ? '_id' : String(key)
-    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+    if (this.adapter !== 'mock') {
       const documents = await this.aggregate([
         { $match: andQueries(query, { [field]: { $ne: null } }) },
         { $group: { _id: `$${field}` } }
@@ -571,7 +584,7 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async max<K extends keyof T>(key: K): Promise<number> {
-    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+    if (this.adapter !== 'mock') {
       return this.numericAggregate(key, 'max')
     }
     const values = await this.pluck(key)
@@ -598,7 +611,7 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async min<K extends keyof T>(key: K): Promise<number> {
-    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+    if (this.adapter !== 'mock') {
       return this.numericAggregate(key, 'min')
     }
     const values = await this.pluck(key)
@@ -865,7 +878,7 @@ export default class QueryBuilder<T extends BaseModel> {
    * @param key
    */
   async sum<K extends keyof T>(key: K): Promise<number> {
-    if (env('DB_ADAPTER', 'default').toLowerCase() !== 'mock') {
+    if (this.adapter !== 'mock') {
       return this.numericAggregate(key, 'sum')
     }
     const values = await this.pluck(key)
@@ -1109,11 +1122,12 @@ export default class QueryBuilder<T extends BaseModel> {
     rememberIdentity(instance, document._id)
     instance.wasRecentlyCreated = false
 
+    bindConnection(instance, this.connection)
     return instance
   }
 
   private copy(): QueryBuilder<T> {
-    const copy = new QueryBuilder(this.ctor)
+    const copy = new QueryBuilder(this.ctor, this.connection)
     copy.query = this.query
     copy.orQueries = [...this.orQueries]
     copy.queryOrder = this.queryOrder && { ...this.queryOrder }
@@ -1318,7 +1332,7 @@ export default class QueryBuilder<T extends BaseModel> {
   ): Promise<K> {
     const collectionName = resolveCollectionName(this.ctor)
 
-    const connection = await connectionHandler.getConnection()
+    const connection = await this.connection.getConnection()
 
     const collection = await connection.collection(collectionName)
 

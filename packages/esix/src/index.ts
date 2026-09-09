@@ -36,3 +36,7 @@ export type {
   QueryLogger,
   QueryValue
 }
+
+export type { QueryConnection } from './model-connection'
+export { getDefaultValues } from './base-model'
+export type { NumericKey } from './types'
