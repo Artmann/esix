@@ -236,4 +236,67 @@ describe.skipIf(!uri)('MongoDB driver contracts', () => {
       client.off('commandStarted', listener)
     }
   })
+  it('creates with one write and returns an independent persisted snapshot', async () => {
+    const commands: any[] = []
+    const listener = (event: any) => commands.push(event.command)
+    client.on('commandStarted', listener)
+    vi.spyOn(connectionHandler, 'getConnection').mockResolvedValue(
+      client.db(databaseName)
+    )
+    try {
+      const attributes = { group: 'created', nested: { value: 1 } }
+      const created = await RecordModel.create(attributes as any)
+      expect(created.wasRecentlyCreated).toBe(true)
+      expect(created.createdAt).toBeGreaterThan(0)
+      attributes.nested.value = 2
+      expect((created as any).nested.value).toBe(1)
+      expect(commands.filter((command) => command.find)).toHaveLength(0)
+      expect(commands.filter((command) => command.insert)).toHaveLength(1)
+    } finally {
+      client.off('commandStarted', listener)
+    }
+  })
+  it('deduplicates whole values on the server without string/object collisions', async () => {
+    const c = client.db(databaseName).collection('records')
+    await c.insertMany([
+      { group: 'distinct', item: { a: 1 } },
+      { group: 'distinct', item: '{"a":1}' },
+      { group: 'distinct', item: ['x', 'y'] },
+      { group: 'distinct', item: ['x', 'y'] },
+      { group: 'distinct', item: null },
+      { group: 'distinct' }
+    ])
+    const commands: any[] = []
+    const listener = (event: any) => commands.push(event.command)
+    client.on('commandStarted', listener)
+    vi.spyOn(connectionHandler, 'getConnection').mockResolvedValue(
+      client.db(databaseName)
+    )
+    try {
+      const values = await RecordModel.where('group', 'distinct').distinct(
+        'item' as any
+      )
+      expect(values).toHaveLength(3)
+      expect(values).toEqual(
+        expect.arrayContaining([{ a: 1 }, '{"a":1}', ['x', 'y']])
+      )
+      expect(commands.some((command) => command.find)).toBe(false)
+    } finally {
+      client.off('commandStarted', listener)
+    }
+  })
+  it('does not let first or pagination mutate a reused query', async () => {
+    const query = RecordModel.orderBy('id')
+    expect((await query.first())!.id).toBe('a')
+    expect((await query.get()).map((item) => item.id)).toEqual(['a', 'b', 'c'])
+    await query.paginate(2, 1)
+    expect((await query.get()).map((item) => item.id)).toEqual(['a', 'b', 'c'])
+  })
+  it('captures sort and limit before asynchronous execution', async () => {
+    const query = RecordModel.orderBy('id')
+    const first = query.get()
+    query.orderBy('id', 'desc').limit(1)
+    expect((await first).map((item) => item.id)).toEqual(['a', 'b', 'c'])
+    expect((await query.get()).map((item) => item.id)).toEqual(['c'])
+  })
 })

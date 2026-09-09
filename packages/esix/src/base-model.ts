@@ -168,21 +168,7 @@ export default class BaseModel {
       ...attributes
     }
 
-    const id = await queryBuilder.create(attributesWithDefaults)
-    const model = await queryBuilder.findOne({
-      _id: id
-    })
-
-    if (!model) {
-      throw new Error(
-        `Failed to create ${this.name} (id: ${String(id)}). ` +
-          `The document was inserted but could not be retrieved afterwards.`
-      )
-    }
-
-    model.wasRecentlyCreated = true
-
-    return model
+    return queryBuilder.createModel(attributesWithDefaults)
   }
 
   /**

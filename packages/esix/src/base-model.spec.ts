@@ -3,8 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import BaseModel from './base-model'
 
-vi.mock('mongodb')
-
 function createCursor(documents: any[]) {
   const cursor: any = {
     limit: vi.fn(() => cursor),
@@ -67,12 +65,14 @@ describe('BaseModel', () => {
 
     let idCounter = 0
 
-    vi.mocked(ObjectId.prototype.toHexString).mockImplementation(() => {
+    vi.spyOn(ObjectId, 'createFromHexString')
+    vi.spyOn(ObjectId.prototype, 'toHexString').mockImplementation(() => {
       return ids[idCounter++ % ids.length]
     })
   })
 
   afterEach(() => {
+    vi.restoreAllMocks()
     vi.clearAllMocks()
     vi.useRealTimers()
   })
@@ -179,6 +179,9 @@ describe('BaseModel', () => {
     })
 
     it('uses the custom collection name when deleting.', async () => {
+      collection.find.mockReturnValue(
+        createCursor([{ _id: '5f3568f2a0cdd1c9ba411c43' }])
+      )
       collection.deleteOne.mockReturnValue({
         deletedCount: 1
       })
