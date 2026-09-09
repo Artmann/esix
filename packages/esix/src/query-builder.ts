@@ -365,7 +365,9 @@ export default class QueryBuilder<T extends BaseModel> {
           }
         : { _id: sanitize(id) }
 
-      const document = await collection.findOne(query as any)
+      const document = await collection.findOne(
+        andQueries(this.buildQuery(), query) as any
+      )
 
       if (!document) {
         return null
@@ -382,7 +384,7 @@ export default class QueryBuilder<T extends BaseModel> {
    */
   async findOne(query: Query): Promise<T | null> {
     return this.useCollection(async (collection) => {
-      const document = await collection.findOne(sanitize(query))
+      const document = await collection.findOne(this.buildConditionQuery(query))
 
       if (!document) {
         return null
@@ -578,7 +580,7 @@ export default class QueryBuilder<T extends BaseModel> {
       this.queryOrder = {}
     }
 
-    this.queryOrder[key] = order === 'asc' ? 1 : -1
+    this.queryOrder[key === 'id' ? '_id' : key] = order === 'asc' ? 1 : -1
 
     return this
   }
@@ -1158,18 +1160,15 @@ export default class QueryBuilder<T extends BaseModel> {
     if (this.orQueries.length > 0) {
       const lastIndex = this.orQueries.length - 1
 
-      this.orQueries[lastIndex] = {
-        ...this.orQueries[lastIndex],
-        ...condition
-      }
+      this.orQueries[lastIndex] = andQueries(
+        this.orQueries[lastIndex],
+        condition
+      )
 
       return
     }
 
-    this.query = {
-      ...this.query,
-      ...condition
-    }
+    this.query = andQueries(this.query, condition)
   }
 
   private async useCollection<K>(
@@ -1227,4 +1226,13 @@ export function isTextIndexMissingError(
   const message = error instanceof Error ? error.message : String(error ?? '')
 
   return /text index required for \$text query/i.test(message)
+}
+
+function andQueries(left: Query, right: Query): Query {
+  if (Object.keys(left).length === 0) return right
+  if (Object.keys(right).length === 0) return left
+  if (Object.keys(right).every((key) => !(key in left))) {
+    return { ...left, ...right }
+  }
+  return { $and: [left, right] }
 }
