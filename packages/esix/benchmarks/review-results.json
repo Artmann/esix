@@ -1,0 +1,81 @@
+{
+  "node": "v22.14.0",
+  "documents": 20000,
+  "payloadBytes": 1024,
+  "repetitions": 5,
+  "instrumentation": "command count and returned BSON documents; heap delta is not peak memory",
+  "rows": [
+    {
+      "version": "before",
+      "operation": "pluck",
+      "medianMs": 151.47,
+      "heapDeltaBytes": 39578672,
+      "operations": 21,
+      "documents": 20000,
+      "bsonBytes": 21840000
+    },
+    {
+      "version": "before",
+      "operation": "sum",
+      "medianMs": 174.59,
+      "heapDeltaBytes": 41873352,
+      "operations": 21,
+      "documents": 20000,
+      "bsonBytes": 21840000
+    },
+    {
+      "version": "before",
+      "operation": "distinct",
+      "medianMs": 45.34,
+      "heapDeltaBytes": 29713712,
+      "operations": 21,
+      "documents": 20000,
+      "bsonBytes": 860000
+    },
+    {
+      "version": "before",
+      "operation": "create",
+      "medianMs": 1.48,
+      "heapDeltaBytes": 206040,
+      "operations": 2,
+      "documents": 1,
+      "bsonBytes": 69
+    },
+    {
+      "version": "after",
+      "operation": "pluck",
+      "medianMs": 36.17,
+      "heapDeltaBytes": 19795488,
+      "operations": 21,
+      "documents": 20000,
+      "bsonBytes": 320000
+    },
+    {
+      "version": "after",
+      "operation": "sum",
+      "medianMs": 17.72,
+      "heapDeltaBytes": 146680,
+      "operations": 1,
+      "documents": 1,
+      "bsonBytes": 34
+    },
+    {
+      "version": "after",
+      "operation": "distinct",
+      "medianMs": 7.52,
+      "heapDeltaBytes": 155528,
+      "operations": 1,
+      "documents": 10,
+      "bsonBytes": 200
+    },
+    {
+      "version": "after",
+      "operation": "create",
+      "medianMs": 1.05,
+      "heapDeltaBytes": 110176,
+      "operations": 1,
+      "documents": 0,
+      "bsonBytes": 0
+    }
+  ]
+}
