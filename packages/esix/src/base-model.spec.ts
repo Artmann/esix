@@ -1055,7 +1055,7 @@ describe('BaseModel', () => {
         .get()
 
       expect(collection.find).toHaveBeenCalledWith({
-        pages: { $lt: 500 }
+        $and: [{ pages: { $gt: 300 } }, { pages: { $lt: 500 } }]
       })
 
       expect(books).toHaveLength(1)
