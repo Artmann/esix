@@ -8,35 +8,42 @@ import {
   type QueryConnection
 } from 'esix'
 import { EffectQuery } from './query'
-import { queryEffect } from './errors'
+import { bindingError } from './errors'
 import { snapshot } from './snapshot'
 
 /** Effect operations for an existing esix model class. */
-export class EffectModel<T extends BaseModel> extends EffectQuery<T> {
+export class EffectModel<T extends BaseModel, R = never> extends EffectQuery<
+  T,
+  R
+> {
+  /** @internal Use Esix.model() or the provided service accessor. */
   constructor(
     private readonly ctor: ObjectType<T>,
-    connection: QueryConnection
+    connection: QueryConnection | Effect.Effect<QueryConnection, never, R>
   ) {
-    super(() => new QueryBuilder(ctor, connection), resolveCollectionName(ctor))
-  }
-  query(): EffectQuery<T> {
-    return new EffectQuery(this.make, this.collectionName)
+    super(
+      Effect.map(
+        Effect.isEffect(connection) ? connection : Effect.succeed(connection),
+        (connection) => () => new QueryBuilder(ctor, connection)
+      ),
+      resolveCollectionName(ctor)
+    )
   }
   all() {
     return this.get()
   }
   create(attributes: Partial<T>) {
     const captured = snapshot(attributes)
-    return queryEffect('create', this.collectionName, () =>
-      this.make().createModel({ ...getDefaultValues(this.ctor), ...captured() })
+    return this.execute('create', (query) =>
+      query.createModel({ ...getDefaultValues(this.ctor), ...captured() })
     )
   }
   firstOrCreate(filter: Partial<T>, attributes?: Partial<T>) {
     const captured = snapshot({ filter, attributes })
-    return queryEffect('firstOrCreate', this.collectionName, async () => {
+    return this.execute('firstOrCreate', async (query) => {
       const { filter, attributes } = captured()
       return (
-        await this.make().firstOrCreate(filter, {
+        await query.firstOrCreate(filter, {
           ...getDefaultValues(this.ctor),
           ...filter,
           ...attributes
@@ -44,35 +51,43 @@ export class EffectModel<T extends BaseModel> extends EffectQuery<T> {
       ).model
     })
   }
-  private bind(model: T): T {
+  private bind(model: T, query: QueryBuilder<T>): T {
     if (!(model instanceof this.ctor))
-      throw new Error('Model has a different constructor')
-    return this.make().bindModel(model)
+      throw bindingError(
+        this.collectionName,
+        'constructor',
+        new Error('Model has a different constructor')
+      )
+    try {
+      return query.bindModel(model)
+    } catch (cause) {
+      throw bindingError(this.collectionName, 'connection', cause)
+    }
   }
   save(model: T) {
-    return queryEffect('save', this.collectionName, () =>
-      this.bind(model).save()
-    )
+    return this.execute('save', (query) => this.bind(model, query).save())
   }
   update(model: T, attributes: Partial<T>) {
     const captured = snapshot(attributes)
-    return queryEffect('update', this.collectionName, () =>
-      this.bind(model).update(captured())
+    return this.execute('update', (query) =>
+      this.bind(model, query).update(captured())
     )
   }
-  deleteModel(model: T) {
-    return queryEffect('deleteModel', this.collectionName, () =>
-      this.bind(model).delete()
-    )
+  remove(model: T) {
+    return this.execute('remove', (query) => this.bind(model, query).delete())
   }
   hasMany<U extends BaseModel>(
     model: T,
     related: ObjectType<U>,
     foreignKey?: string,
     localKey?: string
-  ): EffectQuery<U> {
+  ): EffectQuery<U, R> {
     return new EffectQuery(
-      () => this.bind(model).hasMany(related, foreignKey, localKey),
+      Effect.map(
+        this.make,
+        (make) => () =>
+          this.bind(model, make()).hasMany(related, foreignKey, localKey)
+      ),
       resolveCollectionName(related)
     )
   }
@@ -82,8 +97,10 @@ export class EffectModel<T extends BaseModel> extends EffectQuery<T> {
     foreignKey?: string,
     localKey?: string
   ) {
-    return queryEffect('hasOne', resolveCollectionName(related), () =>
-      this.bind(model).hasOne(related, foreignKey, localKey)
+    return this.execute(
+      'hasOne',
+      (query) => this.bind(model, query).hasOne(related, foreignKey, localKey),
+      resolveCollectionName(related)
     ).pipe(Effect.map(Option.fromNullable))
   }
   belongsTo<U extends BaseModel>(
@@ -92,8 +109,11 @@ export class EffectModel<T extends BaseModel> extends EffectQuery<T> {
     foreignKey?: string,
     ownerKey?: string
   ) {
-    return queryEffect('belongsTo', resolveCollectionName(related), () =>
-      this.bind(model).belongsTo(related, foreignKey, ownerKey)
+    return this.execute(
+      'belongsTo',
+      (query) =>
+        this.bind(model, query).belongsTo(related, foreignKey, ownerKey),
+      resolveCollectionName(related)
     ).pipe(Effect.map(Option.fromNullable))
   }
 }

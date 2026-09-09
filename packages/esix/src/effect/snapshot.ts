@@ -27,6 +27,7 @@ function copy<T>(value: T, seen = new WeakMap<object, unknown>()): T {
 
 /** Capture now, but report unsupported inputs only when the operation executes. */
 export function snapshot<T>(value: T): () => T {
+  if (value === null || typeof value !== 'object') return () => value
   try {
     const saved = copy(value)
     return () => copy(saved)

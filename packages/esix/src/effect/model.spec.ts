@@ -41,7 +41,7 @@ describe.skipIf(!uri)('Effect model database contracts', () => {
     expect(created).toBeInstanceOf(User)
     expect(created.age).toBe(0)
     expect(created.wasRecentlyCreated).toBe(true)
-    expect(await Effect.runPromise(users.deleteModel(created))).toBe(1)
+    expect(await Effect.runPromise(users.remove(created))).toBe(1)
     expect(await Effect.runPromise(users.find(created.id))).toEqual(
       Option.none()
     )
@@ -80,7 +80,7 @@ describe.skipIf(!uri)('Effect model database contracts', () => {
     const result = await Effect.runPromise(
       other.update(alice, { name: 'Wrong' }).pipe(Effect.flip)
     )
-    expect(result._tag).toBe('EsixQueryError')
+    expect(result._tag).toBe('EsixModelBindingError')
     expect(alice.name).toBe('Isolated')
   })
 })

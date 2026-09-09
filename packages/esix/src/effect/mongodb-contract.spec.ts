@@ -101,6 +101,29 @@ describe.skipIf(!uri)('Effect native driver contracts', () => {
       (await client.db(name).collection('records').findOne({ _id: id }))?.value
     ).toBe(7)
   })
+  it('handles unique-index violations with catchTag on the module-level API', async () => {
+    await client
+      .db(name)
+      .collection('records')
+      .createIndex(
+        { group: 1 },
+        { unique: true, partialFilterExpression: { group: 'unique' } }
+      )
+    const records = Esix.model(Record)
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        yield* records.create({ group: 'unique' })
+        return yield* records
+          .create({ group: 'unique' })
+          .pipe(
+            Effect.catchTag('EsixDuplicateKeyError', (error) =>
+              Effect.succeed(error.code)
+            )
+          )
+      }).pipe(Effect.provide(live))
+    )
+    expect(result).toBe(11000)
+  })
   it('keeps concurrent owned Layers independent and preserves a borrowed client', async () => {
     const write = (value: number) =>
       Effect.gen(function* () {
