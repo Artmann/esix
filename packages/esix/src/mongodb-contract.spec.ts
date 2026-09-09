@@ -1,4 +1,11 @@
-import { Binary, Decimal128, MongoClient, ObjectId } from 'mongodb'
+import {
+  Binary,
+  Decimal128,
+  Double,
+  Long,
+  MongoClient,
+  ObjectId
+} from 'mongodb'
 import { randomUUID } from 'node:crypto'
 import {
   afterAll,
@@ -161,6 +168,10 @@ describe.skipIf(!uri)('MongoDB driver contracts', () => {
     explicit.id = 'explicit'
     await explicit.save()
     expect(explicit.wasRecentlyCreated).toBe(true)
+    expect(explicit.createdAt).toBeGreaterThan(0)
+    expect(explicit.createdAt).toBe(
+      (await RecordModel.find('explicit'))!.createdAt
+    )
     expect((await RecordModel.find('explicit'))!.wasRecentlyCreated).toBe(false)
   })
   it('projects scalar reads without constructing models', async () => {
@@ -321,7 +332,8 @@ describe.skipIf(!uri)('MongoDB driver contracts', () => {
     await c.insertMany([
       { _id: id, group: 'parent' },
       { _id: id.toHexString() as any, group: 'other' },
-      { _id: 'child' as any, parentId: id }
+      { _id: 'child' as any, parentId: id },
+      { _id: 'string-child' as any, parentId: id.toHexString() }
     ])
     const child = await RecordModel.find('child')
     expect((await child!.belongsTo(RecordModel, 'parentId'))!.group).toBe(
@@ -342,5 +354,154 @@ describe.skipIf(!uri)('MongoDB driver contracts', () => {
     expect(
       await new RecordModel().hasMany(RecordModel, 'parentId').get()
     ).toEqual([])
+  })
+  it('atomically creates once under contention with a unique index', async () => {
+    const c = client.db(databaseName).collection('records')
+    await c.createIndex({ uniqueKey: 1 }, { unique: true, sparse: true })
+    const records = await Promise.all(
+      Array.from({ length: 12 }, () =>
+        RecordModel.firstOrCreate({ uniqueKey: 'shared' } as any)
+      )
+    )
+    expect(new Set(records.map((record) => record.id)).size).toBe(1)
+    expect(records.filter((record) => record.wasRecentlyCreated)).toHaveLength(
+      1
+    )
+    expect(await c.countDocuments({ uniqueKey: 'shared' })).toBe(1)
+  })
+  it('propagates duplicate inserts without marking a model as created', async () => {
+    await RecordModel.create({ id: 'unique' })
+    await expect(RecordModel.create({ id: 'unique' })).rejects.toMatchObject({
+      code: 11000
+    })
+  })
+  it('supports zero custom relationship keys and absent owners', async () => {
+    const c = client.db(databaseName).collection('records')
+    await c.insertMany([
+      { _id: 'parent-zero' as any, owner: 0 },
+      { _id: 'child-zero' as any, parent: 0 }
+    ])
+    const child = await RecordModel.find('child-zero')
+    expect((await child!.belongsTo(RecordModel, 'parent', 'owner'))!.id).toBe(
+      'parent-zero'
+    )
+    const parent = await RecordModel.find('parent-zero')
+    expect((await parent!.hasOne(RecordModel, 'parent', 'owner'))!.id).toBe(
+      'child-zero'
+    )
+    expect(await new RecordModel().belongsTo(RecordModel, 'missing')).toBeNull()
+  })
+  it('iterates homogeneous ObjectIds once while deleting each batch', async () => {
+    const c = client.db(databaseName).collection('records')
+    const ids = [new ObjectId(), new ObjectId(), new ObjectId()]
+    await c.insertMany(ids.map((_id) => ({ _id, group: 'batch' })))
+    const seen: string[] = []
+    await RecordModel.where('group', 'batch')
+      .orderBy('value', 'desc')
+      .skip(99)
+      .limit(1)
+      .chunk(2, async (records) => {
+        seen.push(...records.map((record) => record.id))
+        await Promise.all(records.map((record) => record.delete()))
+      })
+    expect(seen).toEqual(ids.map((id) => id.toHexString()))
+    expect(await c.countDocuments({ group: 'batch' })).toBe(0)
+  })
+  it('retains the documented all-matching semantics of bulk increments', async () => {
+    expect(
+      await RecordModel.where('group', 'one')
+        .limit(1)
+        .skip(1)
+        .increment('value', 2)
+    ).toBe(2)
+    const c = client.db(databaseName).collection('records')
+    expect((await c.findOne({ _id: 'a' as any }))!.value).toBe(22)
+    expect((await c.findOne({ _id: 'c' as any }))!.value).toBe(7)
+    expect((await c.findOne({ _id: 'a' as any }))!.updatedAt).toBeUndefined()
+  })
+  it('returns stored scalar values without substituting model defaults', async () => {
+    await client
+      .db(databaseName)
+      .collection('records')
+      .insertOne({ _id: 'missing' as any })
+    expect(await RecordModel.where('id', 'missing').pluck('value')).toEqual([
+      undefined
+    ])
+    await expect(
+      RecordModel.where('id', 'missing').sum('value')
+    ).rejects.toThrow(/numbers/)
+    expect((await RecordModel.find('missing'))!.value).toBe(0)
+  })
+  it('requires a text index and returns indexed text matches', async () => {
+    const c = client.db(databaseName).collection('records')
+    await expect(RecordModel.limit(1).search('one').get()).rejects.toThrow(
+      /text index/
+    )
+    await c.createIndex({ group: 'text' })
+    expect(
+      (await RecordModel.limit(3).search('two').get()).map(
+        (record) => record.id
+      )
+    ).toEqual(['b'])
+    await c.dropIndex('group_text')
+  })
+  it('returns a number when safe numeric inputs produce a BSON Long sum', async () => {
+    const c = client.db(databaseName).collection('records')
+    await c.insertMany([
+      { group: 'longs', value: Long.fromString('9007199254740991') },
+      { group: 'longs', value: Long.fromString('9007199254740991') }
+    ])
+    expect(await RecordModel.where('group', 'longs').sum('value')).toBe(
+      18014398509481982
+    )
+  })
+  it('rejects stored Long objects outside the driver numeric promotion range', async () => {
+    const c = client.db(databaseName).collection('records')
+    await c.insertMany([
+      { group: 'unsafe-longs', value: Long.fromString('9007199254740993') },
+      { group: 'unsafe-longs', value: Long.fromString('-9007199254740993') }
+    ])
+    await expect(
+      RecordModel.where('group', 'unsafe-longs').sum('value')
+    ).rejects.toThrow(/numbers/)
+  })
+
+  it('retains BSON numeric storage types when creating a snapshot', async () => {
+    const created = await RecordModel.create({
+      value: Long.fromString('42'),
+      double: new Double(42)
+    } as any)
+    const [types] = await client
+      .db(databaseName)
+      .collection('records')
+      .aggregate([
+        { $match: { _id: created.id } },
+        {
+          $project: {
+            valueType: { $type: '$value' },
+            doubleType: { $type: '$double' }
+          }
+        }
+      ])
+      .toArray()
+    expect(types.valueType).toBe('long')
+    expect(types.doubleType).toBe('double')
+    expect(created.value).toBe(42)
+  })
+  it('accepts both inclusive BSON Long promotion boundaries', async () => {
+    const c = client.db(databaseName).collection('records')
+    await c.insertMany([
+      { group: 'boundary-longs', value: Long.fromString('9007199254740992') },
+      { group: 'boundary-longs', value: Long.fromString('-9007199254740992') }
+    ])
+    expect(
+      await RecordModel.where('group', 'boundary-longs').sum('value')
+    ).toBe(0)
+    expect(
+      await RecordModel.where('group', 'boundary-longs').min('value')
+    ).toBe(-9007199254740992)
+    expect(
+      await RecordModel.where('group', 'boundary-longs').max('value')
+    ).toBe(9007199254740992)
   })
 })

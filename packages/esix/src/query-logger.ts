@@ -167,7 +167,19 @@ function createCursorOperation(
   return (...args: unknown[]) => {
     const startedAt = performance.now()
 
-    const cursor = method.apply(target, args) as object
+    let cursor: object
+    try {
+      cursor = method.apply(target, args) as object
+    } catch (error) {
+      safeLog(logger, {
+        args,
+        collectionName,
+        durationMs: performance.now() - startedAt,
+        error,
+        operation
+      })
+      throw error
+    }
 
     return wrapCursor(cursor, {
       args,
@@ -260,7 +272,19 @@ function wrapCursor(cursor: object, context: CursorLogContext): object {
 
       if (property === 'toArray') {
         return (...toArrayArgs: unknown[]) => {
-          const result = method.apply(target, toArrayArgs) as Promise<unknown>
+          let result: Promise<unknown>
+          try {
+            result = method.apply(target, toArrayArgs) as Promise<unknown>
+          } catch (error) {
+            safeLog(logger, {
+              args,
+              collectionName,
+              durationMs: performance.now() - startedAt,
+              error,
+              operation
+            })
+            throw error
+          }
 
           return result.then(
             (documents) => {

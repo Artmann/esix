@@ -28,4 +28,28 @@ describe('logger failure isolation', () => {
     expect(entries).toHaveLength(1)
     expect(entries[0].error).toBe(error)
   })
+  it.each(['find', 'toArray'] as const)(
+    'logs synchronous %s failures',
+    (operation) => {
+      const error = new Error('cursor failed')
+      const entries: QueryLogEntry[] = []
+      const wrapped = withQueryLogging(
+        {
+          find: () => {
+            if (operation === 'find') throw error
+            return {
+              toArray: () => {
+                throw error
+              }
+            }
+          }
+        },
+        'records',
+        (entry) => entries.push(entry)
+      )
+      expect(() => wrapped.find().toArray()).toThrow(error)
+      expect(entries).toHaveLength(1)
+      expect(entries[0].error).toBe(error)
+    }
+  )
 })
