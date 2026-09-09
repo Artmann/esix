@@ -22,8 +22,8 @@ describe('ConnectionHandler', () => {
       )
     })
 
-    afterEach(() => {
-      connectionHandler.closeConnections()
+    afterEach(async () => {
+      await connectionHandler.closeConnections()
       sandbox.restore()
     })
 
