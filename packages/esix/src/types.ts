@@ -43,3 +43,8 @@ export interface Paginated<T> {
   perPage: number
   lastPage: number
 }
+
+/** Model properties that can be incremented atomically. */
+export type NumericKey<T> = {
+  [K in keyof T]-?: NonNullable<T[K]> extends number ? K : never
+}[keyof T]

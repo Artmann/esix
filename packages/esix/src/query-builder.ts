@@ -13,6 +13,7 @@ import type {
   Dictionary,
   Document,
   ObjectType,
+  NumericKey,
   Paginated,
   QueryValue
 } from './types'
@@ -319,7 +320,10 @@ export default class QueryBuilder<T extends BaseModel> {
    *
    * @returns The number of documents that were modified.
    */
-  async decrement<K extends keyof T>(key: K, by: number = 1): Promise<number> {
+  async decrement<K extends NumericKey<T>>(
+    key: K,
+    by: number = 1
+  ): Promise<number> {
     return this.increment(key, -by)
   }
 
@@ -528,7 +532,12 @@ export default class QueryBuilder<T extends BaseModel> {
    *
    * @returns The number of documents that were modified.
    */
-  async increment<K extends keyof T>(key: K, by: number = 1): Promise<number> {
+  async increment<K extends NumericKey<T>>(
+    key: K,
+    by: number = 1
+  ): Promise<number> {
+    if (!Number.isFinite(by))
+      throw new TypeError('increment() amount must be finite.')
     const query = this.buildQuery()
 
     return this.useCollection(async (collection) => {
@@ -1254,7 +1263,13 @@ export default class QueryBuilder<T extends BaseModel> {
         invalid: {
           $sum: {
             $cond: [
-              { $in: [{ $type: `$${field}` }, ['int', 'long', 'double']] },
+              {
+                $and: [
+                  { $in: [{ $type: `$${field}` }, ['int', 'long', 'double']] },
+                  { $gte: [`$${field}`, -Number.MAX_VALUE] },
+                  { $lte: [`$${field}`, Number.MAX_VALUE] }
+                ]
+              },
               0,
               1
             ]
@@ -1263,7 +1278,7 @@ export default class QueryBuilder<T extends BaseModel> {
       }
     })
     const [result] = await this.aggregate(stages)
-    if (result?.invalid)
+    if (result?.invalid || (result && !Number.isFinite(result.value)))
       throw new Error(
         `All values returned for ${String(key)} are not numbers. Please check your data.`
       )
@@ -1298,7 +1313,9 @@ function isDuplicateKeyError(error: unknown): boolean {
 }
 
 function isNumberArray(array: any[]): array is number[] {
-  return array.every((item) => typeof item === 'number')
+  return array.every(
+    (item) => typeof item === 'number' && Number.isFinite(item)
+  )
 }
 
 export function isTextIndexMissingError(

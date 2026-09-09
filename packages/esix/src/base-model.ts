@@ -1,4 +1,5 @@
 import 'reflect-metadata'
+import { ObjectId } from 'mongodb'
 
 import QueryBuilder from './query-builder'
 import { modelIdentity, rememberIdentity } from './model-identity'
@@ -600,7 +601,9 @@ export default class BaseModel {
     const queryBuilder = new QueryBuilder(ctor)
 
     if (ok === 'id') {
-      return queryBuilder.find(String(value))
+      return value instanceof ObjectId
+        ? queryBuilder.where({ _id: value }).first()
+        : queryBuilder.find(String(value))
     }
 
     return queryBuilder.where({ [ok]: value }).first()
@@ -637,7 +640,21 @@ export default class BaseModel {
     const fk = foreignKey || camelCase(`${this.constructor.name}Id`)
     const lk = localKey || 'id'
 
-    return queryBuilder.where({ [fk]: (this as any)[lk] })
+    const value = (this as any)[lk]
+    if (
+      value === undefined ||
+      value === null ||
+      (lk === 'id' && value === '')
+    ) {
+      return queryBuilder.whereIn(fk as keyof T, [])
+    }
+    if (lk === 'id' && modelIdentity(this) !== value) {
+      return queryBuilder.whereIn(
+        fk as keyof T,
+        [value, modelIdentity(this)] as any
+      )
+    }
+    return queryBuilder.where({ [fk]: value })
   }
 
   /**
