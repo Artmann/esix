@@ -8,20 +8,25 @@ import { env } from './env'
  * Supports both real MongoDB connections and mock connections for testing.
  */
 class ConnectionHandler {
-  private client?: MongoClient
+  private client?: Promise<MongoClient>
+  private closing?: Promise<void>
 
   /**
    * Use this if you want to manually close the open connections. This can be useful if
    * you want to gracefully terminate connections in response to a signal.
    */
   async closeConnections(): Promise<void> {
-    if (!this.client) {
-      return
-    }
-
-    await this.client.close()
-
-    this.client = undefined
+    if (this.closing) return this.closing
+    if (!this.client) return
+    const pending = this.client
+    this.closing = (async () => {
+      const client = await pending.catch(() => undefined)
+      await client?.close()
+    })().finally(() => {
+      this.client = undefined
+      this.closing = undefined
+    })
+    return this.closing
   }
 
   /**
@@ -66,13 +71,18 @@ class ConnectionHandler {
   }
 
   private async getDatabase(): Promise<Db> {
+    if (this.closing) await this.closing
     if (!this.client) {
-      this.client = await this.createClient()
+      this.client = this.createClient().catch((error) => {
+        this.client = undefined
+        throw error
+      })
     }
+    const client = await this.client
 
     const databaseName = env('DB_DATABASE', '')
 
-    return this.client.db(databaseName)
+    return client.db(databaseName)
   }
 }
 
